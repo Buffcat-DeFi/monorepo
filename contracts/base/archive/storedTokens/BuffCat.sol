@@ -1,0 +1,1313 @@
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.22;
+
+// Chainlink Importss
+import {FeedRegistryInterface} from "../lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/FeedRegistryInterface.sol";
+import {Denominations} from "../lib/chainlink-brownie-contracts/contracts/src/v0.8/Denominations.sol";
+
+// OpenZeppelin (Standard) Imports
+import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import "../lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
+import "../lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
+
+// OpenZeppelin (Upgradeable) Imports
+import "../lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
+import "../lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "../lib/openzeppelin-contracts-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol";
+import "../lib/openzeppelin-contracts-upgradeable/contracts/utils/PausableUpgradeable.sol";
+import "../lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
+
+enum LockType {
+    FLEXIBLE,
+    FIXED
+}
+
+struct LockInfo {
+    uint256 amount;
+    uint256 lockStart;
+    uint256 lockEnd;
+    uint256 lastClaim;
+    uint256 withdrawn;
+    uint256 _days;
+    uint256 daysOfUnclaimedRewards;
+    address lockedToken;
+    LockType lockType;
+}
+
+struct FeeDistribution {
+    uint256 rewardPool;
+    uint256 marketing;
+    uint256 development;
+    uint256 developerWallet;
+}
+
+contract BuffCatUpgradeable is
+    Initializable,
+    OwnableUpgradeable,
+    UUPSUpgradeable,
+    PausableUpgradeable,
+    ReentrancyGuardUpgradeable
+{
+    using SafeERC20 for IERC20;
+
+    FeedRegistryInterface internal registry;
+    address public developerWallet;
+    address public founderWallet;
+
+    // User Variables
+    mapping(address => uint256) public lockCount;
+    mapping(address => bool) public participate;
+    uint256 public userCount;
+    mapping(address => uint256) public referralBoostEndTime;
+    mapping(address => mapping(address => uint256))
+        public userUniqueTokensLocked;
+    mapping(address => uint256) public userUniqueTokensCount;
+    mapping(address => mapping(uint256 => LockInfo)) public userLocks;
+    mapping(address => mapping(uint256 => uint256))
+        public timestampUnlockedOverAcceptableAmountAt;
+    mapping(address => mapping(uint256 => mapping(address => uint256)))
+        public storedTokensForLaterClaim;
+
+    // Global Contract Variables
+    uint256 public dailyNonStablePoolClaimLimit;
+    uint256 public dailyStablePoolClaimLimit;
+
+    uint256 public nonStableRewardPool;
+    uint256 public nonStableRewardPoolUSDValue; // Total USD value with 18 decimals
+
+    uint256 public stableRewardPool;
+    uint256 public stableRewardPoolUSDValue; // Total USD value with 18 decimals
+
+    uint256 public MIN_LOCK_VALUE = 500;
+    uint256 public MAX_LOCK_DURATION = 3000 days;
+    uint256 public MIN_LOCK_DURATION = 1 days;
+    uint256 public MAX_NON_STABLE_REWARD_CAP = 10; // 10% daily rewards cap
+    uint256 public MAX_STABLE_REWARD_CAP = 3;
+    uint256 public MINIMUM_REWARD_USD = 1; // $1
+    uint256 public duration = 1 days;
+    uint256 public feePercentage;
+    FeeDistribution public feeSplit;
+
+    uint256 public currentTimestamp;
+    mapping(address => bool) public whitelistedTokens; // Tokens that are whitelisted for locking
+    mapping(address => bool) public isStableCoin;
+    mapping(address => uint256) public claimableTokens;
+    address[] public poolTokens; // List of all tokens in the pool
+    mapping(address => uint256) public lastPoolUpdateForToken;
+    uint256 public lastFullUpdateTimestamp;
+    mapping(address => bool) public authorizedUpdaters;
+
+    // Events for contract state changes
+    event DailyClaimLimitReset(uint256 timestamp);
+    event RewardMultiplierReset(address indexed user, uint256 indexed lockId);
+    event ReferralSet(
+        address indexed user,
+        address indexed referrer,
+        uint256 timestamp
+    );
+    event DeveloperFeesDistributed(address developerWallet, uint256 fees);
+    event FounderFeesDistributed(address ownerWallet, uint256 fees);
+    event TokensAddedToPool(address token, uint256 amount);
+    event NonStablePoolValueUpdated(uint256 newTotalValue, uint256 timestamp);
+    event StablePoolValueUpdated(uint256 newTotalValue, uint256 timestamp);
+    event StableCoinAdded(address token, uint256 timestamp);
+    event StableCoinRemoved(address token, uint256 timestamp);
+    event TokenWhitelisted(address token, uint256 timestamp);
+    event TokenBlacklisted(address token, uint256 timestamp);
+
+    // Events for user actions
+    event LockCreated(
+        address indexed user,
+        address lockedToken,
+        uint256 indexed lockId,
+        uint256 amount,
+        uint256 lockDuration,
+        LockType lockType,
+        uint256 daysOfUnclaimedRewards
+    );
+    event AssetUnlocked(
+        address indexed user,
+        uint256 lockId,
+        address indexed token,
+        uint256 amount
+    );
+    event RewardsClaimed(
+        address indexed user,
+        address indexed token,
+        uint256 indexed lockId,
+        uint256 amount,
+        uint256 daysOfUnclaimedRewards
+    );
+    event StoredRewardsClaimed(
+        address indexed user,
+        address indexed token,
+        uint256 indexed lockId,
+        uint256 amount
+    );
+    event StoredRewardsAdded(
+        address indexed user,
+        address indexed token,
+        uint256 indexed lockId,
+        uint256 amount
+    );
+
+    // Custom Errors
+    error NotAuthorized();
+    error InvalidUserLockId();
+    error LockUnlockedTooMuch();
+    error InsufficientLockAmount();
+    error InvalidERC20Token();
+    error InvalidTokenPrice();
+    error InvalidLockDuration();
+    error InsufficientAllowance();
+    error InsufficientBalance();
+    error InvalidUnlockAmount();
+    error LockNotExpired();
+    error InvalidToken();
+    error LockAlreadyEmpty();
+    error DailyClaimLimitExceeded();
+    error RewardsForTokenDepleted();
+    error RewardEligibilityNotMet();
+    error ClaimTooSoon();
+    error NoRewardsToClaim();
+    error NoStoredRewardsToClaim();
+    error InvalidAddress();
+
+    mapping(address => uint8) public feedDecimalsCache;
+    mapping(address => uint8) public tokenDecimalsCache;
+
+    modifier onlyAuthorized() {
+        if (!(msg.sender == owner() || authorizedUpdaters[msg.sender]))
+            revert NotAuthorized();
+        _;
+    }
+
+    modifier onlyFounderWallet() {
+        if (msg.sender != founderWallet) revert NotAuthorized();
+        _;
+    }
+
+    constructor() {
+        _disableInitializers();
+    }
+
+    /*
+     * @title Initialize Contract
+     * @notice Initializes the contract with initial values and settings
+     * @dev Only callable once during contract deployment
+     * @param _developerWallet Address of the developer wallet
+     * @param _registry Address of the chainlink feed registry
+     */
+    function initialize(
+        address _developerWallet,
+        address _registry
+    ) public initializer {
+        // Initialize OpenZeppelin contracts
+        __Ownable_init(msg.sender);
+        __UUPSUpgradeable_init();
+        __ReentrancyGuard_init();
+        __Pausable_init();
+
+        // Initialize core addresses
+        developerWallet = _developerWallet;
+        founderWallet = msg.sender;
+        registry = FeedRegistryInterface(_registry);
+
+        //Limits, Caps, helper values etc
+        MAX_LOCK_DURATION = 3000 days;
+        MIN_LOCK_DURATION = 1 days;
+        MAX_NON_STABLE_REWARD_CAP = 10;
+        MAX_STABLE_REWARD_CAP = 3;
+        MINIMUM_REWARD_USD = 1;
+        duration = 1 days;
+        MIN_LOCK_VALUE = 500;
+
+        // Initialize timestamps
+        currentTimestamp = block.timestamp;
+        lastFullUpdateTimestamp = 0;
+
+        // Initialize fee structure
+        feeSplit.rewardPool = 80;
+        feeSplit.marketing = 5;
+        feeSplit.development = 5;
+        feeSplit.developerWallet = 10;
+        feePercentage = 5;
+
+        // Initialize authorized updaters with owner
+        authorizedUpdaters[msg.sender] = true;
+    }
+
+    /*
+     * @title Authorize Upgrade
+     * @notice Internal function to authorize contract upgrades
+     * @dev Only callable during upgrade process
+     * @param _newImplementation Address of the new implementation
+     */
+    function _authorizeUpgrade(
+        address _newImplementation
+    ) internal override onlyOwner {
+        // Additional validation logic could go here if needed
+    }
+
+    // Reward Pool Functions
+    /*
+     * @title Set Authorized Updater
+     * @notice Sets an address as authorized to update pool values and state that helps in user activity and not user state directly
+     * @dev Only callable by the contract owner
+     * @param _updater Address of the updater
+     * @param _authorized Boolean indicating whether the address is authorized
+     */
+    function setAuthorizedUpdater(
+        address _updater,
+        bool _authorized
+    ) external onlyOwner {
+        setCurrentTimestamp();
+        authorizedUpdaters[_updater] = _authorized;
+    }
+
+    /*
+     * @title Add Non-Stable Token to Pool
+     * @notice Adds non-stable tokens to the reward pool and update it's value
+     * @dev Internal function for managing pool tokens and pool value
+     * @param _token Address of the token to add
+     * @param _amount Amount of tokens to add
+     */
+    function addNonStableTokenToPool(address _token, uint256 _amount) internal {
+        if (_amount == 0) return;
+
+        // Add new token to tracking if needed
+        if (claimableTokens[_token] == 0) {
+            poolTokens.push(_token);
+        }
+
+        claimableTokens[_token] += _amount;
+        _amount = claimableTokens[_token];
+
+        // Incrementally update the total pool value
+        (uint256 rawPrice, uint8 feedDecimals, uint8 tokenDecimals) = getPrice(
+            _token
+        );
+        uint256 addedValueUSD = (_amount * rawPrice) /
+            (10 ** (feedDecimals + tokenDecimals));
+
+        nonStableRewardPoolUSDValue = lastPoolUpdateForToken[_token] >=
+            nonStableRewardPoolUSDValue
+            ? 0
+            : nonStableRewardPoolUSDValue - lastPoolUpdateForToken[_token];
+        nonStableRewardPoolUSDValue += addedValueUSD;
+        lastPoolUpdateForToken[_token] = addedValueUSD;
+        emit NonStablePoolValueUpdated(
+            nonStableRewardPoolUSDValue,
+            block.timestamp
+        );
+    }
+
+    /*
+     * @title Add Stable Token to Pool
+     * @notice Adds stable tokens to the reward pool and update it's value
+     * @dev Internal function for managing pool tokens and pool value
+     * @param _token Address of the token to add
+     * @param _amount Amount of tokens to add
+     */
+    function addStableTokenToPool(address _token, uint256 _amount) internal {
+        if (_amount == 0) return;
+
+        // Add new token to tracking if needed
+        if (claimableTokens[_token] == 0) {
+            poolTokens.push(_token);
+        }
+
+        claimableTokens[_token] += _amount;
+        _amount = claimableTokens[_token];
+
+        // Incrementally update the total pool value
+        (uint256 rawPrice, uint8 feedDecimals, uint8 tokenDecimals) = getPrice(
+            _token
+        );
+        uint256 addedValueUSD = (_amount * rawPrice) /
+            (10 ** (feedDecimals + tokenDecimals));
+
+        stableRewardPoolUSDValue = lastPoolUpdateForToken[_token] >=
+            stableRewardPoolUSDValue
+            ? 0
+            : stableRewardPoolUSDValue - lastPoolUpdateForToken[_token];
+        stableRewardPoolUSDValue += addedValueUSD;
+        lastPoolUpdateForToken[_token] = addedValueUSD;
+        emit StablePoolValueUpdated(stableRewardPoolUSDValue, block.timestamp);
+    }
+
+    /*
+     * @title Remove Non-Stable Token from Pool
+     * @notice Removes non-stable tokens from the reward pool and update it's value
+     * @dev Internal function for managing pool tokens and pool value
+     * @param _token Address of the token to remove
+     * @param _amount Amount of tokens to remove
+     */
+    function removeNonStableTokenFromPool(
+        address _token,
+        uint256 _amount
+    ) internal {
+        (uint256 rawPrice, uint8 feedDecimals, uint8 tokenDecimals) = getPrice(
+            _token
+        );
+
+        uint256 lastPoolUpdate = lastPoolUpdateForToken[_token];
+        nonStableRewardPoolUSDValue = lastPoolUpdate >=
+            nonStableRewardPoolUSDValue
+            ? 0
+            : nonStableRewardPoolUSDValue - lastPoolUpdate;
+        nonStableRewardPoolUSDValue +=
+            (claimableTokens[_token] * rawPrice) /
+            (10 ** (feedDecimals + tokenDecimals));
+
+        claimableTokens[_token] = _amount >= claimableTokens[_token]
+            ? 0
+            : claimableTokens[_token] - _amount;
+
+        // Incrementally update the total pool value
+        uint256 removedValueUSD = (_amount * rawPrice) /
+            (10 ** (feedDecimals + tokenDecimals));
+
+        if (removedValueUSD > nonStableRewardPoolUSDValue) {
+            nonStableRewardPoolUSDValue = 0;
+        } else {
+            nonStableRewardPoolUSDValue = removedValueUSD >=
+                nonStableRewardPoolUSDValue
+                ? 0
+                : nonStableRewardPoolUSDValue - removedValueUSD;
+        }
+
+        lastPoolUpdateForToken[_token] =
+            (claimableTokens[_token] * rawPrice) /
+            (10 ** (feedDecimals + tokenDecimals));
+        emit NonStablePoolValueUpdated(
+            nonStableRewardPoolUSDValue,
+            block.timestamp
+        );
+    }
+
+    /*
+     * @title Remove Stable Token from Pool
+     * @notice Removes stable tokens from the reward pool and update it's value
+     * @dev Internal function for managing pool tokens and pool value
+     * @param _token Address of the token to remove
+     * @param _amount Amount of tokens to remove
+     */
+    function removeStableTokenFromPool(
+        address _token,
+        uint256 _amount
+    ) internal {
+        (uint256 rawPrice, uint8 feedDecimals, uint8 tokenDecimals) = getPrice(
+            _token
+        );
+
+        uint256 lastPoolUpdate = lastPoolUpdateForToken[_token];
+        stableRewardPoolUSDValue = lastPoolUpdate >= stableRewardPoolUSDValue
+            ? 0
+            : stableRewardPoolUSDValue - lastPoolUpdate;
+        stableRewardPoolUSDValue +=
+            (claimableTokens[_token] * rawPrice) /
+            (10 ** (feedDecimals + tokenDecimals));
+
+        claimableTokens[_token] = _amount >= claimableTokens[_token]
+            ? 0
+            : claimableTokens[_token] - _amount;
+
+        // Incrementally update the total pool value
+        uint256 removedValueUSD = (_amount * rawPrice) /
+            (10 ** (feedDecimals + tokenDecimals));
+
+        if (removedValueUSD > stableRewardPoolUSDValue) {
+            stableRewardPoolUSDValue = 0;
+        } else {
+            stableRewardPoolUSDValue = removedValueUSD >=
+                stableRewardPoolUSDValue
+                ? 0
+                : stableRewardPoolUSDValue - removedValueUSD;
+        }
+
+        lastPoolUpdateForToken[_token] =
+            (claimableTokens[_token] * rawPrice) /
+            (10 ** (feedDecimals + tokenDecimals));
+        emit StablePoolValueUpdated(stableRewardPoolUSDValue, block.timestamp);
+    }
+
+    /*
+     * @title Update Pool Value
+     * @notice Updates the value of both stable and non-stable pools
+     * @dev Only callable by authorized updaters
+     * @param _newNonStablePoolValueUSD New value for non-stable pool
+     * @param _newStablePoolValueUSD New value for stable pool
+     */
+    function updatePoolValue(
+        uint256 _newNonStablePoolValueUSD,
+        uint256 _newStablePoolValueUSD
+    ) external onlyAuthorized {
+        nonStableRewardPoolUSDValue = _newNonStablePoolValueUSD;
+        stableRewardPoolUSDValue = _newStablePoolValueUSD;
+
+        lastFullUpdateTimestamp = block.timestamp;
+        setCurrentTimestamp();
+
+        emit NonStablePoolValueUpdated(
+            nonStableRewardPoolUSDValue,
+            block.timestamp
+        );
+        emit StablePoolValueUpdated(stableRewardPoolUSDValue, block.timestamp);
+    }
+
+    /*
+     * @title Update Daily Claim Limit
+     * @notice Updates the daily claim limits for both pools
+     * @dev Internal function for managing claim limits
+     */
+    function updateDailyClaimLimit() internal {
+        setCurrentTimestamp();
+
+        dailyNonStablePoolClaimLimit =
+            (nonStableRewardPoolUSDValue * MAX_NON_STABLE_REWARD_CAP) /
+            100;
+        dailyStablePoolClaimLimit =
+            (stableRewardPoolUSDValue * MAX_STABLE_REWARD_CAP) /
+            100000;
+
+        emit DailyClaimLimitReset(block.timestamp);
+    }
+
+    // User Functions
+
+    /*
+     * @title Lock Assets
+     * @notice Locks assets in the contract for rewards
+     * @dev Only callable by users
+     * @param _token Address of the token to lock
+     * @param _amount Amount of tokens to lock
+     * @param _lockDuration Duration of the lock in days
+     * @param _lockType Type of lock (FLEXIBLE or FIXED)
+     * @param _referrer Address of the referrer
+     */
+    function lockAssets(
+        address _token,
+        uint256 _amount,
+        uint256 _lockDuration,
+        LockType _lockType,
+        address _referrer
+    ) external nonReentrant whenNotPaused {
+        setCurrentTimestamp();
+        if (_token == address(0)) revert InvalidAddress();
+        if (_amount < MIN_LOCK_VALUE) revert InsufficientLockAmount();
+        bool stableCoin = isStableCoin[_token];
+        if (!stableCoin) {
+            if (!whitelistedTokens[_token]) revert InvalidToken();
+        }
+        (uint256 priceAtLock, , ) = getPrice(_token);
+        if (priceAtLock == 0) revert InvalidTokenPrice();
+        uint256 _duration = _lockDuration * duration;
+        if (!(_duration >= MIN_LOCK_DURATION && _duration <= MAX_LOCK_DURATION))
+            revert InvalidLockDuration();
+        uint256 allowance = IERC20(_token).allowance(msg.sender, address(this));
+        if (allowance < _amount) revert InsufficientAllowance();
+        if (IERC20(_token).balanceOf(msg.sender) < _amount)
+            revert InsufficientBalance();
+
+        if (
+            _referrer != address(0) &&
+            _referrer != msg.sender &&
+            participate[_referrer]
+        ) {
+            // For msg.sender
+            if (referralBoostEndTime[msg.sender] == 0) {
+                referralBoostEndTime[msg.sender] = block.timestamp + 1 days;
+            }
+            //For _referrer
+            if (referralBoostEndTime[_referrer] == 0) {
+                referralBoostEndTime[_referrer] = block.timestamp + 1 days;
+            } else {
+                uint256 currentEnd = referralBoostEndTime[_referrer];
+                if (currentEnd < block.timestamp + 30 days) {
+                    uint256 newEnd = currentEnd + 1 days;
+                    if (newEnd > block.timestamp + 30 days) {
+                        newEnd = block.timestamp + 30 days;
+                    }
+                    referralBoostEndTime[_referrer] = newEnd;
+                }
+            }
+            emit ReferralSet(msg.sender, _referrer, block.timestamp);
+        }
+
+        IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
+
+        if (!participate[msg.sender]) {
+            participate[msg.sender] = true;
+        }
+
+        uint256 fee = calculateFee(_amount);
+        uint256 lockAmount = _amount - fee;
+        distributeFees(_token, fee, stableCoin);
+
+        if (userUniqueTokensLocked[msg.sender][_token] == 0) {
+            userUniqueTokensCount[msg.sender] += 1;
+        }
+        userUniqueTokensLocked[msg.sender][_token] += lockAmount;
+
+        // Create a new lock
+        if (lockCount[msg.sender] == 0) userCount++;
+        uint256 lockId = lockCount[msg.sender]++;
+        LockInfo storage lock = userLocks[msg.sender][lockId];
+        lock.amount = lockAmount;
+        lock.lockStart = block.timestamp;
+        lock.lockEnd = block.timestamp + _duration;
+        lock.lastClaim = 0;
+        lock.lockType = _lockType;
+        lock.lockedToken = _token;
+        lock._days = _duration;
+        lock.daysOfUnclaimedRewards = 0;
+
+        emit LockCreated(
+            msg.sender,
+            _token,
+            lockId,
+            lockAmount,
+            _duration,
+            _lockType,
+            lock.daysOfUnclaimedRewards
+        );
+    }
+
+    /*
+     * @title Unlock Assets
+     * @notice Unlocks assets from the contract
+     * @dev Only callable by the lock owners
+     * @param _lockId ID of the lock
+     * @param _amount Amount of tokens to unlock
+     */
+    function unlockAssets(
+        uint256 _lockId,
+        uint256 _amount
+    ) external nonReentrant whenNotPaused {
+        LockInfo storage lock = userLocks[msg.sender][_lockId];
+        uint256 remaining = lock.amount - lock.withdrawn;
+        if (!(_amount <= remaining)) revert InvalidUnlockAmount();
+        if (remaining >= MIN_LOCK_VALUE && _amount < MIN_LOCK_VALUE)
+            revert InvalidUnlockAmount();
+        if (lock.amount < MIN_LOCK_VALUE) revert InvalidUserLockId();
+        if (lock.lockType == LockType.FIXED) {
+            if (block.timestamp < lock.lockEnd) revert LockNotExpired();
+        }
+        if ((lock.amount - lock.withdrawn) == 0) revert LockAlreadyEmpty();
+        setCurrentTimestamp();
+
+        address token = lock.lockedToken;
+        bool stable = isStableCoin[token];
+
+        lock.withdrawn += _amount;
+        uint256 unlockAmount = _amount;
+
+        if (remaining >= MIN_LOCK_VALUE) {
+            uint256 fee = calculateFee(_amount);
+            unlockAmount = _amount - fee;
+            distributeFees(token, fee, stable);
+        }
+        IERC20(token).safeTransfer(msg.sender, unlockAmount);
+
+        uint256 effectiveAmount = lock.amount - lock.withdrawn;
+        uint256 acceptableAmount = (lock.amount * 97) / 100;
+        if (effectiveAmount <= (lock.amount - acceptableAmount)) {
+            timestampUnlockedOverAcceptableAmountAt[msg.sender][_lockId] = block
+                .timestamp;
+            emit RewardMultiplierReset(msg.sender, _lockId);
+        }
+
+        userUniqueTokensLocked[msg.sender][lock.lockedToken] = _amount >=
+            userUniqueTokensLocked[msg.sender][lock.lockedToken]
+            ? 0
+            : userUniqueTokensLocked[msg.sender][lock.lockedToken] - _amount;
+        if (userUniqueTokensLocked[msg.sender][lock.lockedToken] == 0) {
+            userUniqueTokensCount[msg.sender] = 1 >=
+                userUniqueTokensCount[msg.sender]
+                ? 0
+                : userUniqueTokensCount[msg.sender] - 1;
+        }
+
+        emit AssetUnlocked(msg.sender, _lockId, token, _amount);
+    }
+
+    /*
+     * @title Claim Rewards
+     * @notice Claims rewards for a specific lock
+     * @dev Only callable by the lock owner
+     * @param _tokens Array of token addresses to claim rewards for
+     * @param _lockId ID of the lock
+     * @param daysOfUnclaimed Days of unclaimed rewards user wants to claim
+     * @param storeForLater Boolean to store rewards for later
+     */
+    function claimRewards(
+        address[] calldata _tokens,
+        uint256 _lockId,
+        uint256 daysOfUnclaimed,
+        bool storeForLater
+    ) external nonReentrant whenNotPaused {
+        LockInfo storage lock = userLocks[msg.sender][_lockId];
+        if (lock.amount < MIN_LOCK_VALUE) revert InvalidUserLockId();
+        if (_tokens.length == 0) revert InvalidAddress();
+
+        uint256 lastClaimTime = lock.lastClaim > 0
+            ? lock.lastClaim
+            : lock.lockStart;
+        if (block.timestamp - lastClaimTime < 1 days) revert ClaimTooSoon();
+
+        if (block.timestamp >= currentTimestamp + 1 days) {
+            updateDailyClaimLimit();
+        }
+        setCurrentTimestamp();
+
+        (
+            uint256 lockedTokenPrice,
+            uint8 lockTokenFeedDecimals,
+            uint8 lockTokenDecimals
+        ) = getPrice(lock.lockedToken);
+
+        uint256 rewards;
+        bool isLockTokenStable = isStableCoin[lock.lockedToken];
+
+        if (isLockTokenStable) {
+            if (dailyStablePoolClaimLimit == 0)
+                revert DailyClaimLimitExceeded();
+            rewards = calculateUserRewards(
+                msg.sender,
+                _lockId,
+                lockedTokenPrice,
+                isLockTokenStable,
+                lockTokenFeedDecimals,
+                lockTokenDecimals
+            );
+
+            // Ensure rewards don't exceed daily stable pool claim limit
+            rewards = rewards > dailyStablePoolClaimLimit
+                ? dailyStablePoolClaimLimit
+                : rewards;
+            if (rewards == 0) revert NoRewardsToClaim();
+        } else {
+            if (dailyNonStablePoolClaimLimit == 0)
+                revert DailyClaimLimitExceeded();
+            rewards = calculateUserRewards(
+                msg.sender,
+                _lockId,
+                lockedTokenPrice,
+                isLockTokenStable,
+                lockTokenFeedDecimals,
+                lockTokenDecimals
+            );
+
+            // Ensure rewards don't exceed daily non stable pool claim limit
+            rewards = rewards > dailyNonStablePoolClaimLimit
+                ? dailyNonStablePoolClaimLimit
+                : rewards;
+            if (rewards == 0) revert NoRewardsToClaim();
+        }
+
+        uint256 newDaysOfUnclaimedRewards = (block.timestamp - lastClaimTime) /
+            1 days;
+        newDaysOfUnclaimedRewards = newDaysOfUnclaimedRewards > 1
+            ? newDaysOfUnclaimedRewards
+            : 0;
+        newDaysOfUnclaimedRewards += lock.daysOfUnclaimedRewards;
+        if (daysOfUnclaimed == 0) {
+            lock.daysOfUnclaimedRewards = newDaysOfUnclaimedRewards;
+            daysOfUnclaimed = 1;
+        } else {
+            if (daysOfUnclaimed < newDaysOfUnclaimedRewards) {
+                newDaysOfUnclaimedRewards -= daysOfUnclaimed;
+                lock.daysOfUnclaimedRewards = newDaysOfUnclaimedRewards;
+            } else if (daysOfUnclaimed == newDaysOfUnclaimedRewards) {
+                lock.daysOfUnclaimedRewards = 0;
+            } else {
+                daysOfUnclaimed = newDaysOfUnclaimedRewards;
+                lock.daysOfUnclaimedRewards = 0;
+            }
+        }
+
+        // Calculate rewards per token
+        uint256 rewardsPerToken = rewards / _tokens.length;
+        if (rewardsPerToken == 0) revert NoRewardsToClaim();
+
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            address token = _tokens[i];
+            if (token == address(0)) revert InvalidAddress();
+            if (claimableTokens[token] == 0) revert RewardsForTokenDepleted();
+
+            (
+                uint256 claimTokenPrice,
+                uint8 claimTokenFeedDecimals,
+                uint8 claimTokenDecimals
+            ) = getPrice(token);
+            bool isClaimTokenStable = isStableCoin[token];
+
+            uint256 tokenRewards = (rewardsPerToken *
+                10 ** (claimTokenFeedDecimals + claimTokenDecimals)) /
+                claimTokenPrice;
+            tokenRewards = tokenRewards * daysOfUnclaimed;
+            tokenRewards = tokenRewards > claimableTokens[token]
+                ? claimableTokens[token]
+                : tokenRewards;
+            if (tokenRewards == 0) continue; // Skip if no rewards for this token
+
+            if (storeForLater) {
+                storedTokensForLaterClaim[msg.sender][_lockId][
+                    token
+                ] += tokenRewards;
+                emit StoredRewardsAdded(
+                    msg.sender,
+                    token,
+                    _lockId,
+                    tokenRewards
+                );
+            } else {
+                uint256 fee = calculateFee(tokenRewards);
+                distributeFees(token, fee, isClaimTokenStable);
+                uint256 newTokenRewards = tokenRewards - fee;
+                if (isClaimTokenStable) {
+                    stableRewardPool = newTokenRewards >= stableRewardPool
+                        ? 0
+                        : stableRewardPool - newTokenRewards;
+                    dailyStablePoolClaimLimit = rewardsPerToken >=
+                        dailyStablePoolClaimLimit
+                        ? 0
+                        : dailyStablePoolClaimLimit - rewardsPerToken;
+                    removeStableTokenFromPool(token, newTokenRewards);
+                } else {
+                    nonStableRewardPool = newTokenRewards >= nonStableRewardPool
+                        ? 0
+                        : nonStableRewardPool - newTokenRewards;
+                    dailyNonStablePoolClaimLimit = rewardsPerToken >=
+                        dailyNonStablePoolClaimLimit
+                        ? 0
+                        : dailyNonStablePoolClaimLimit - rewardsPerToken;
+                    removeNonStableTokenFromPool(token, newTokenRewards);
+                }
+
+                IERC20(token).safeTransfer(msg.sender, newTokenRewards);
+                emit RewardsClaimed(
+                    msg.sender,
+                    token,
+                    _lockId,
+                    newTokenRewards,
+                    daysOfUnclaimed
+                );
+            }
+        }
+
+        lock.lastClaim = block.timestamp;
+    }
+
+    /*
+     * @title Claim Stored Rewards
+     * @notice Claims stored rewards for a specific lock
+     * @dev Only callable by the lock owner
+     * @param _tokens Array of token addresses to claim stored rewards for
+     * @param _lockId ID of the lock
+     */
+    function claimStoredRewards(
+        address[] calldata _tokens,
+        uint256 _lockId
+    ) external nonReentrant whenNotPaused {
+        if (block.timestamp >= currentTimestamp + 1 days) {
+            updateDailyClaimLimit();
+        }
+        setCurrentTimestamp();
+        if (_tokens.length == 0) revert InvalidAddress();
+        LockInfo storage lock = userLocks[msg.sender][_lockId];
+        bool isLockTokenStable = isStableCoin[lock.lockedToken];
+        uint256 availableAmount = isLockTokenStable
+            ? dailyStablePoolClaimLimit
+            : dailyNonStablePoolClaimLimit;
+
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            address token = _tokens[i];
+            if (token == address(0)) revert InvalidAddress();
+            // Skip this token and if claim limit is used up
+            uint256 remainingClaimLimit = isLockTokenStable
+                ? dailyStablePoolClaimLimit
+                : dailyNonStablePoolClaimLimit;
+            if (remainingClaimLimit == 0) continue;
+            availableAmount = remainingClaimLimit;
+            uint256 claimableTokensCount = claimableTokens[token];
+            if (claimableTokensCount == 0) revert RewardsForTokenDepleted();
+            if (storedTokensForLaterClaim[msg.sender][_lockId][token] == 0)
+                revert NoStoredRewardsToClaim();
+
+            (
+                uint256 claimTokenPrice,
+                uint8 claimTokenFeedDecimals,
+                uint8 claimTokenDecimals
+            ) = getPrice(token);
+            bool isClaimTokenStable = isStableCoin[token];
+
+            // Since fee was taken at the time of storing, we don't need to take it again
+            uint256 tokenRewards = storedTokensForLaterClaim[msg.sender][
+                _lockId
+            ][token];
+
+            // convert to USD value
+            uint256 tokenRewardsValue = (tokenRewards * claimTokenPrice) /
+                (10 ** (claimTokenFeedDecimals + claimTokenDecimals));
+
+            // see if the amount is under the available monthly redistribution amount
+            uint256 availableRewards = tokenRewardsValue > availableAmount
+                ? availableAmount
+                : tokenRewardsValue;
+
+            // deduct the available amount from the monthly redistribution
+            // if (isLockTokenStable) {
+            //     dailyStablePoolClaimLimit = availableRewards >= dailyStablePoolClaimLimit ? 0 : dailyStablePoolClaimLimit - availableRewards;
+            // }
+            // else {
+            //     dailyNonStablePoolClaimLimit = availableRewards >= dailyNonStablePoolClaimLimit ? 0 : dailyNonStablePoolClaimLimit - availableRewards;
+            // }
+
+            // convert available rewards to token amount
+            uint256 availableRewardsInTokens = (availableRewards *
+                10 ** (claimTokenFeedDecimals + claimTokenDecimals)) /
+                claimTokenPrice;
+            availableRewardsInTokens = availableRewardsInTokens >
+                claimableTokens[token]
+                ? claimableTokens[token]
+                : availableRewardsInTokens;
+            if (availableRewardsInTokens == 0) revert RewardsForTokenDepleted();
+
+            // see if the amount is under the available claimable tokens for this token
+            uint256 diff = tokenRewards > availableRewardsInTokens
+                ? tokenRewards - availableRewardsInTokens
+                : 0;
+            tokenRewards = tokenRewards > availableRewardsInTokens
+                ? availableRewardsInTokens
+                : tokenRewards;
+            storedTokensForLaterClaim[msg.sender][_lockId][token] = diff;
+
+            // take the fee
+            uint256 fee = calculateFee(tokenRewards);
+            distributeFees(token, fee, isClaimTokenStable);
+            uint256 newTokenRewards = tokenRewards - fee;
+            uint256 finalTokenRewardsUsdValue = (tokenRewards *
+                claimTokenPrice) /
+                (10 ** (claimTokenFeedDecimals + claimTokenDecimals));
+
+            if (isClaimTokenStable) {
+                stableRewardPool = tokenRewards >= stableRewardPool
+                    ? 0
+                    : stableRewardPool - tokenRewards;
+                dailyStablePoolClaimLimit = finalTokenRewardsUsdValue >
+                    dailyStablePoolClaimLimit
+                    ? 0
+                    : dailyStablePoolClaimLimit - finalTokenRewardsUsdValue;
+                removeStableTokenFromPool(token, tokenRewards);
+            } else {
+                nonStableRewardPool = tokenRewards >= nonStableRewardPool
+                    ? 0
+                    : nonStableRewardPool - tokenRewards;
+                dailyNonStablePoolClaimLimit = finalTokenRewardsUsdValue >
+                    dailyNonStablePoolClaimLimit
+                    ? 0
+                    : dailyNonStablePoolClaimLimit - finalTokenRewardsUsdValue;
+                removeNonStableTokenFromPool(token, tokenRewards);
+            }
+
+            IERC20(token).safeTransfer(msg.sender, newTokenRewards);
+            emit StoredRewardsClaimed(
+                msg.sender,
+                token,
+                _lockId,
+                newTokenRewards
+            );
+        }
+    }
+
+    /*
+     * @title Calculate Fee
+     * @notice Calculates the fee for a given amount
+     * @dev Internal function for fee calculations
+     * @param _amount Amount to calculate fee for
+     * @return Calculated fee amount
+     */
+    function calculateFee(uint256 _amount) internal view returns (uint256) {
+        return (_amount * feePercentage) / 100;
+    }
+
+    /*
+     * @title Check Boost Eligibility
+     * @notice Checks if a user is eligible for boost rewards
+     * @dev Internal function for checking boost eligibility
+     * @param _user Address of the user
+     * @param _lockId ID of the lock
+     * @return Boolean indicating boost eligibility
+     */
+    function isEligibleForBoost(
+        address _user,
+        uint256 _lockId
+    ) internal view returns (bool) {
+        LockInfo storage lock = userLocks[_user][_lockId];
+        uint256 halfDuration = lock.lockStart + (lock._days / 2);
+        bool eligible = block.timestamp >= halfDuration;
+        return eligible;
+    }
+
+    /*
+     * @title Calculate Duration Multiplier
+     * @notice Calculates the multiplier based on lock duration
+     * @dev Internal function for multiplier calculations
+     * @param _duration Duration of the lock
+     * @return Calculated multiplier
+     */
+    function calculateDurationMultiplier(
+        uint256 _duration
+    ) internal pure returns (uint256) {
+        uint256 multiplier = 0;
+
+        if (_duration >= 30 days) multiplier = 30; // 0.3% boost
+        if (_duration >= 60 days) multiplier = 80; // 0.5% boost
+        if (_duration >= 120 days) multiplier = 150; // 0.7% boost
+
+        return multiplier;
+    }
+
+    /*
+     * @title Calculate Referral Boost
+     * @notice Gives back the referral boost multiplier for the user address
+     * @dev Only callable by the contract functions
+     * @param _user Address of the user
+     * @param _lockId ID of the lock
+     */
+    function calculateReferralBoost(
+        address _user,
+        uint256 _lockId
+    ) internal returns (uint256) {
+        if (referralBoostEndTime[_user] > block.timestamp) {
+            return 50; // 0.5% boost
+        }
+        return 0;
+    }
+
+    /*
+     * @title Calculate Diversification Bonus
+     * @notice Calculates boost multiplier based on the unique number of tokens user has locked
+     * @dev Only callable by the contract functions
+     * @param _user Address of the user
+     */
+    function calculateDiversificationBonus(
+        address _user
+    ) internal view returns (uint256) {
+        uint256 multiplier = 0;
+        uint256 validTokens = 0;
+
+        validTokens = userUniqueTokensCount[_user];
+
+        if (validTokens >= 2) multiplier = 30; // 0.3% boost
+        if (validTokens >= 3) multiplier = 80; // 0.5% boost
+        if (validTokens >= 6) multiplier = 150; // 0.7% boost
+
+        return multiplier;
+    }
+
+    /*
+     * @title Calculate Total Boost Multiplier
+     * @notice Calculates user's all boost multipliers combined
+     * @dev Only callable by the contract functions
+     * @param _user Address of the user
+     * @param _lockId ID of the lock
+     */
+    function calculateTotalMultiplier(
+        address _user,
+        uint256 _lockId
+    ) internal returns (uint256) {
+        uint256 multiplier = 100;
+        LockInfo storage lock = userLocks[_user][_lockId];
+        if (
+            isEligibleForBoost(_user, _lockId) &&
+            timestampUnlockedOverAcceptableAmountAt[_user][_lockId] == 0
+        ) {
+            multiplier += calculateDurationMultiplier(lock._days);
+            if (userUniqueTokensCount[_user] >= 2) {
+                multiplier += calculateDiversificationBonus(_user);
+            }
+            multiplier += calculateReferralBoost(_user, _lockId);
+        }
+        uint256 finalMultiplier = multiplier > 350 ? 350 : multiplier;
+        return finalMultiplier;
+    }
+
+    /*
+     * @title Calculate User Rewards
+     * @notice Calculates rewards for a specific user and lock
+     * @dev Internal function for reward calculations
+     * @param _user Address of the user
+     * @param _lockId ID of the lock
+     * @param _currentPrice Current price of the token
+     * @param _stable Boolean indicating if token is stable
+     * @param _tokenFeedDecimals Decimals in the token's USD Feed
+     * @param _tokenDecimals Decimals in the token's contract
+     * @return Calculated rewards
+     */
+    function calculateUserRewards(
+        address _user,
+        uint256 _lockId,
+        uint256 _currentPrice,
+        bool _stable,
+        uint8 _tokenFeedDecimals,
+        uint8 _tokenDecimals
+    ) internal returns (uint256 dividends) {
+        LockInfo storage lock = userLocks[_user][_lockId];
+
+        // Calculate available rewards based on lock amount and multipliers
+        uint256 availableRewards = 0;
+        uint256 effectiveAmount = lock.amount - lock.withdrawn;
+        uint256 effectiveAmountInUsd = (effectiveAmount * _currentPrice) /
+            (10 ** (_tokenFeedDecimals + _tokenDecimals));
+
+        // Apply different calculation for stablecoins vs non-stablecoins
+        if (_stable) {
+            // Stablecoins limited to 0.003% daily
+            // availableRewards = (effectiveAmountInUsd * 3) / 100000; // 0.003%
+            // calculate rewards
+            uint256 safeStableRewardPoolUSDValue = stableRewardPoolUSDValue > 0
+                ? stableRewardPoolUSDValue
+                : 1;
+            uint256 userTotalRewards = (effectiveAmountInUsd *
+                dailyStablePoolClaimLimit) / safeStableRewardPoolUSDValue;
+            // is it 10% of daily rewards or 0.003%?
+            uint256 userDailyRewards = (userTotalRewards * 3) / 100000;
+            uint256 cap = userDailyRewards > MINIMUM_REWARD_USD
+                ? userDailyRewards
+                : MINIMUM_REWARD_USD;
+            availableRewards = cap;
+        } else {
+            uint256 multiplier = calculateTotalMultiplier(_user, _lockId);
+            // calculate rewards
+            uint256 userWeighted = (effectiveAmountInUsd * multiplier) / 100;
+            uint256 safenonStableRewardPoolUSDValue = nonStableRewardPoolUSDValue >
+                    0
+                    ? nonStableRewardPoolUSDValue
+                    : 1;
+            uint256 userTotalRewards = (userWeighted *
+                dailyNonStablePoolClaimLimit) / safenonStableRewardPoolUSDValue;
+            uint256 userDailyRewards = (userTotalRewards * 10) / 100;
+            uint256 cap = userDailyRewards > MINIMUM_REWARD_USD
+                ? userDailyRewards
+                : MINIMUM_REWARD_USD;
+            availableRewards = cap;
+        }
+        // still check if anything is left/written wrong in this function
+        return availableRewards;
+    }
+
+    /*
+     * @title Distribute Fees
+     * @notice Distributes fees to different pools and wallets
+     * @dev Internal function for fee distribution
+     * @param _token Address of the token
+     * @param _fee Amount of fees to distribute
+     * @param _stable Boolean indicating if token is stable
+     */
+    function distributeFees(
+        address _token,
+        uint256 _fee,
+        bool _stable
+    ) internal {
+        uint256 rewardFee = (_fee * feeSplit.rewardPool) / 100;
+        uint256 marketingFee = (_fee * feeSplit.marketing) / 100;
+        uint256 devFee = (_fee * feeSplit.development) / 100;
+        uint256 devWalletFee = (_fee * feeSplit.developerWallet) / 100;
+
+        if (_stable) {
+            stableRewardPool += rewardFee;
+            addStableTokenToPool(_token, rewardFee);
+        } else {
+            nonStableRewardPool += rewardFee;
+            addNonStableTokenToPool(_token, rewardFee);
+        }
+        // claimableTokens[_token] += rewardFee;
+
+        IERC20(_token).safeTransfer(founderWallet, marketingFee + devFee);
+        IERC20(_token).safeTransfer(developerWallet, devWalletFee);
+
+        emit DeveloperFeesDistributed(developerWallet, devWalletFee);
+        emit FounderFeesDistributed(founderWallet, marketingFee + devFee);
+        emit TokensAddedToPool(_token, rewardFee);
+    }
+
+    // Utility Functions
+
+    /*
+     * @title Get Price
+     * @notice Gets the current price of a token
+     * @dev Internal function for price queries
+     * @param _token Address of the token
+     * @return Current price of the token
+     */
+    function getPrice(address base) internal returns (uint256, uint8, uint8) {
+        (, int256 price, , , ) = registry.latestRoundData(
+            base,
+            Denominations.USD
+        );
+
+        // Use cached decimals if available, otherwise fetch and cache them
+        uint8 feedDecimals = feedDecimalsCache[base];
+        uint8 tokenDecimals = tokenDecimalsCache[base];
+
+        if (feedDecimals == 0) {
+            feedDecimals = registry.decimals(base, Denominations.USD);
+            feedDecimalsCache[base] = feedDecimals;
+        }
+
+        if (tokenDecimals == 0) {
+            tokenDecimals = IERC20Metadata(base).decimals();
+            tokenDecimalsCache[base] = tokenDecimals;
+        }
+
+        if (price <= 0) revert InvalidTokenPrice();
+
+        // Calculate price per wei with 18 decimals of precision
+        return (uint256(price), feedDecimals, tokenDecimals);
+    }
+
+    /*
+     * @title Whitelist Stable Coin
+     * @notice Whitelists a coin as a stable coin in the contract
+     * @dev Only callable by authorized addresses
+     * @param _token The address of the token
+     */
+    function addStableCoin(address _token) external onlyAuthorized {
+        setCurrentTimestamp();
+        if (_token == address(0)) revert InvalidAddress();
+        isStableCoin[_token] = true;
+        emit StableCoinAdded(_token, block.timestamp);
+    }
+
+    /*
+     * @title Removes Whitelisted Stable Coin
+     * @notice Removed a coin as a stable coin from the contract's whitelist
+     * @dev Only callable by authorized addresses
+     * @param _token The address of the token
+     */
+    function removeStableCoin(address token) external onlyAuthorized {
+        setCurrentTimestamp();
+        if (token == address(0)) revert InvalidAddress();
+        isStableCoin[token] = false;
+        emit StableCoinRemoved(token, block.timestamp);
+    }
+
+    /*
+     * @title Whitelist Tokens
+     * @notice Whitelists tokens in the contract
+     * @dev Only callable by authorized addresses
+     * @param _tokens Array of token addresses to whitelist
+     */
+    function whitelistTokens(
+        address[] calldata _tokens
+    ) external onlyAuthorized {
+        setCurrentTimestamp();
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            address token = _tokens[i];
+            if (token == address(0)) revert InvalidAddress();
+            whitelistedTokens[token] = true;
+            emit TokenWhitelisted(token, block.timestamp);
+        }
+    }
+
+    /*
+     * @title Blacklist Tokens
+     * @notice Blacklists tokens in the contract
+     * @dev Only callable by authorized addresses
+     * @param _tokens Array of token addresses to blacklist
+     */
+    function blacklistTokens(
+        address[] calldata _tokens
+    ) external onlyAuthorized {
+        setCurrentTimestamp();
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            address token = _tokens[i];
+            if (token == address(0)) revert InvalidAddress();
+            whitelistedTokens[token] = false;
+            emit TokenBlacklisted(token, block.timestamp);
+        }
+    }
+
+    /*
+     * @title Set current timestamp
+     * @notice Sets currentTimestamp to current block.timestamp
+     * @dev Only callable by contract functions
+     */
+    function setCurrentTimestamp() internal {
+        currentTimestamp = block.timestamp;
+    }
+
+    /*
+     * @title ERC20 Validation
+     * @notice Validates if a token follows ERC20 standard
+     * @dev Only callable by other functions
+     * @param _token The token which needs to be validated
+     * @return success Returns true if token follows ERC20 standard and false if not
+     */
+    function isValidERC20(address _token) internal view returns (bool) {
+        try IERC20Metadata(_token).decimals() returns (uint8) {
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    // Admin Functions
+
+    /*
+     * @title Pause Control
+     * @notice Pauses all contract operations
+     * @dev Only callable by the contract owner
+     * @return success Returns true if successful
+     */
+    function pause() external onlyOwner returns (bool result) {
+        setCurrentTimestamp();
+        _pause();
+        return true;
+    }
+
+    /*
+     * @title Pause Control
+     * @notice Unpauses all contract operations
+     * @dev Only callable by the contract owner
+     * @return success Returns true if successful
+     */
+    function unpause() external onlyOwner returns (bool result) {
+        setCurrentTimestamp();
+        _unpause();
+        return true;
+    }
+
+    /*
+     * @title Set Founder Wallet Address
+     * @notice Sets the founder wallet address
+     * @dev Only callable by the contract owner
+     * @param _founderWallet The address of the founder wallet
+     */
+    function setFounderAddress(
+        address _founderWallet
+    ) external onlyFounderWallet {
+        setCurrentTimestamp();
+        if (_founderWallet == address(0)) revert InvalidAddress();
+        founderWallet = _founderWallet;
+    }
+
+    /*
+     * @title Set Developer Wallet Address
+     * @notice Sets the developer wallet address
+     * @dev Only callable by the contract owner
+     * @param _developerWallet The address of the developer wallet
+     */
+    function setDeveloperAddress(
+        address _developerWallet
+    ) external onlyFounderWallet {
+        setCurrentTimestamp();
+        if (_developerWallet == address(0)) revert InvalidAddress();
+        developerWallet = _developerWallet;
+    }
+}
