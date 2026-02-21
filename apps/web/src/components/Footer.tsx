@@ -20,17 +20,17 @@ export const Footer: React.FC = () => {
             {/* Logo and description */}
             <div className="col-span-1 lg:col-span-1">
               <div className="flex items-center space-x-2 mb-4">
-                <span className={typography.h1}>TWOSIDE</span>
+                <span className={typography.h1}>BUFFCAT</span>
               </div>
               <p className="mb-6">
-                Twoside transforms any coin into tradeable derivatives. Lock
+                Buffcat transforms any coin into tradeable derivatives. Lock
                 tokens, mint liquid locked tokens at 1:1, and unlock new DeFi
                 opportunities without selling your holdings.
               </p>
               <Separator className="text-white mb-6" />
               <div className="flex space-x-4">
                 <a
-                  href="https://x.com/TwosideFinance"
+                  href="https://x.com/BuffcatFinance"
                   target="_blank"
                   className="hover:text-white text-gray-400 transition-colors duration-200"
                 >
@@ -42,7 +42,7 @@ export const Footer: React.FC = () => {
 
           <div className="pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="mb-4 md:mb-0">
-              © 2025 Twoside. All rights reserved.
+              © 2025 Buffcat. All rights reserved.
             </p>
           </div>
         </div>

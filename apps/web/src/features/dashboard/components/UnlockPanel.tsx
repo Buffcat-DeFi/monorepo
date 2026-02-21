@@ -30,7 +30,7 @@ import { toast } from "sonner";
 import { envVariables } from "@/lib/envVariables";
 import { useWriteContract } from "wagmi";
 import erc20Abi from "../lib/evm/erc20.json";
-import twosideAbi from "../lib/evm/twoside.json";
+import buffcatAbi from "../lib/evm/buffcat.json";
 import { useTokenDerivative } from "../hooks/query/contract";
 import { CoinGeckoTokenType } from "@/types/global";
 import TokenInfo from "./TokenInfo";
@@ -103,18 +103,18 @@ export default function UnlockPanel() {
     let approvalAmount = parsedAmount;
     if (!decimals) {
       toast.error(
-        "Token decimals not found, toggle to use raw values instead.",
+        "Token decimals not found, toggle to use raw values instead."
       );
       return;
     }
     approvalAmount = parsedAmount * 10 ** decimals;
-    const twosideContract =
+    const buffcatContract =
       selectedBlockchain.id == "eth"
-        ? envVariables.twosideContract.eth
-        : envVariables.twosideContract.base;
-    if (twosideContract == "") {
+        ? envVariables.buffcatContract.eth
+        : envVariables.buffcatContract.base;
+    if (buffcatContract == "") {
       toast.error(
-        `${selectedBlockchain.name} Twoside contract address not set.`,
+        `${selectedBlockchain.name} Buffcat contract address not set.`
       );
       return;
     }
@@ -129,8 +129,8 @@ export default function UnlockPanel() {
           address: derivativeAddress as `0x${string}`,
           abi: erc20Abi,
           functionName: "approve",
-          args: [twosideContract, approvalAmount],
-          chainId: selectedBlockchain.chainId
+          args: [buffcatContract, approvalAmount],
+          chainId: selectedBlockchain.chainId,
         });
         toast.success("Signature", {
           description: `${sig}`,
@@ -143,7 +143,7 @@ export default function UnlockPanel() {
         successMessage: "Your tokens have been approved successfully.",
         loadingTitle: "Processing Transaction",
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
-      },
+      }
     );
   };
 
@@ -172,18 +172,18 @@ export default function UnlockPanel() {
     let unlockAmount = parsedAmount;
     if (!decimals) {
       toast.error(
-        "Token decimals not found, toggle to use raw values instead.",
+        "Token decimals not found, toggle to use raw values instead."
       );
       return;
     }
     unlockAmount = parsedAmount * 10 ** decimals;
-    const twosideContract =
+    const buffcatContract =
       selectedBlockchain.id == "eth"
-        ? envVariables.twosideContract.eth
-        : envVariables.twosideContract.base;
-    if (twosideContract == "") {
+        ? envVariables.buffcatContract.eth
+        : envVariables.buffcatContract.base;
+    if (buffcatContract == "") {
       toast.error(
-        `${selectedBlockchain.name} Twoside contract address not set.`,
+        `${selectedBlockchain.name} Buffcat contract address not set.`
       );
       return;
     }
@@ -195,11 +195,11 @@ export default function UnlockPanel() {
     await withConfirmation(
       async () => {
         const sig = await writeContractAsync({
-          address: twosideContract as `0x${string}`,
-          abi: twosideAbi.abi,
+          address: buffcatContract as `0x${string}`,
+          abi: buffcatAbi.abi,
           functionName: "unlock",
           args: [tokenAddress, unlockAmount],
-          chainId: selectedBlockchain.chainId
+          chainId: selectedBlockchain.chainId,
         });
         toast.success("Signature", {
           description: `${sig}`,
@@ -212,7 +212,7 @@ export default function UnlockPanel() {
         successMessage: "Your tokens have been unlocked successfully.",
         loadingTitle: "Processing Transaction",
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
-      },
+      }
     );
   };
 

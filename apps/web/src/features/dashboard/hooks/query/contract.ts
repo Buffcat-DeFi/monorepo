@@ -10,7 +10,7 @@ interface UseTokenBalanceParams {
 
 export function useTokenDerivative(
   { chain, tokenAddressOrMint }: UseTokenBalanceParams,
-  options?: UseQueryOptions<string, Error>,
+  options?: UseQueryOptions<string, Error>
 ) {
   return useQuery<string, Error>({
     queryKey: ["tokenDerivative", chain, tokenAddressOrMint],
@@ -31,18 +31,18 @@ export function useTokenDerivative(
             "function tokenDerivatives(address token) view returns (address)",
           ];
 
-          const twosideContract =
+          const buffcatContract =
             chain.id == "eth"
-              ? envVariables.twosideContract.eth
-              : envVariables.twosideContract.base;
-          if (twosideContract == "") {
-            throw new Error("Twoside contract address not set.");
+              ? envVariables.buffcatContract.eth
+              : envVariables.buffcatContract.base;
+          if (buffcatContract == "") {
+            throw new Error("Buffcat contract address not set.");
           }
 
-          const contract = new ethers.Contract(twosideContract, abi, provider);
+          const contract = new ethers.Contract(buffcatContract, abi, provider);
 
           console.log("Blockchain: ", chain.name);
-          console.log("Twoside Contract: ", twosideContract);
+          console.log("Buffcat Contract: ", buffcatContract);
           console.log("Token: ", tokenAddressOrMint);
 
           const tokenDerivative =

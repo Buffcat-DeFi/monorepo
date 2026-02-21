@@ -51,7 +51,7 @@ export const UseCases = () => {
             Unlock <span className="gradient-text">Infinite Possibilities</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Don't just hold your coins—put them to work. Twoside opens up a
+            Don't just hold your coins—put them to work. Buffcat opens up a
             parallel DeFi ecosystem for speculative assets.
           </p>
         </motion.div>

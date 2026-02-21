@@ -74,7 +74,7 @@ export default function Dashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
       >
-        Twoside transforms any coin into tradeable derivatives. Lock tokens,
+        Buffcat transforms any coin into tradeable derivatives. Lock tokens,
         mint liquid locked tokens at 1:1, and unlock new DeFi opportunities
         without selling your holdings.
       </motion.p>

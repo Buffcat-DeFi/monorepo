@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/styles/globals.css";
 import { CustomLayout } from "@/components/CustomLayout";
-import { twosideWebsiteMetadata, jsonLd } from "./metadata";
+import { buffcatWebsiteMetadata, jsonLd } from "./metadata";
 
 const font = Inter({
   variable: "--font-custom-font",
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = twosideWebsiteMetadata;
+export const metadata: Metadata = buffcatWebsiteMetadata;
 
 export default function RootLayout({
   children,

@@ -25,7 +25,9 @@ import {
 import { UserWallet } from "@/features/wallet/components/UserWallet";
 
 const BlockchainSelector = () => {
-  const [selectedBlockchain, setSelectedBlockchain] = useAtom(selectedBlockchainAtom);
+  const [selectedBlockchain, setSelectedBlockchain] = useAtom(
+    selectedBlockchainAtom
+  );
 
   return (
     <Select
@@ -67,12 +69,12 @@ export const Header: React.FC = () => {
         <div className="flex items-center">
           <Image
             src="/twoside-bold.png"
-            alt="Twoside Logo"
+            alt="Buffcat Logo"
             height={56}
             width={56}
           />
           <Link className="no-underline ms-2" href={"/"}>
-            <span className={typography.h1}>TWOSIDE</span>
+            <span className={typography.h1}>BUFFCAT</span>
           </Link>
         </div>
         <div className="items-center gap-2 hidden lg:flex">

@@ -7,7 +7,7 @@ const steps = [
     number: "01",
     title: "Lock Your Tokens",
     description:
-      "Lock any token into Twoside's smart contracts. Your tokens are secured in a transparent, auditable vault.",
+      "Lock any token into Buffcat's smart contracts. Your tokens are secured in a transparent, auditable vault.",
     color: "blue-500",
     textColor: "text-blue-500",
   },
@@ -47,7 +47,7 @@ export const HowItWorks = () => {
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            How Twoside <span className="gradient-text">Works</span>
+            How Buffcat <span className="gradient-text">Works</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Three simple steps to unlock liquidity from your coins
