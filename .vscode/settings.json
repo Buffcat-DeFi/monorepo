@@ -4,5 +4,7 @@
       "mode": "auto"
     }
   ],
-  "rust-analyzer.linkedProjects": ["contracts/solana/Cargo.toml"]
+  "rust-analyzer.linkedProjects": [
+    "contracts/solana/Cargo.toml"
+  ]
 }

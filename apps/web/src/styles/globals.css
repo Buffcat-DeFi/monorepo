@@ -7,6 +7,15 @@
   box-shadow: 8px 8px 0px #000000;
 }
 
+/* hide scrollbar but keep scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 @theme {
   --color-custom-root-bg: #fdfffc;
   --color-custom-root-text: #000000;

@@ -6,10 +6,10 @@ import {
 import {
   ChevronDown,
   ChevronRight,
-  CircleCheck,
-  Unlock,
+  Sparkles,
   ArrowRightLeft,
   Settings,
+  X,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -26,23 +26,26 @@ import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import ThemedButton from "@/components/themed/button";
 import { useTransactionDialog } from "../hooks/transactionDialogHook";
-import { toast } from "sonner";
-import { envVariables } from "@/lib/envVariables";
 import { useWriteContract } from "wagmi";
-import erc20Abi from "../lib/evm/erc20.json";
-import buffcatAbi from "../lib/evm/buffcat.json";
-import { useTokenDerivative } from "../hooks/query/contract";
 import { CoinGeckoTokenType } from "@/types/global";
-import TokenInfo from "./TokenInfo";
-import { isValidFloat } from "../lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-export default function UnlockPanel() {
+export default function ClaimRewardsPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
   const [selectedTokens, setSelectedTokens] = useAtom(selectedTokensAtom);
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
   const currentUser = useAtomValue(currentUserAtom);
   const [amount, setAmount] = useState<string>("1");
   const { writeContractAsync } = useWriteContract();
+  const [chosenRewardTokens, setChosenRewardTokens] = useState<
+    CoinGeckoTokenType[]
+  >([]);
+  const [isRewardsModalOpen, setIsRewardsModalOpen] = useState(false);
 
   const unlockToken = useMemo(() => {
     return selectedTokens.unlockToken[selectedBlockchain.id];
@@ -60,161 +63,33 @@ export default function UnlockPanel() {
   };
 
   const handleSelectToken = (token: CoinGeckoTokenType) => {
-    setSelectedTokens((prev) => ({
-      ...prev,
-      unlockToken: {
-        ...prev.unlockToken,
-        [selectedBlockchain.id]: token,
-      },
-    }));
+    const isAlreadySelected = chosenRewardTokens.some(
+      (t) => t.address === token.address,
+    );
+    if (!isAlreadySelected) {
+      setChosenRewardTokens((prev) => [...prev, token]);
+    }
     setTokenSelectorState((prev) => ({ ...prev, isOpen: false }));
   };
 
-  const { data: tokenDerivativeData } = useTokenDerivative({
-    chain: selectedBlockchain,
-    tokenAddressOrMint:
-      selectedTokens.unlockToken[selectedBlockchain.id]?.address ?? "",
-  });
+  const handleRemoveToken = (tokenAddress: string) => {
+    setChosenRewardTokens((prev) =>
+      prev.filter((token) => token.address !== tokenAddress),
+    );
+  };
+
+  const handleAddRewardToken = () => {
+    setTokenSelectorState({
+      isOpen: true,
+      onClose: () =>
+        setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
+      onSelectToken: handleSelectToken,
+    });
+  };
 
   const { withConfirmation } = useTransactionDialog();
 
-  const handleTokenApproval = async () => {
-    if (!currentUser.loggedIn) {
-      toast.error("Connect a wallet first.");
-      return;
-    }
-    const tokenAddress =
-      selectedTokens.unlockToken[selectedBlockchain.id]?.address;
-    if (!tokenAddress) {
-      toast.error("Select a token and try again.");
-      return;
-    }
-    if (!isValidFloat(amount)) {
-      toast.error("Invalid input.");
-      return;
-    }
-    let parsedAmount = parseFloat(amount);
-    if (parsedAmount == 0 || parsedAmount < 0) {
-      toast.error("Invalid Amount Input");
-      return;
-    }
-    const decimals =
-      selectedTokens.unlockToken[selectedBlockchain.id]?.decimals;
-    let approvalAmount = parsedAmount;
-    if (!decimals) {
-      toast.error(
-        "Token decimals not found, toggle to use raw values instead."
-      );
-      return;
-    }
-    approvalAmount = parsedAmount * 10 ** decimals;
-    const buffcatContract =
-      selectedBlockchain.id == "eth"
-        ? envVariables.buffcatContract.eth
-        : envVariables.buffcatContract.base;
-    if (buffcatContract == "") {
-      toast.error(
-        `${selectedBlockchain.name} Buffcat contract address not set.`
-      );
-      return;
-    }
-    const derivativeAddress = tokenDerivativeData;
-    if (!derivativeAddress) {
-      toast.error("Derivative address not found, try again.");
-      return;
-    }
-    await withConfirmation(
-      async () => {
-        const sig = await writeContractAsync({
-          address: derivativeAddress as `0x${string}`,
-          abi: erc20Abi,
-          functionName: "approve",
-          args: [buffcatContract, approvalAmount],
-          chainId: selectedBlockchain.chainId,
-        });
-        toast.success("Signature", {
-          description: `${sig}`,
-        });
-      },
-      {
-        title: "Approve Tokens?",
-        description: `Do you want to approve ${amount}
-        Liquid ${selectedTokens.unlockToken[selectedBlockchain.id]?.name.toString()}?`,
-        successMessage: "Your tokens have been approved successfully.",
-        loadingTitle: "Processing Transaction",
-        loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
-      }
-    );
-  };
-
-  const handleUnlockTokens = async () => {
-    if (!currentUser.loggedIn) {
-      toast.error("Connect a wallet first.");
-      return;
-    }
-    const tokenAddress =
-      selectedTokens.unlockToken[selectedBlockchain.id]?.address;
-    if (!tokenAddress) {
-      toast.error("Select a token and try again.");
-      return;
-    }
-    if (!isValidFloat(amount)) {
-      toast.error("Invalid input.");
-      return;
-    }
-    let parsedAmount = parseFloat(amount);
-    if (parsedAmount == 0 || parsedAmount < 0) {
-      toast.error("Invalid Amount Input");
-      return;
-    }
-    const decimals =
-      selectedTokens.unlockToken[selectedBlockchain.id]?.decimals;
-    let unlockAmount = parsedAmount;
-    if (!decimals) {
-      toast.error(
-        "Token decimals not found, toggle to use raw values instead."
-      );
-      return;
-    }
-    unlockAmount = parsedAmount * 10 ** decimals;
-    const buffcatContract =
-      selectedBlockchain.id == "eth"
-        ? envVariables.buffcatContract.eth
-        : envVariables.buffcatContract.base;
-    if (buffcatContract == "") {
-      toast.error(
-        `${selectedBlockchain.name} Buffcat contract address not set.`
-      );
-      return;
-    }
-    const derivativeAddress = tokenDerivativeData;
-    if (!derivativeAddress) {
-      toast.error("Derivative address not found, try again.");
-      return;
-    }
-    await withConfirmation(
-      async () => {
-        const sig = await writeContractAsync({
-          address: buffcatContract as `0x${string}`,
-          abi: buffcatAbi.abi,
-          functionName: "unlock",
-          args: [tokenAddress, unlockAmount],
-          chainId: selectedBlockchain.chainId,
-        });
-        toast.success("Signature", {
-          description: `${sig}`,
-        });
-      },
-      {
-        title: "Unlock Tokens?",
-        description: `Do you want to unlock ${amount}
-        ${selectedTokens.unlockToken[selectedBlockchain.id]?.name.toString()}?`,
-        successMessage: "Your tokens have been unlocked successfully.",
-        loadingTitle: "Processing Transaction",
-        loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
-      }
-    );
-  };
+  const handleClaimRewards = async () => {};
 
   return (
     <div className="flex flex-col items-center">
@@ -389,21 +264,52 @@ export default function UnlockPanel() {
           </div>
         </CollapsibleContent>
       </Collapsible>
-      {/* {selectedTokens.unlockToken[selectedBlockchain.id] && (
-        <TokenInfo token={selectedTokens.unlockToken[selectedBlockchain.id]} />
-      )} */}
       <Card
         className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
       border border-custom-primary-color/30"
       >
         <CardContent className="px-4">
-          {
-            <div>
-              {unlockToken
-                ? `1 li${unlockToken.symbol} = 1 ${unlockToken.symbol}`
-                : "1 Liquid Locked Token = 1 Original Token"}
+          <div className="flex justify-between items-center">
+            <div className="text-custom-muted-text">Chosen Tokens</div>
+            <div className="flex items-center gap-2">
+              {chosenRewardTokens.length > 0 ? (
+                <>
+                  <div
+                    onClick={() => setIsRewardsModalOpen(true)}
+                    className="flex -space-x-2 cursor-pointer"
+                  >
+                    {chosenRewardTokens.slice(0, 3).map((token, index) => (
+                      <div
+                        key={token.address}
+                        className="relative border-1 rounded-4xl border-black"
+                        style={{ zIndex: 3 - index }}
+                      >
+                        <ImageWithFallback
+                          height={24}
+                          width={24}
+                          src={token.logoURI || placeholders.tokenImage}
+                          alt={token.symbol}
+                          fallbackSrc={placeholders.tokenImage}
+                          className="rounded-full border-2 border-background"
+                        />
+                      </div>
+                    ))}
+                    {chosenRewardTokens.length > 3 && (
+                      <div className="flex items-center justify-center h-6 w-6 p-3 rounded-full bg-custom-primary-color text-custom-tertiary-text border-2 border-background text-sm">
+                        +{chosenRewardTokens.length - 3}
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div
+                  className="text-xs"
+                >
+                  + Add A Token
+                </div>
+              )}
             </div>
-          }
+          </div>
           <div className="w-full md:w-104 flex justify-between mt-2">
             <div className="text-custom-muted-text">Platform Fee</div>
             <div>
@@ -414,23 +320,61 @@ export default function UnlockPanel() {
         </CardContent>
       </Card>
       <ThemedButton
-        style="primary"
-        variant="outline"
-        size="lg"
-        className="w-74 md:w-112 mt-2"
-        onClick={handleTokenApproval}
-      >
-        <CircleCheck /> Approve Tokens
-      </ThemedButton>
-      <ThemedButton
         style="secondary"
         variant="outline"
         size="lg"
         className="w-74 md:w-112 mt-2"
-        onClick={handleUnlockTokens}
+        onClick={handleClaimRewards}
       >
-        <Unlock /> Unlock Tokens
+        <Sparkles /> Claim Rewards
       </ThemedButton>
+
+      <Dialog open={isRewardsModalOpen} onOpenChange={setIsRewardsModalOpen}>
+        <DialogContent className="max-w-md border-2 border-custom-primary-color custom-box-shadow rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Chosen Reward Tokens</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 max-h-96 overflow-y-auto no-scrollbar">
+            {chosenRewardTokens.length > 0 ? (
+              chosenRewardTokens.map((token) => (
+                <div
+                  key={token.address}
+                  className="flex items-center justify-between p-3 rounded-lg border border-custom-primary-color/30"
+                >
+                  <div className="flex items-center gap-3">
+                    <ImageWithFallback
+                      height={32}
+                      width={32}
+                      src={token.logoURI || placeholders.tokenImage}
+                      alt={token.symbol}
+                      fallbackSrc={placeholders.tokenImage}
+                      className="rounded-full"
+                    />
+                    <div className="flex flex-col">
+                      <span className="font-semibold">{token.symbol}</span>
+                      <span className="text-xs text-custom-muted-text">
+                        {token.name}
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRemoveToken(token.address)}
+                    className="hover:bg-red-500/20 cursor-pointer"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-custom-muted-text">
+                No reward tokens selected
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

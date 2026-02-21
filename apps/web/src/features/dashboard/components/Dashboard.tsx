@@ -5,6 +5,7 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import { HowItWorks } from "@/components/HowItWorks";
 import { UseCases } from "@/components/UseCases";
+import ClaimRewardsPanel from "./ClaimRewardsPanel";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("Lock");
@@ -24,7 +25,7 @@ export default function Dashboard() {
         <span className="crypto-blue-gradient">Impermanent Loss</span>
       </motion.h1>
       <section
-        className="mx-auto mt-6 mb-12 w-full md:w-120 min-h-119 rounded-2xl p-4
+        className="mx-auto mt-6 mb-12 w-full md:w-120 rounded-2xl p-4
     bg-custom-root-bg border-2 border-custom-primary-color custom-box-shadow"
       >
         <Tabs
@@ -55,6 +56,17 @@ export default function Dashboard() {
               >
                 Unlock
               </TabsTrigger>
+              <TabsTrigger
+                key="ClaimRewards"
+                value="ClaimRewards"
+                className={`bg-transparent border-0 shadow-none data-[state=active]:bg-transparent cursor-pointer
+            data-[state=active]:shadow-none text-base font-semibold text-gray-400 data-[state=active]:text-black relative
+            rounded-none data-[state=active]:after:content-[''] data-[state=active]:after:absolute data-[state=active]:after:bottom-[-4px]
+            data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-black
+            transition-colors hover:text-gray-600`}
+              >
+                Claim Rewards
+              </TabsTrigger>
             </div>
           </TabsList>
           <div className="px-4">
@@ -63,6 +75,9 @@ export default function Dashboard() {
             </TabsContent>
             <TabsContent key="Unlock" value="Unlock">
               <UnlockPanel />
+            </TabsContent>
+            <TabsContent key="ClaimRewards" value="ClaimRewards">
+              <ClaimRewardsPanel />
             </TabsContent>
           </div>
         </Tabs>

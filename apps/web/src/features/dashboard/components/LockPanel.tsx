@@ -384,9 +384,9 @@ export default function LockPanel() {
           </div>
         </CollapsibleContent>
       </Collapsible>
-      {selectedTokens.lockToken[selectedBlockchain.id] && (
+      {/* {selectedTokens.lockToken[selectedBlockchain.id] && (
         <TokenInfo token={selectedTokens.lockToken[selectedBlockchain.id]} />
-      )}
+      )} */}
       <Card
         className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
       border border-custom-primary-color/30"
