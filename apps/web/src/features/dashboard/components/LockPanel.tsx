@@ -10,6 +10,12 @@ import {
   Lock,
   ArrowRightLeft,
   Settings,
+  Clock,
+  Minus,
+  Plus,
+  LockKeyhole,
+  Unlock as UnlockIcon,
+  Users,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -36,6 +42,7 @@ import TokenInfo from "./TokenInfo";
 import { useDialog } from "@/components/Dialog";
 import { useTokenDerivative } from "../hooks/query/contract";
 import { isValidFloat } from "../lib/utils";
+import { Slider } from "@/components/ui/slider";
 
 export default function LockPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
@@ -51,9 +58,42 @@ export default function LockPanel() {
       selectedTokens.lockToken[selectedBlockchain.id]?.address ?? "",
   });
 
+  // Lock duration state (in days)
+  const [lockDuration, setLockDuration] = useState<number>(1034);
+  const [lockType, setLockType] = useState<"fixed" | "flexible">("flexible");
+  const [referrerWallet, setReferrerWallet] = useState<string>("");
+
   const lockToken = useMemo(() => {
     return selectedTokens.lockToken[selectedBlockchain.id];
   }, [selectedTokens.lockToken[selectedBlockchain.id]]);
+
+  // Calculate unlock date
+  const unlockDate = useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + lockDuration);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }, [lockDuration]);
+
+  // Calculate months
+  const lockMonths = useMemo(() => {
+    return (lockDuration / 30).toFixed(1);
+  }, [lockDuration]);
+
+  const handleDurationIncrement = () => {
+    setLockDuration((prev) => Math.min(prev + 1, 3000));
+  };
+
+  const handleDurationDecrement = () => {
+    setLockDuration((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleSliderChange = (value: number[]) => {
+    setLockDuration(value[0]);
+  };
 
   const setTokenSelectorState = useSetAtom(tokenSelectorAtom);
 
@@ -384,21 +424,140 @@ export default function LockPanel() {
           </div>
         </CollapsibleContent>
       </Collapsible>
-      {/* {selectedTokens.lockToken[selectedBlockchain.id] && (
-        <TokenInfo token={selectedTokens.lockToken[selectedBlockchain.id]} />
-      )} */}
-      <Card
-        className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
-      border border-custom-primary-color/30"
-      >
-        <CardContent className="px-4">
-          {
-            <div>
-              {lockToken
-                ? `1 ${lockToken.symbol} = 1 li${lockToken.symbol}`
-                : "1 Token = 1 Liquid Locked Token"}
+      {/* Lock Duration Section */}
+      <Card className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none border border-custom-primary-color/30">
+        <CardContent className="px-4 py-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="h-4 w-4 text-custom-muted-text" />
+            <span className="text-sm font-semibold text-custom-muted-text uppercase">
+              Lock Duration
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 mb-3">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleDurationDecrement}
+              className="h-12 w-12 cursor-pointer rounded-xl border-custom-primary-color/30 hover:bg-custom-primary-color/20"
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <div className="flex-1 flex items-center justify-center bg-custom-primary-color/5 rounded-xl py-3 px-4">
+              <Input
+                type="number"
+                value={lockDuration}
+                onChange={(e) => setLockDuration(Math.max(1, Math.min(3000, parseInt(e.target.value) || 1)))}
+                className="text-3xl font-bold text-center border-none shadow-none focus-visible:ring-0 bg-transparent p-0 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+              />
             </div>
-          }
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleDurationIncrement}
+              className="h-12 w-12 cursor-pointer rounded-xl border-custom-primary-color/30 hover:bg-custom-primary-color/20"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+            <span className="text-custom-muted-text text-sm">days</span>
+          </div>
+
+          <div className="text-sm text-custom-muted-text text-center mb-4">
+            ≈ {lockMonths} months · unlocks {unlockDate}
+          </div>
+
+          <div className="space-y-2">
+            <Slider
+              value={[lockDuration]}
+              onValueChange={handleSliderChange}
+              min={1}
+              max={3000}
+              step={1}
+              className="w-full cursor-pointer"
+            />
+            <div className="flex justify-between text-xs text-custom-muted-text">
+              <span>1d</span>
+              <span>1yr</span>
+              <span>3000d</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Lock Type Section */}
+      <Card className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none border border-custom-primary-color/30">
+        <CardContent className="px-4 py-4">
+          <div className="flex items-center gap-2 mb-4">
+            <LockKeyhole className="h-4 w-4 text-custom-muted-text" />
+            <span className="text-sm font-semibold text-custom-muted-text uppercase">
+              Lock Type
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <Button
+              variant={lockType === "fixed" ? "default" : "outline"}
+              onClick={() => setLockType("fixed")}
+              className={`h-14 rounded-xl text-base font-semibold cursor-pointer ${
+                lockType === "fixed"
+                  ? "bg-custom-primary-text text-background hover:bg-custom-primary-text/90"
+                  : "border-custom-primary-color/30 hover:bg-custom-primary-color/20"
+              }`}
+            >
+              <LockKeyhole className="h-5 w-5 mr-2" />
+              FIXED
+            </Button>
+            <Button
+              variant={lockType === "flexible" ? "default" : "outline"}
+              onClick={() => setLockType("flexible")}
+              className={`h-14 rounded-xl text-base font-semibold cursor-pointer ${
+                lockType === "flexible"
+                  ? "bg-custom-primary-text text-background hover:bg-custom-primary-text/90"
+                  : "border-custom-primary-color/30 hover:bg-custom-primary-color/20"
+              }`}
+            >
+              <UnlockIcon className="h-5 w-5 mr-2" />
+              FLEXIBLE
+            </Button>
+          </div>
+
+          <div className="text-sm text-custom-muted-text">
+            {lockType === "fixed"
+              ? "Tokens are locked until the exact end date. Early withdrawal is not possible."
+              : "Tokens can be withdrawn early with a penalty fee. Rewards are earned dynamically."}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Referrer Wallet Section */}
+      <Card className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none border border-custom-primary-color/30">
+        <CardContent className="px-4 py-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Users className="h-4 w-4 text-custom-muted-text" />
+            <span className="text-sm font-semibold text-custom-muted-text uppercase">
+              Referrer Wallet
+            </span>
+            <span className="text-xs text-custom-muted-text ml-auto">Optional</span>
+          </div>
+
+          <Input
+            type="text"
+            placeholder="0x0000...0000"
+            value={referrerWallet}
+            onChange={(e) => setReferrerWallet(e.target.value)}
+            className="h-12 rounded-xl border-custom-primary-color/30 focus-visible:ring-custom-primary-color"
+          />
+        </CardContent>
+      </Card>
+
+      {/* Summary Card */}
+      <Card className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none border border-custom-primary-color/30">
+        <CardContent className="px-4">
+          <div>
+            {lockToken
+              ? `1 ${lockToken.symbol} = 1 li${lockToken.symbol}`
+              : "1 Token = 1 Liquid Locked Token"}
+          </div>
           <div className="w-full md:w-104 flex justify-between mt-2">
             <div className="text-custom-muted-text">Platform Fee</div>
             <div>
