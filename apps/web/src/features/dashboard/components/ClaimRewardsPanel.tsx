@@ -10,6 +10,7 @@ import {
   ArrowRightLeft,
   Settings,
   X,
+  CalendarClock,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,7 @@ export default function ClaimRewardsPanel() {
     CoinGeckoTokenType[]
   >([]);
   const [isRewardsModalOpen, setIsRewardsModalOpen] = useState(false);
+  const [claimDays, setClaimDays] = useState<number>(0);
 
   const unlockToken = useMemo(() => {
     return selectedTokens.unlockToken[selectedBlockchain.id];
@@ -268,6 +270,29 @@ export default function ClaimRewardsPanel() {
         className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
       border border-custom-primary-color/30"
       >
+        <CardContent className="px-4 py-4">
+          <div className="flex items-center gap-2 mb-3">
+            <CalendarClock className="h-4 w-4 text-custom-muted-text" />
+            <span className="text-sm font-semibold text-custom-muted-text uppercase">
+              Claim Unclaimed Days
+            </span>
+            <span className="text-xs text-custom-muted-text ml-auto">
+              Unclaimed Days: 17
+            </span>
+          </div>
+          <Input
+            type="number"
+            placeholder="0"
+            value={claimDays}
+            onChange={(e) => setClaimDays(parseInt(e.target.value))}
+            className="h-12 rounded-xl border-custom-primary-color/30 focus-visible:ring-custom-primary-color"
+          />
+        </CardContent>
+      </Card>
+      <Card
+        className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
+      border border-custom-primary-color/30"
+      >
         <CardContent className="px-4">
           <div className="flex justify-between items-center">
             <div className="text-custom-muted-text">Chosen Tokens</div>
@@ -295,18 +320,14 @@ export default function ClaimRewardsPanel() {
                       </div>
                     ))}
                     {chosenRewardTokens.length > 3 && (
-                      <div className="flex items-center justify-center h-6 w-6 p-3 rounded-full bg-custom-primary-color text-custom-tertiary-text border-2 border-background text-sm">
+                      <div className="flex items-center justify-center h-6 w-6 p-3 rounded-full bg-custom-primary-color text-custom-secondary-text border-2 border-background text-sm">
                         +{chosenRewardTokens.length - 3}
                       </div>
                     )}
                   </div>
                 </>
               ) : (
-                <div
-                  className="text-xs"
-                >
-                  + Add A Token
-                </div>
+                <div className="text-xs">+ Add A Token</div>
               )}
             </div>
           </div>

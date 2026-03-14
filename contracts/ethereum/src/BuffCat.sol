@@ -2,8 +2,12 @@
 pragma solidity ^0.8.28;
 
 // Chainlink Importss
-import {FeedRegistryInterface} from "../lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/FeedRegistryInterface.sol";
-import {Denominations} from "../lib/chainlink-brownie-contracts/contracts/src/v0.8/Denominations.sol";
+import {
+    FeedRegistryInterface
+} from "../lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/FeedRegistryInterface.sol";
+import {
+    Denominations
+} from "../lib/chainlink-brownie-contracts/contracts/src/v0.8/Denominations.sol";
 
 // OpenZeppelin (Standard) Imports
 import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -23,7 +27,9 @@ import "../lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initiali
 import "../lib/v3-periphery/contracts/libraries/OracleLibrary.sol";
 import "../lib/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "../lib/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import {FixedPoint96} from "../lib/v3-core/contracts/libraries/FixedPoint96.sol";
+import {
+    FixedPoint96
+} from "../lib/v3-core/contracts/libraries/FixedPoint96.sol";
 
 enum LockType {
     FLEXIBLE,

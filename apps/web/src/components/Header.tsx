@@ -26,7 +26,7 @@ import { UserWallet } from "@/features/wallet/components/UserWallet";
 
 const BlockchainSelector = () => {
   const [selectedBlockchain, setSelectedBlockchain] = useAtom(
-    selectedBlockchainAtom
+    selectedBlockchainAtom,
   );
 
   return (
@@ -44,7 +44,7 @@ const BlockchainSelector = () => {
       >
         <SelectValue placeholder="Select a blockchain" />
       </SelectTrigger>
-      <SelectContent className="bg-custom-root-bg">
+      <SelectContent className="bg-custom-bg">
         <SelectGroup>
           <SelectLabel>Blockchains</SelectLabel>
           {blockchains.map((b) => (

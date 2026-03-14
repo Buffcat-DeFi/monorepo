@@ -26,7 +26,7 @@ export default function Dashboard() {
       </motion.h1>
       <section
         className="mx-auto mt-6 mb-12 w-full md:w-120 rounded-2xl p-4
-    bg-custom-root-bg border-2 border-custom-primary-color custom-box-shadow"
+    bg-custom-bg border-2 border-custom-primary-color custom-box-shadow"
       >
         <Tabs
           defaultValue="Lock"

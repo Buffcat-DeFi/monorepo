@@ -19,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${font.variable} antialiased bg-custom-root-bg text-custom-root-text font-semibold`}
+        className={`${font.variable} antialiased bg-custom-bg text-custom-primary-text font-semibold`}
       >
         <CustomLayout>{children}</CustomLayout>
         <script

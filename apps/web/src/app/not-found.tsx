@@ -9,7 +9,7 @@ export default function NotFound() {
     <div className="flex items-center justify-center h-screen">
       <div className="flex flex-col">
         <div className={`${typography.h1} text-left mb-2`}>
-          <span className="text-custom-secondary-text">404</span>
+          <span className="text-red-500">404</span>
           <span> Not Found</span>
         </div>
         <ThemedButton

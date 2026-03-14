@@ -113,7 +113,7 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
                   <button
                     key={token.address}
                     className="w-full flex items-center px-3 py-3 rounded-lg cursor-pointer
-                    hover:bg-custom-primary-color hover:text-custom-tertiary-text"
+                    hover:bg-custom-primary-color hover:text-custom-secondary-text"
                     onClick={() => onSelectToken && onSelectToken(token)}
                   >
                     {selectedBlockchain.id == "base"

@@ -194,7 +194,7 @@ const ConsentDialog = () => {
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
-            className="cursor-pointer bg-custom-primary-color text-custom-tertiary-text
+            className="cursor-pointer bg-custom-primary-color text-custom-secondary-text
             border border-custom-primary-color hover:bg-custom-secondary-color
             hover:text-custom-primary-text"
           >
