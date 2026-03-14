@@ -37,7 +37,7 @@ import { useWriteContract } from "wagmi";
 import erc20Abi from "../lib/evm/erc20.json";
 import buffcatAbi from "../lib/evm/buffcat.json";
 import { envVariables } from "@/lib/envVariables";
-import { CoinGeckoTokenType } from "@/types/global";
+import { CoinGeckoTokenType, LockType } from "@/types/global";
 import TokenInfo from "./TokenInfo";
 import { useDialog } from "@/components/Dialog";
 import { useTokenDerivative } from "../hooks/query/contract";
@@ -60,7 +60,7 @@ export default function LockPanel() {
 
   // Lock duration state (in days)
   const [lockDuration, setLockDuration] = useState<number>(1034);
-  const [lockType, setLockType] = useState<"fixed" | "flexible">("flexible");
+  const [lockType, setLockType] = useState<LockType>(LockType.FLEXIBLE);
   const [referrerWallet, setReferrerWallet] = useState<string>("");
 
   const lockToken = useMemo(() => {
@@ -143,7 +143,7 @@ export default function LockPanel() {
     let approvalAmount = parsedAmount;
     if (!decimals) {
       toast.error(
-        "Token decimals not found, toggle to use raw values instead."
+        "Token decimals not found, toggle to use raw values instead.",
       );
       return;
     }
@@ -154,7 +154,7 @@ export default function LockPanel() {
         : envVariables.buffcatContract.base;
     if (buffcatContract == "") {
       toast.error(
-        `${selectedBlockchain.name} Buffcat contract address not set.`
+        `${selectedBlockchain.name} Buffcat contract address not set.`,
       );
       return;
     }
@@ -178,7 +178,7 @@ export default function LockPanel() {
         successMessage: "Your tokens have been approved successfully.",
         loadingTitle: "Processing Transaction",
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
-      }
+      },
     );
   };
 
@@ -206,7 +206,7 @@ export default function LockPanel() {
     let lockAmount = parsedAmount;
     if (!decimals) {
       toast.error(
-        "Token decimals not found, toggle to use raw values instead."
+        "Token decimals not found, toggle to use raw values instead.",
       );
       return;
     }
@@ -217,7 +217,7 @@ export default function LockPanel() {
         : envVariables.buffcatContract.base;
     if (buffcatContract == "") {
       toast.error(
-        `${selectedBlockchain.name} Buffcat contract address not set.`
+        `${selectedBlockchain.name} Buffcat contract address not set.`,
       );
       return;
     }
@@ -254,7 +254,7 @@ export default function LockPanel() {
         successMessage: "Your tokens have been locked successfully.",
         loadingTitle: "Processing Transaction",
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
-      }
+      },
     );
   };
 
@@ -447,7 +447,11 @@ export default function LockPanel() {
               <Input
                 type="number"
                 value={lockDuration}
-                onChange={(e) => setLockDuration(Math.max(1, Math.min(3000, parseInt(e.target.value) || 1)))}
+                onChange={(e) =>
+                  setLockDuration(
+                    Math.max(1, Math.min(3000, parseInt(e.target.value) || 1)),
+                  )
+                }
                 className="text-3xl font-bold text-center border-none shadow-none focus-visible:ring-0 bg-transparent p-0 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
               />
             </div>
@@ -496,10 +500,10 @@ export default function LockPanel() {
 
           <div className="grid grid-cols-2 gap-3 mb-3">
             <Button
-              variant={lockType === "fixed" ? "default" : "outline"}
-              onClick={() => setLockType("fixed")}
+              variant={lockType === LockType.FIXED ? "default" : "outline"}
+              onClick={() => setLockType(LockType.FIXED)}
               className={`h-14 rounded-xl text-base font-semibold cursor-pointer ${
-                lockType === "fixed"
+                lockType === LockType.FIXED
                   ? "bg-custom-primary-text text-background hover:bg-custom-primary-text/90"
                   : "border-custom-primary-color/30 hover:bg-custom-primary-color/20"
               }`}
@@ -508,10 +512,10 @@ export default function LockPanel() {
               FIXED
             </Button>
             <Button
-              variant={lockType === "flexible" ? "default" : "outline"}
-              onClick={() => setLockType("flexible")}
+              variant={lockType === LockType.FLEXIBLE ? "default" : "outline"}
+              onClick={() => setLockType(LockType.FLEXIBLE)}
               className={`h-14 rounded-xl text-base font-semibold cursor-pointer ${
-                lockType === "flexible"
+                lockType === LockType.FLEXIBLE
                   ? "bg-custom-primary-text text-background hover:bg-custom-primary-text/90"
                   : "border-custom-primary-color/30 hover:bg-custom-primary-color/20"
               }`}
@@ -522,7 +526,7 @@ export default function LockPanel() {
           </div>
 
           <div className="text-sm text-custom-muted-text">
-            {lockType === "fixed"
+            {lockType === LockType.FIXED
               ? "Tokens are locked until the exact end date. Early withdrawal is not possible."
               : "Tokens can be withdrawn early with a penalty fee. Rewards are earned dynamically."}
           </div>
@@ -537,7 +541,9 @@ export default function LockPanel() {
             <span className="text-sm font-semibold text-custom-muted-text uppercase">
               Referrer Wallet
             </span>
-            <span className="text-xs text-custom-muted-text ml-auto">Optional</span>
+            <span className="text-xs text-custom-muted-text ml-auto">
+              Optional
+            </span>
           </div>
 
           <Input
