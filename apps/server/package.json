@@ -25,6 +25,7 @@
     "fastify-cli": "^7.4.1"
   },
   "devDependencies": {
+    "@buffcat/eslint-config": "workspace:*",
     "@types/node": "^24.0.8",
     "c8": "^10.1.2",
     "ts-node": "^10.4.0",

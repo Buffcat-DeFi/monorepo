@@ -47,6 +47,7 @@
     "zod": "^4.1.5"
   },
   "devDependencies": {
+    "@buffcat/eslint-config": "workspace:*",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
