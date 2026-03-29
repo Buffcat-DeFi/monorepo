@@ -1,6 +1,4 @@
-import { BlockchainParam } from '@/types';
-import { Blockchain } from '@/types';
-import { Lock } from '@/types/storeTypes';
+import { BlockchainParam, Blockchain } from '@buffcat/types';
 
 export const contractAddresses: {
   [key in BlockchainParam]: string;
@@ -51,11 +49,11 @@ export const placeholders = {
   tokenAmount: 0,
 };
 
-export const apiUrls: {
+export const rpcUrls: {
   [key in BlockchainParam]: string;
 } = {
-  eth: 'https://mainnet.infura.io/v3/',
-  base: 'https://base-mainnet.infura.io/v3/',
-  bsc: 'https://bsc-mainnet.infura.io/v3/',
-  solana: 'https://summer-sleek-feather.solana-mainnet.quiknode.pro/',
+  eth: '',
+  base: '',
+  bsc: '',
+  solana: '',
 };
