@@ -1,6 +1,12 @@
 export const envVariables = {
   buffcatContract: {
-    eth: "",
-    base: "",
+    eth: '',
+    base: '',
+    sol: '',
+  },
+  rpcUrls: {
+    eth: '',
+    base: '',
+    sol: '',
   },
 };

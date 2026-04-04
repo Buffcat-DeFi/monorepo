@@ -1,4 +1,4 @@
-export type SupportedBlockchain = "eth" | "base";
+export type SupportedBlockchain = 'eth' | 'solana' | 'base';
 
 export type Blockchain = {
   chainId: number;
