@@ -1,20 +1,20 @@
-"use client";
-import React, { useEffect } from "react";
-import Dashboard from "@/features/dashboard/components/Dashboard";
-import { useAtomValue } from "jotai";
-import { TokenSelector } from "@/features/dashboard/components/TokenSelector";
-import { tokenSelectorAtom } from "@/store/global";
+'use client';
+import React, { useEffect } from 'react';
+import Dashboard from '@/features/dashboard/components/Dashboard';
+import { useAtomValue } from 'jotai';
+import { TokenSelector } from '@/features/dashboard/components/TokenSelector';
+import { tokenSelectorAtom } from '@/store/global';
 
 export default function DashboardPage() {
   const tokenSelectorStateValue = useAtomValue(tokenSelectorAtom);
   useEffect(() => {
     if (tokenSelectorStateValue.isOpen) {
-      document.body.style.overflow = "hidden";
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = "";
+      document.body.style.overflow = '';
     }
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = '';
     };
   }, [tokenSelectorStateValue]);
 

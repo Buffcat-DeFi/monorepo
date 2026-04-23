@@ -1,5 +1,5 @@
 import { CoinGeckoToken, SupportedBlockchain } from './global';
-import { TokenData } from './api';
+import { CoingeckoApiResponse } from './api';
 
 export type TokenSelectorAtom = {
   isOpen: boolean;
@@ -15,7 +15,7 @@ export type SelectedTokensAtom = {
     [key in SupportedBlockchain]: CoinGeckoToken | null;
   };
   rewardTokens: {
-    [key in SupportedBlockchain]: SelectedRewardToken[] | null;
+    [key in SupportedBlockchain]: CoinGeckoToken[] | null;
   };
 };
 
@@ -41,7 +41,7 @@ export type RewardCalculations = {
   totalExpectedRewards: number | null;
 };
 
-export type SelectedRewardToken = TokenData & {
+export type SelectedRewardToken = CoingeckoApiResponse & {
   address: string;
   amount: number;
 };

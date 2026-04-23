@@ -1,51 +1,37 @@
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { CoinGeckoTokenType } from "@/types/global";
-import {
-  Check,
-  ChevronDown,
-  ChevronRight,
-  Copy,
-  BadgeDollarSign,
-} from "lucide-react";
-import { useState } from "react";
-import { useTokenDerivative } from "../hooks/query/contract";
-import { selectedBlockchainAtom } from "@/store/global";
-import { useAtomValue } from "jotai";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { CoinGeckoToken } from '@/types/global';
+import { Check, ChevronDown, ChevronRight, Copy, BadgeDollarSign } from 'lucide-react';
+import { useState } from 'react';
+import { useTokenDerivative } from '../hooks/query/contract';
+import { selectedBlockchainAtom } from '@/store/global';
+import { useAtomValue } from 'jotai';
 
-export default function TokenInfo({
-  token,
-}: {
-  token: CoinGeckoTokenType | null;
-}) {
+export default function TokenInfo({ token }: { token: CoinGeckoToken | null }) {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
-  const [copiedField, setCopiedField] = useState("");
+  const [copiedField, setCopiedField] = useState('');
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
 
   const copyToClipboard = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
-    setTimeout(() => setCopiedField(""), 2000);
+    setTimeout(() => setCopiedField(''), 2000);
   };
 
   const truncateAddress = (address: string) => {
-    if (!address) return "";
+    if (!address) return '';
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
   const { data: tokenDerivativeData, isLoading } = useTokenDerivative({
     chain: selectedBlockchain,
-    tokenAddressOrMint: token?.address ?? "",
+    tokenAddressOrMint: token?.address ?? '',
   });
 
   const InfoRow = ({
     label,
     value,
     copyable = false,
-    fieldName = "",
+    fieldName = '',
   }: {
     label: string;
     value: string | undefined;
@@ -53,20 +39,14 @@ export default function TokenInfo({
     fieldName?: string;
   }) => (
     <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
-      <span className="text-sm font-medium text-gray-500 min-w-fit">
-        {label}
-      </span>
+      <span className="text-sm font-medium text-gray-500 min-w-fit">{label}</span>
       <div className="flex items-center gap-2 ml-4">
         <span className="text-sm text-gray-900 break-all text-right">
-          {value
-            ? label == "Address"
-              ? truncateAddress(value)
-              : value
-            : "N/A"}
+          {value ? (label == 'Address' ? truncateAddress(value) : value) : 'N/A'}
         </span>
         {copyable && (
           <button
-            onClick={() => copyToClipboard(value || "", fieldName)}
+            onClick={() => copyToClipboard(value || '', fieldName)}
             className="p-1.5 hover:bg-gray-100 rounded-md transition-colors flex-shrink-0"
             title="Copy to clipboard"
           >
@@ -111,7 +91,7 @@ export default function TokenInfo({
     );
   }
 
-  if (tokenDerivativeData == "0x0000000000000000000000000000000000000000") {
+  if (tokenDerivativeData == '0x0000000000000000000000000000000000000000') {
     return (
       <Collapsible className="w-full md:w-112 mt-2 rounded-2xl border border-custom-primary-color/30 text-custom-primary-text">
         <CollapsibleTrigger className="w-full py-2 px-4 flex justify-between">
@@ -164,9 +144,7 @@ export default function TokenInfo({
             {/* Full Address Display (Mobile Friendly) */}
             <div className="mt-4 p-3 bg-gray-50 rounded-lg">
               <p className="text-xs text-gray-500 mb-1">Full Address</p>
-              <p className="text-xs text-gray-700 break-all">
-                {tokenDerivativeData}
-              </p>
+              <p className="text-xs text-gray-700 break-all">{tokenDerivativeData}</p>
             </div>
           </div>
         </CollapsibleContent>

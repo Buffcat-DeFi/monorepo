@@ -1,14 +1,14 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import LockPanel from "./LockPanel";
-import UnlockPanel from "./UnlockPanel";
-import { useState } from "react";
-import { motion } from "motion/react";
-import { HowItWorks } from "@/components/HowItWorks";
-import { UseCases } from "@/components/UseCases";
-import ClaimRewardsPanel from "./ClaimRewardsPanel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import LockPanel from './LockPanel';
+import UnlockPanel from './UnlockPanel';
+import { useState } from 'react';
+import { motion } from 'motion/react';
+import { HowItWorks } from '@/components/HowItWorks';
+import { UseCases } from '@/components/UseCases';
+import ClaimRewardsPanel from './ClaimRewardsPanel';
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState("Lock");
+  const [activeTab, setActiveTab] = useState('Lock');
 
   return (
     <div className="min-h-screen mx-auto">
@@ -28,10 +28,7 @@ export default function Dashboard() {
         className="mx-auto mt-6 mb-12 w-full md:w-120 rounded-2xl p-4
     bg-custom-bg border-2 border-custom-primary-color custom-box-shadow"
       >
-        <Tabs
-          defaultValue="Lock"
-          onValueChange={(value) => setActiveTab(value)}
-        >
+        <Tabs defaultValue="Lock" onValueChange={(value) => setActiveTab(value)}>
           <TabsList className="w-full bg-transparent flex justify-between border-b-2 border-gray-200 rounded-none">
             <div>
               <TabsTrigger
@@ -89,9 +86,8 @@ export default function Dashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
       >
-        Buffcat transforms any coin into tradeable derivatives. Lock tokens,
-        mint liquid locked tokens at 1:1, and unlock new DeFi opportunities
-        without selling your holdings.
+        Buffcat transforms any coin into tradeable derivatives. Lock tokens, mint liquid locked
+        tokens at 1:1, and unlock new DeFi opportunities without selling your holdings.
       </motion.p>
       <HowItWorks />
       <UseCases />

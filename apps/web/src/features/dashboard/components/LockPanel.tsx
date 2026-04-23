@@ -1,8 +1,4 @@
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   ChevronDown,
   ChevronRight,
@@ -16,52 +12,51 @@ import {
   LockKeyhole,
   Unlock as UnlockIcon,
   Users,
-} from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import ImageWithFallback from "@/components/ImageWithFallback";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { placeholders } from "@/constants/placeholders";
-import { useMemo, useState } from "react";
+} from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import ImageWithFallback from '@/components/ImageWithFallback';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { placeholders } from '@/constants/placeholders';
+import { useMemo, useState } from 'react';
 import {
   tokenSelectorAtom,
   selectedTokensAtom,
   selectedBlockchainAtom,
   currentUserAtom,
-} from "@/store/global";
-import { Card, CardContent } from "@/components/ui/card";
-import ThemedButton from "@/components/themed/button";
-import { toast } from "sonner";
-import { useTransactionDialog } from "../hooks/transactionDialogHook";
-import { useWriteContract } from "wagmi";
-import erc20Abi from "../lib/evm/erc20.json";
-import buffcatAbi from "../lib/evm/buffcat.json";
-import { envVariables } from "@/lib/envVariables";
-import { CoinGeckoTokenType, LockType } from "@/types/global";
-import TokenInfo from "./TokenInfo";
-import { useDialog } from "@/components/Dialog";
-import { useTokenDerivative } from "../hooks/query/contract";
-import { isValidFloat } from "../lib/utils";
-import { Slider } from "@/components/ui/slider";
+} from '@/store/global';
+import { Card, CardContent } from '@/components/ui/card';
+import ThemedButton from '@/components/themed/button';
+import { toast } from 'sonner';
+import { useTransactionDialog } from '../hooks/transactionDialogHook';
+import { useWriteContract } from 'wagmi';
+import erc20Abi from '../lib/evm/erc20.json';
+import buffcatAbi from '../lib/evm/buffcat.json';
+import { envVariables } from '@/lib/envVariables';
+import { CoinGeckoToken, LockType } from '@/types/global';
+import TokenInfo from './TokenInfo';
+import { useDialog } from '@/components/Dialog';
+import { useTokenDerivative } from '../hooks/query/contract';
+import { isValidFloat } from '../lib/utils';
+import { Slider } from '@/components/ui/slider';
 
 export default function LockPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
   const [selectedTokens, setSelectedTokens] = useAtom(selectedTokensAtom);
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
   const currentUser = useAtomValue(currentUserAtom);
-  const [amount, setAmount] = useState<string>("1");
+  const [amount, setAmount] = useState<string>('1');
   const { writeContractAsync } = useWriteContract();
   const { showConsentDialog } = useDialog();
   const { refetch: refetchDerivativeData } = useTokenDerivative({
     chain: selectedBlockchain,
-    tokenAddressOrMint:
-      selectedTokens.lockToken[selectedBlockchain.id]?.address ?? "",
+    tokenAddressOrMint: selectedTokens.lockToken[selectedBlockchain.id]?.address ?? '',
   });
 
   // Lock duration state (in days)
   const [lockDuration, setLockDuration] = useState<number>(1034);
   const [lockType, setLockType] = useState<LockType>(LockType.FLEXIBLE);
-  const [referrerWallet, setReferrerWallet] = useState<string>("");
+  const [referrerWallet, setReferrerWallet] = useState<string>('');
 
   const lockToken = useMemo(() => {
     return selectedTokens.lockToken[selectedBlockchain.id];
@@ -71,10 +66,10 @@ export default function LockPanel() {
   const unlockDate = useMemo(() => {
     const date = new Date();
     date.setDate(date.getDate() + lockDuration);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
     });
   }, [lockDuration]);
 
@@ -100,13 +95,12 @@ export default function LockPanel() {
   const handletokenSelectorTrigger = () => {
     setTokenSelectorState({
       isOpen: true,
-      onClose: () =>
-        setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
+      onClose: () => setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
       onSelectToken: handleSelectToken,
     });
   };
 
-  const handleSelectToken = (token: CoinGeckoTokenType) => {
+  const handleSelectToken = (token: CoinGeckoToken) => {
     setSelectedTokens((prev) => ({
       ...prev,
       lockToken: {
@@ -121,41 +115,36 @@ export default function LockPanel() {
 
   const handleTokenApproval = async () => {
     if (!currentUser.loggedIn) {
-      toast.error("Connect a wallet first.");
+      toast.error('Connect a wallet first.');
       return;
     }
-    const tokenAddress =
-      selectedTokens.lockToken[selectedBlockchain.id]?.address;
+    const tokenAddress = selectedTokens.lockToken[selectedBlockchain.id]?.address;
     if (!tokenAddress) {
-      toast.error("Select a token and try again.");
+      toast.error('Select a token and try again.');
       return;
     }
     if (!isValidFloat(amount)) {
-      toast.error("Invalid input.");
+      toast.error('Invalid input.');
       return;
     }
     let parsedAmount = parseFloat(amount);
     if (parsedAmount == 0 || parsedAmount < 0) {
-      toast.error("Invalid Amount Input");
+      toast.error('Invalid Amount Input');
       return;
     }
     const decimals = selectedTokens.lockToken[selectedBlockchain.id]?.decimals;
     let approvalAmount = parsedAmount;
     if (!decimals) {
-      toast.error(
-        "Token decimals not found, toggle to use raw values instead.",
-      );
+      toast.error('Token decimals not found, toggle to use raw values instead.');
       return;
     }
     approvalAmount = parsedAmount * 10 ** decimals;
     const buffcatContract =
-      selectedBlockchain.id == "eth"
+      selectedBlockchain.id == 'eth'
         ? envVariables.buffcatContract.eth
         : envVariables.buffcatContract.base;
-    if (buffcatContract == "") {
-      toast.error(
-        `${selectedBlockchain.name} Buffcat contract address not set.`,
-      );
+    if (buffcatContract == '') {
+      toast.error(`${selectedBlockchain.name} Buffcat contract address not set.`);
       return;
     }
     await withConfirmation(
@@ -163,20 +152,20 @@ export default function LockPanel() {
         const sig = await writeContractAsync({
           address: tokenAddress as `0x${string}`,
           abi: erc20Abi,
-          functionName: "approve",
+          functionName: 'approve',
           args: [buffcatContract, approvalAmount],
           chainId: selectedBlockchain.chainId,
         });
-        toast.success("Signature", {
+        toast.success('Signature', {
           description: `${sig}`,
         });
       },
       {
-        title: "Approve Tokens?",
+        title: 'Approve Tokens?',
         description: `Do you want to approve ${amount}
         ${selectedTokens.lockToken[selectedBlockchain.id]?.symbol.toString()}?`,
-        successMessage: "Your tokens have been approved successfully.",
-        loadingTitle: "Processing Transaction",
+        successMessage: 'Your tokens have been approved successfully.',
+        loadingTitle: 'Processing Transaction',
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
       },
     );
@@ -184,41 +173,36 @@ export default function LockPanel() {
 
   const handleLockTokens = async () => {
     if (!currentUser.loggedIn) {
-      toast.error("Connect a wallet first.");
+      toast.error('Connect a wallet first.');
       return;
     }
-    const tokenAddress =
-      selectedTokens.lockToken[selectedBlockchain.id]?.address;
+    const tokenAddress = selectedTokens.lockToken[selectedBlockchain.id]?.address;
     if (!tokenAddress) {
-      toast.error("Select a token and try again.");
+      toast.error('Select a token and try again.');
       return;
     }
     if (!isValidFloat(amount)) {
-      toast.error("Invalid input.");
+      toast.error('Invalid input.');
       return;
     }
     let parsedAmount = parseFloat(amount);
     if (parsedAmount == 0 || parsedAmount < 0) {
-      toast.error("Invalid Amount Input");
+      toast.error('Invalid Amount Input');
       return;
     }
     const decimals = selectedTokens.lockToken[selectedBlockchain.id]?.decimals;
     let lockAmount = parsedAmount;
     if (!decimals) {
-      toast.error(
-        "Token decimals not found, toggle to use raw values instead.",
-      );
+      toast.error('Token decimals not found, toggle to use raw values instead.');
       return;
     }
     lockAmount = parsedAmount * 10 ** decimals;
     const buffcatContract =
-      selectedBlockchain.id == "eth"
+      selectedBlockchain.id == 'eth'
         ? envVariables.buffcatContract.eth
         : envVariables.buffcatContract.base;
-    if (buffcatContract == "") {
-      toast.error(
-        `${selectedBlockchain.name} Buffcat contract address not set.`,
-      );
+    if (buffcatContract == '') {
+      toast.error(`${selectedBlockchain.name} Buffcat contract address not set.`);
       return;
     }
     await withConfirmation(
@@ -226,15 +210,15 @@ export default function LockPanel() {
         const sig = await writeContractAsync({
           address: buffcatContract as `0x${string}`,
           abi: buffcatAbi.abi,
-          functionName: "lock",
+          functionName: 'lock',
           args: [tokenAddress, lockAmount],
           chainId: selectedBlockchain.chainId,
         });
-        toast.success("Signature", {
+        toast.success('Signature', {
           description: `${sig}`,
         });
         showConsentDialog({
-          title: "Attention!",
+          title: 'Attention!',
           description: `Some wallets may not recongnize derivatives right away.
             Add the token to your wallet manually using the address from updated
             derivative info section.`,
@@ -248,11 +232,11 @@ export default function LockPanel() {
         refetchDerivativeData();
       },
       {
-        title: "Lock Tokens?",
+        title: 'Lock Tokens?',
         description: `Do you want to lock ${amount}
         ${selectedTokens.lockToken[selectedBlockchain.id]?.symbol.toString()}?`,
-        successMessage: "Your tokens have been locked successfully.",
-        loadingTitle: "Processing Transaction",
+        successMessage: 'Your tokens have been locked successfully.',
+        loadingTitle: 'Processing Transaction',
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
       },
     );
@@ -274,15 +258,11 @@ export default function LockPanel() {
                   <ImageWithFallback
                     height={38}
                     width={38}
-                    src={
-                      lockToken.logoURI
-                        ? lockToken.logoURI
-                        : placeholders.tokenImage
-                    }
+                    src={lockToken.logoURI ? lockToken.logoURI : placeholders.tokenImage}
                     alt={lockToken ? lockToken.name : placeholders.tokenName}
                     fallbackSrc={placeholders.tokenImage}
                     // Add key to force re-render when token changes
-                    key={lockToken?.address || "placeholder"}
+                    key={lockToken?.address || 'placeholder'}
                   />
                 </span>
                 <span className="flex flex-col items-start">
@@ -333,9 +313,7 @@ export default function LockPanel() {
             />
           </div>
         </div>
-        <div className="text-sm text-custom-muted-text">
-          {lockToken ? lockToken.name : "N/A"}
-        </div>
+        <div className="text-sm text-custom-muted-text">{lockToken ? lockToken.name : 'N/A'}</div>
       </div>
       <Collapsible className="w-full md:w-112 mt-2 rounded-2xl border border-custom-primary-color/30">
         <CollapsibleTrigger
@@ -363,15 +341,11 @@ export default function LockPanel() {
                 <ImageWithFallback
                   height={48}
                   width={48}
-                  src={
-                    lockToken?.logoURI
-                      ? lockToken.logoURI
-                      : placeholders.tokenImage
-                  }
+                  src={lockToken?.logoURI ? lockToken.logoURI : placeholders.tokenImage}
                   alt={lockToken ? lockToken.name : placeholders.tokenName}
                   fallbackSrc={placeholders.tokenImage}
                   // Add key to force re-render when token changes
-                  key={lockToken?.address || "placeholder"}
+                  key={lockToken?.address || 'placeholder'}
                 />
               </span>
               <span className="flex flex-col items-start">
@@ -391,36 +365,30 @@ export default function LockPanel() {
                 <ImageWithFallback
                   height={48}
                   width={48}
-                  src={
-                    lockToken?.logoURI
-                      ? lockToken.logoURI
-                      : placeholders.tokenImage
-                  }
+                  src={lockToken?.logoURI ? lockToken.logoURI : placeholders.tokenImage}
                   alt={lockToken ? lockToken.name : placeholders.tokenName}
                   fallbackSrc={placeholders.tokenImage}
                   // Add key to force re-render when token changes
-                  key={lockToken?.address || "placeholder"}
+                  key={lockToken?.address || 'placeholder'}
                 />
               </span>
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
-                    {lockToken
-                      ? "li" + lockToken.symbol
-                      : "li" + placeholders.tokenSymbol}
+                    {lockToken ? 'li' + lockToken.symbol : 'li' + placeholders.tokenSymbol}
                   </span>
                 </span>
               </span>
             </div>
           </div>
           <div className="text-muted-foreground text-sm px-6 pb-4">
-            Lock your {lockToken ? lockToken.symbol : placeholders.tokenSymbol}{" "}
-            or any token and receive li
-            {lockToken ? lockToken.symbol : placeholders.tokenSymbol}/liquid
-            locked tokens that represent your locked position. Use li
-            {lockToken ? lockToken.symbol : placeholders.tokenSymbol} in other
-            DeFi protocols while earning rewards. Burn your liquid locked tokens
-            to unlock your original tokens. No lock-up period required.
+            Lock your {lockToken ? lockToken.symbol : placeholders.tokenSymbol} or any token and
+            receive li
+            {lockToken ? lockToken.symbol : placeholders.tokenSymbol}/liquid locked tokens that
+            represent your locked position. Use li
+            {lockToken ? lockToken.symbol : placeholders.tokenSymbol} in other DeFi protocols while
+            earning rewards. Burn your liquid locked tokens to unlock your original tokens. No
+            lock-up period required.
           </div>
         </CollapsibleContent>
       </Collapsible>
@@ -448,9 +416,7 @@ export default function LockPanel() {
                 type="number"
                 value={lockDuration}
                 onChange={(e) =>
-                  setLockDuration(
-                    Math.max(1, Math.min(3000, parseInt(e.target.value) || 1)),
-                  )
+                  setLockDuration(Math.max(1, Math.min(3000, parseInt(e.target.value) || 1)))
                 }
                 className="text-3xl font-bold text-center border-none shadow-none focus-visible:ring-0 bg-transparent p-0 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
               />
@@ -500,24 +466,24 @@ export default function LockPanel() {
 
           <div className="grid grid-cols-2 gap-3 mb-3">
             <Button
-              variant={lockType === LockType.FIXED ? "default" : "outline"}
+              variant={lockType === LockType.FIXED ? 'default' : 'outline'}
               onClick={() => setLockType(LockType.FIXED)}
               className={`h-14 rounded-xl text-base font-semibold cursor-pointer ${
                 lockType === LockType.FIXED
-                  ? "bg-custom-primary-text text-background hover:bg-custom-primary-text/90"
-                  : "border-custom-primary-color/30 hover:bg-custom-primary-color/20"
+                  ? 'bg-custom-primary-text text-background hover:bg-custom-primary-text/90'
+                  : 'border-custom-primary-color/30 hover:bg-custom-primary-color/20'
               }`}
             >
               <LockKeyhole className="h-5 w-5 mr-2" />
               FIXED
             </Button>
             <Button
-              variant={lockType === LockType.FLEXIBLE ? "default" : "outline"}
+              variant={lockType === LockType.FLEXIBLE ? 'default' : 'outline'}
               onClick={() => setLockType(LockType.FLEXIBLE)}
               className={`h-14 rounded-xl text-base font-semibold cursor-pointer ${
                 lockType === LockType.FLEXIBLE
-                  ? "bg-custom-primary-text text-background hover:bg-custom-primary-text/90"
-                  : "border-custom-primary-color/30 hover:bg-custom-primary-color/20"
+                  ? 'bg-custom-primary-text text-background hover:bg-custom-primary-text/90'
+                  : 'border-custom-primary-color/30 hover:bg-custom-primary-color/20'
               }`}
             >
               <UnlockIcon className="h-5 w-5 mr-2" />
@@ -527,8 +493,8 @@ export default function LockPanel() {
 
           <div className="text-sm text-custom-muted-text">
             {lockType === LockType.FIXED
-              ? "Tokens are locked until the exact end date. Early withdrawal is not possible."
-              : "Tokens can be withdrawn early with a penalty fee. Rewards are earned dynamically."}
+              ? 'Tokens are locked until the exact end date. Early withdrawal is not possible.'
+              : 'Tokens can be withdrawn early with a penalty fee. Rewards are earned dynamically.'}
           </div>
         </CardContent>
       </Card>
@@ -541,9 +507,7 @@ export default function LockPanel() {
             <span className="text-sm font-semibold text-custom-muted-text uppercase">
               Referrer Wallet
             </span>
-            <span className="text-xs text-custom-muted-text ml-auto">
-              Optional
-            </span>
+            <span className="text-xs text-custom-muted-text ml-auto">Optional</span>
           </div>
 
           <Input
@@ -562,7 +526,7 @@ export default function LockPanel() {
           <div>
             {lockToken
               ? `1 ${lockToken.symbol} = 1 li${lockToken.symbol}`
-              : "1 Token = 1 Liquid Locked Token"}
+              : '1 Token = 1 Liquid Locked Token'}
           </div>
           <div className="w-full md:w-104 flex justify-between mt-2">
             <div className="text-custom-muted-text">Platform Fee</div>
@@ -592,9 +556,8 @@ export default function LockPanel() {
         <Lock /> Lock Tokens
       </ThemedButton>
       <div className="p-2 text-sm text-muted-foreground text-center">
-        Disclaimer: You'll have to pay for deploying the derivative of the token
-        you are locking if it hasn't been locked before on buffcat even once on
-        the specific chain you are on.
+        Disclaimer: You'll have to pay for deploying the derivative of the token you are locking if
+        it hasn't been locked before on buffcat even once on the specific chain you are on.
       </div>
     </div>
   );

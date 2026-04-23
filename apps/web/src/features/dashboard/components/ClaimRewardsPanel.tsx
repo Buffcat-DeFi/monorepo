@@ -1,8 +1,4 @@
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   ChevronDown,
   ChevronRight,
@@ -11,41 +7,34 @@ import {
   Settings,
   X,
   CalendarClock,
-} from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import ImageWithFallback from "@/components/ImageWithFallback";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+} from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import ImageWithFallback from '@/components/ImageWithFallback';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import {
   currentUserAtom,
   selectedBlockchainAtom,
   selectedTokensAtom,
   tokenSelectorAtom,
-} from "@/store/global";
-import { placeholders } from "@/constants/placeholders";
-import { useMemo, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import ThemedButton from "@/components/themed/button";
-import { useTransactionDialog } from "../hooks/transactionDialogHook";
-import { useWriteContract } from "wagmi";
-import { CoinGeckoTokenType } from "@/types/global";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/store/global';
+import { placeholders } from '@/constants/placeholders';
+import { useMemo, useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import ThemedButton from '@/components/themed/button';
+import { useTransactionDialog } from '../hooks/transactionDialogHook';
+import { useWriteContract } from 'wagmi';
+import { CoinGeckoToken } from '@/types/global';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function ClaimRewardsPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
   const [selectedTokens, setSelectedTokens] = useAtom(selectedTokensAtom);
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
   const currentUser = useAtomValue(currentUserAtom);
-  const [amount, setAmount] = useState<string>("1");
+  const [amount, setAmount] = useState<string>('1');
   const { writeContractAsync } = useWriteContract();
-  const [chosenRewardTokens, setChosenRewardTokens] = useState<
-    CoinGeckoTokenType[]
-  >([]);
+  const [chosenRewardTokens, setChosenRewardTokens] = useState<CoinGeckoToken[]>([]);
   const [isRewardsModalOpen, setIsRewardsModalOpen] = useState(false);
   const [claimDays, setClaimDays] = useState<number>(0);
 
@@ -58,16 +47,13 @@ export default function ClaimRewardsPanel() {
   const handletokenSelectorTrigger = () => {
     setTokenSelectorState({
       isOpen: true,
-      onClose: () =>
-        setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
+      onClose: () => setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
       onSelectToken: handleSelectToken,
     });
   };
 
-  const handleSelectToken = (token: CoinGeckoTokenType) => {
-    const isAlreadySelected = chosenRewardTokens.some(
-      (t) => t.address === token.address,
-    );
+  const handleSelectToken = (token: CoinGeckoToken) => {
+    const isAlreadySelected = chosenRewardTokens.some((t) => t.address === token.address);
     if (!isAlreadySelected) {
       setChosenRewardTokens((prev) => [...prev, token]);
     }
@@ -75,16 +61,13 @@ export default function ClaimRewardsPanel() {
   };
 
   const handleRemoveToken = (tokenAddress: string) => {
-    setChosenRewardTokens((prev) =>
-      prev.filter((token) => token.address !== tokenAddress),
-    );
+    setChosenRewardTokens((prev) => prev.filter((token) => token.address !== tokenAddress));
   };
 
   const handleAddRewardToken = () => {
     setTokenSelectorState({
       isOpen: true,
-      onClose: () =>
-        setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
+      onClose: () => setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
       onSelectToken: handleSelectToken,
     });
   };
@@ -109,25 +92,17 @@ export default function ClaimRewardsPanel() {
                   <ImageWithFallback
                     height={38}
                     width={38}
-                    src={
-                      unlockToken.logoURI
-                        ? unlockToken.logoURI
-                        : placeholders.tokenImage
-                    }
-                    alt={
-                      unlockToken ? unlockToken.name : placeholders.tokenName
-                    }
+                    src={unlockToken.logoURI ? unlockToken.logoURI : placeholders.tokenImage}
+                    alt={unlockToken ? unlockToken.name : placeholders.tokenName}
                     fallbackSrc={placeholders.tokenImage}
                     // Add key to force re-render when token changes
-                    key={unlockToken?.address || "placeholder"}
+                    key={unlockToken?.address || 'placeholder'}
                   />
                 </span>
                 <span className="flex flex-col items-start">
                   <span className="flex flex-row">
                     <span className="text-xl font-bold text-left text-custom-primary-text">
-                      {unlockToken
-                        ? unlockToken.symbol
-                        : placeholders.tokenSymbol}
+                      {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol}
                     </span>
                     <span className="flex items-center">
                       <ChevronRight className="text-custom-primary-text" />
@@ -173,7 +148,7 @@ export default function ClaimRewardsPanel() {
           </div>
         </div>
         <div className="text-sm text-custom-muted-text">
-          {unlockToken ? unlockToken.name : "N/A"}
+          {unlockToken ? unlockToken.name : 'N/A'}
         </div>
       </div>
       <Collapsible className="w-full md:w-112 mt-2 rounded-2xl border border-custom-primary-color/30">
@@ -202,23 +177,17 @@ export default function ClaimRewardsPanel() {
                 <ImageWithFallback
                   height={48}
                   width={48}
-                  src={
-                    unlockToken?.logoURI
-                      ? unlockToken.logoURI
-                      : placeholders.tokenImage
-                  }
+                  src={unlockToken?.logoURI ? unlockToken.logoURI : placeholders.tokenImage}
                   alt={unlockToken ? unlockToken.name : placeholders.tokenName}
                   fallbackSrc={placeholders.tokenImage}
                   // Add key to force re-render when token changes
-                  key={unlockToken?.address || "placeholder"}
+                  key={unlockToken?.address || 'placeholder'}
                 />
               </span>
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
-                    {unlockToken
-                      ? "li" + unlockToken.symbol
-                      : "li" + placeholders.tokenSymbol}
+                    {unlockToken ? 'li' + unlockToken.symbol : 'li' + placeholders.tokenSymbol}
                   </span>
                 </span>
               </span>
@@ -232,37 +201,30 @@ export default function ClaimRewardsPanel() {
                 <ImageWithFallback
                   height={48}
                   width={48}
-                  src={
-                    unlockToken?.logoURI
-                      ? unlockToken.logoURI
-                      : placeholders.tokenImage
-                  }
+                  src={unlockToken?.logoURI ? unlockToken.logoURI : placeholders.tokenImage}
                   alt={unlockToken ? unlockToken.name : placeholders.tokenName}
                   fallbackSrc={placeholders.tokenImage}
                   // Add key to force re-render when token changes
-                  key={unlockToken?.address || "placeholder"}
+                  key={unlockToken?.address || 'placeholder'}
                 />
               </span>
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
-                    {unlockToken
-                      ? unlockToken.symbol
-                      : placeholders.tokenSymbol}
+                    {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol}
                   </span>
                 </span>
               </span>
             </div>
           </div>
           <div className="text-muted-foreground text-sm px-6 pb-4">
-            Lock your{" "}
-            {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol} or any
-            token and receive li
-            {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol}/liquid
-            locked tokens that represent your locked position. Use li
-            {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol} in
-            other DeFi protocols while earning rewards. Burn your liquid locked
-            tokens to unlock your original tokens. No lock-up period required.
+            Lock your {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol} or any token and
+            receive li
+            {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol}/liquid locked tokens that
+            represent your locked position. Use li
+            {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol} in other DeFi protocols
+            while earning rewards. Burn your liquid locked tokens to unlock your original tokens. No
+            lock-up period required.
           </div>
         </CollapsibleContent>
       </Collapsible>
@@ -276,9 +238,7 @@ export default function ClaimRewardsPanel() {
             <span className="text-sm font-semibold text-custom-muted-text uppercase">
               Claim Unclaimed Days
             </span>
-            <span className="text-xs text-custom-muted-text ml-auto">
-              Unclaimed Days: 17
-            </span>
+            <span className="text-xs text-custom-muted-text ml-auto">Unclaimed Days: 17</span>
           </div>
           <Input
             type="number"
@@ -373,9 +333,7 @@ export default function ClaimRewardsPanel() {
                     />
                     <div className="flex flex-col">
                       <span className="font-semibold">{token.symbol}</span>
-                      <span className="text-xs text-custom-muted-text">
-                        {token.name}
-                      </span>
+                      <span className="text-xs text-custom-muted-text">{token.name}</span>
                     </div>
                   </div>
                   <Button

@@ -1,26 +1,22 @@
-import React, { useMemo, useState } from "react";
-import { selectedBlockchainAtom } from "@/store/global";
-import { useAtomValue } from "jotai";
-import Image from "next/image";
-import { X } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
-import { typography } from "@/styles/typography";
-import { TokenSelectorAtom } from "@/types/state";
-import { useAllTokensList } from "../hooks/query/tokens";
-import { placeholders } from "@/constants/placeholders";
-import { Loading } from "@/components/Loading";
-import { CoinGeckoTokenType } from "@/types/global";
+import React, { useMemo, useState } from 'react';
+import { selectedBlockchainAtom } from '@/store/global';
+import { useAtomValue } from 'jotai';
+import Image from 'next/image';
+import { X } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { typography } from '@/styles/typography';
+import { TokenSelectorAtom } from '@/types/state';
+import { useAllTokensList } from '../hooks/query/tokens';
+import { placeholders } from '@/constants/placeholders';
+import { Loading } from '@/components/Loading';
+import { CoinGeckoToken } from '@/types/global';
 
 interface TokenSelectorProps extends TokenSelectorAtom {}
 
-export const TokenSelector: React.FC<TokenSelectorProps> = ({
-  isOpen,
-  onClose,
-  onSelectToken,
-}) => {
-  const [searchTerm, setSearchTerm] = useState("");
+export const TokenSelector: React.FC<TokenSelectorProps> = ({ isOpen, onClose, onSelectToken }) => {
+  const [searchTerm, setSearchTerm] = useState('');
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
   const { isFetching, data: tokensList } = useAllTokensList(selectedBlockchain);
 
@@ -32,18 +28,16 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
   }, [tokensList]);
 
   const filteredList = useMemo(() => {
-    if (tokensList && searchTerm.trim() != "") {
-      const newFilteredTokens = tokensList.filter(
-        (token: CoinGeckoTokenType) => {
-          // Filter by search term only
-          if (token.name && token.symbol) {
-            return (
-              token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              token.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-          }
-        },
-      );
+    if (tokensList && searchTerm.trim() != '') {
+      const newFilteredTokens = tokensList.filter((token: CoinGeckoToken) => {
+        // Filter by search term only
+        if (token.name && token.symbol) {
+          return (
+            token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            token.symbol.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        }
+      });
       return newFilteredTokens.slice(0, 10);
     }
     return [];
@@ -100,9 +94,7 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
                 </div>
               ) : !tokensList ? (
                 <div className="text-center py-8">
-                  <p className="mb-2">
-                    {selectedBlockchain.name} Tokens Not Available
-                  </p>
+                  <p className="mb-2">{selectedBlockchain.name} Tokens Not Available</p>
                 </div>
               ) : displayList.length === 0 ? (
                 <div className="text-center py-8">
@@ -116,9 +108,9 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
                     hover:bg-custom-primary-color hover:text-custom-secondary-text"
                     onClick={() => onSelectToken && onSelectToken(token)}
                   >
-                    {selectedBlockchain.id == "base"
+                    {selectedBlockchain.id == 'base'
                       ? token.logoURI &&
-                        token.logoURI !== "" && (
+                        token.logoURI !== '' && (
                           <Image
                             height={32}
                             width={32}
@@ -128,7 +120,7 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
                           />
                         )
                       : token.logoURI &&
-                        token.logoURI !== "" && (
+                        token.logoURI !== '' && (
                           <Image
                             height={32}
                             width={32}

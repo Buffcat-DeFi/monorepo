@@ -1,10 +1,10 @@
-"use client";
-import React from "react";
-import dynamic from "next/dynamic";
-import { Loader2Icon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+'use client';
+import React from 'react';
+import dynamic from 'next/dynamic';
+import { Loader2Icon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-const WalletContent = dynamic(() => import("./WalletContent"), {
+const WalletContent = dynamic(() => import('./WalletContent'), {
   ssr: false,
   loading: () => (
     <Button

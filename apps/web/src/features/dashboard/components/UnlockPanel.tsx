@@ -1,8 +1,4 @@
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   ChevronDown,
   ChevronRight,
@@ -10,38 +6,38 @@ import {
   Unlock,
   ArrowRightLeft,
   Settings,
-} from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import ImageWithFallback from "@/components/ImageWithFallback";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+} from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import ImageWithFallback from '@/components/ImageWithFallback';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import {
   currentUserAtom,
   selectedBlockchainAtom,
   selectedTokensAtom,
   tokenSelectorAtom,
-} from "@/store/global";
-import { placeholders } from "@/constants/placeholders";
-import { useMemo, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import ThemedButton from "@/components/themed/button";
-import { useTransactionDialog } from "../hooks/transactionDialogHook";
-import { toast } from "sonner";
-import { envVariables } from "@/lib/envVariables";
-import { useWriteContract } from "wagmi";
-import erc20Abi from "../lib/evm/erc20.json";
-import buffcatAbi from "../lib/evm/buffcat.json";
-import { useTokenDerivative } from "../hooks/query/contract";
-import { CoinGeckoTokenType } from "@/types/global";
-import TokenInfo from "./TokenInfo";
-import { isValidFloat } from "../lib/utils";
+} from '@/store/global';
+import { placeholders } from '@/constants/placeholders';
+import { useMemo, useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import ThemedButton from '@/components/themed/button';
+import { useTransactionDialog } from '../hooks/transactionDialogHook';
+import { toast } from 'sonner';
+import { envVariables } from '@/lib/envVariables';
+import { useWriteContract } from 'wagmi';
+import erc20Abi from '../lib/evm/erc20.json';
+import buffcatAbi from '../lib/evm/buffcat.json';
+import { useTokenDerivative } from '../hooks/query/contract';
+import { CoinGeckoToken } from '@/types/global';
+import TokenInfo from './TokenInfo';
+import { isValidFloat } from '../lib/utils';
 
 export default function UnlockPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
   const [selectedTokens, setSelectedTokens] = useAtom(selectedTokensAtom);
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
   const currentUser = useAtomValue(currentUserAtom);
-  const [amount, setAmount] = useState<string>("1");
+  const [amount, setAmount] = useState<string>('1');
   const { writeContractAsync } = useWriteContract();
 
   const unlockToken = useMemo(() => {
@@ -53,13 +49,12 @@ export default function UnlockPanel() {
   const handletokenSelectorTrigger = () => {
     setTokenSelectorState({
       isOpen: true,
-      onClose: () =>
-        setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
+      onClose: () => setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
       onSelectToken: handleSelectToken,
     });
   };
 
-  const handleSelectToken = (token: CoinGeckoTokenType) => {
+  const handleSelectToken = (token: CoinGeckoToken) => {
     setSelectedTokens((prev) => ({
       ...prev,
       unlockToken: {
@@ -72,55 +67,48 @@ export default function UnlockPanel() {
 
   const { data: tokenDerivativeData } = useTokenDerivative({
     chain: selectedBlockchain,
-    tokenAddressOrMint:
-      selectedTokens.unlockToken[selectedBlockchain.id]?.address ?? "",
+    tokenAddressOrMint: selectedTokens.unlockToken[selectedBlockchain.id]?.address ?? '',
   });
 
   const { withConfirmation } = useTransactionDialog();
 
   const handleTokenApproval = async () => {
     if (!currentUser.loggedIn) {
-      toast.error("Connect a wallet first.");
+      toast.error('Connect a wallet first.');
       return;
     }
-    const tokenAddress =
-      selectedTokens.unlockToken[selectedBlockchain.id]?.address;
+    const tokenAddress = selectedTokens.unlockToken[selectedBlockchain.id]?.address;
     if (!tokenAddress) {
-      toast.error("Select a token and try again.");
+      toast.error('Select a token and try again.');
       return;
     }
     if (!isValidFloat(amount)) {
-      toast.error("Invalid input.");
+      toast.error('Invalid input.');
       return;
     }
     let parsedAmount = parseFloat(amount);
     if (parsedAmount == 0 || parsedAmount < 0) {
-      toast.error("Invalid Amount Input");
+      toast.error('Invalid Amount Input');
       return;
     }
-    const decimals =
-      selectedTokens.unlockToken[selectedBlockchain.id]?.decimals;
+    const decimals = selectedTokens.unlockToken[selectedBlockchain.id]?.decimals;
     let approvalAmount = parsedAmount;
     if (!decimals) {
-      toast.error(
-        "Token decimals not found, toggle to use raw values instead."
-      );
+      toast.error('Token decimals not found, toggle to use raw values instead.');
       return;
     }
     approvalAmount = parsedAmount * 10 ** decimals;
     const buffcatContract =
-      selectedBlockchain.id == "eth"
+      selectedBlockchain.id == 'eth'
         ? envVariables.buffcatContract.eth
         : envVariables.buffcatContract.base;
-    if (buffcatContract == "") {
-      toast.error(
-        `${selectedBlockchain.name} Buffcat contract address not set.`
-      );
+    if (buffcatContract == '') {
+      toast.error(`${selectedBlockchain.name} Buffcat contract address not set.`);
       return;
     }
     const derivativeAddress = tokenDerivativeData;
     if (!derivativeAddress) {
-      toast.error("Derivative address not found, try again.");
+      toast.error('Derivative address not found, try again.');
       return;
     }
     await withConfirmation(
@@ -128,68 +116,62 @@ export default function UnlockPanel() {
         const sig = await writeContractAsync({
           address: derivativeAddress as `0x${string}`,
           abi: erc20Abi,
-          functionName: "approve",
+          functionName: 'approve',
           args: [buffcatContract, approvalAmount],
           chainId: selectedBlockchain.chainId,
         });
-        toast.success("Signature", {
+        toast.success('Signature', {
           description: `${sig}`,
         });
       },
       {
-        title: "Approve Tokens?",
+        title: 'Approve Tokens?',
         description: `Do you want to approve ${amount}
         Liquid ${selectedTokens.unlockToken[selectedBlockchain.id]?.name.toString()}?`,
-        successMessage: "Your tokens have been approved successfully.",
-        loadingTitle: "Processing Transaction",
+        successMessage: 'Your tokens have been approved successfully.',
+        loadingTitle: 'Processing Transaction',
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
-      }
+      },
     );
   };
 
   const handleUnlockTokens = async () => {
     if (!currentUser.loggedIn) {
-      toast.error("Connect a wallet first.");
+      toast.error('Connect a wallet first.');
       return;
     }
-    const tokenAddress =
-      selectedTokens.unlockToken[selectedBlockchain.id]?.address;
+    const tokenAddress = selectedTokens.unlockToken[selectedBlockchain.id]?.address;
     if (!tokenAddress) {
-      toast.error("Select a token and try again.");
+      toast.error('Select a token and try again.');
       return;
     }
     if (!isValidFloat(amount)) {
-      toast.error("Invalid input.");
+      toast.error('Invalid input.');
       return;
     }
     let parsedAmount = parseFloat(amount);
     if (parsedAmount == 0 || parsedAmount < 0) {
-      toast.error("Invalid Amount Input");
+      toast.error('Invalid Amount Input');
       return;
     }
-    const decimals =
-      selectedTokens.unlockToken[selectedBlockchain.id]?.decimals;
+    const decimals = selectedTokens.unlockToken[selectedBlockchain.id]?.decimals;
     let unlockAmount = parsedAmount;
     if (!decimals) {
-      toast.error(
-        "Token decimals not found, toggle to use raw values instead."
-      );
+      toast.error('Token decimals not found, toggle to use raw values instead.');
       return;
     }
     unlockAmount = parsedAmount * 10 ** decimals;
     const buffcatContract =
-      selectedBlockchain.id == "eth"
+      selectedBlockchain.id == 'eth'
         ? envVariables.buffcatContract.eth
         : envVariables.buffcatContract.base;
-    if (buffcatContract == "") {
-      toast.error(
-        `${selectedBlockchain.name} Buffcat contract address not set.`
-      );
+    if (buffcatContract == '') {
+      toast.error(`${selectedBlockchain.name} Buffcat contract address not set.`);
       return;
     }
     const derivativeAddress = tokenDerivativeData;
     if (!derivativeAddress) {
-      toast.error("Derivative address not found, try again.");
+      toast.error('Derivative address not found, try again.');
       return;
     }
     await withConfirmation(
@@ -197,22 +179,22 @@ export default function UnlockPanel() {
         const sig = await writeContractAsync({
           address: buffcatContract as `0x${string}`,
           abi: buffcatAbi.abi,
-          functionName: "unlock",
+          functionName: 'unlock',
           args: [tokenAddress, unlockAmount],
           chainId: selectedBlockchain.chainId,
         });
-        toast.success("Signature", {
+        toast.success('Signature', {
           description: `${sig}`,
         });
       },
       {
-        title: "Unlock Tokens?",
+        title: 'Unlock Tokens?',
         description: `Do you want to unlock ${amount}
         ${selectedTokens.unlockToken[selectedBlockchain.id]?.name.toString()}?`,
-        successMessage: "Your tokens have been unlocked successfully.",
-        loadingTitle: "Processing Transaction",
+        successMessage: 'Your tokens have been unlocked successfully.',
+        loadingTitle: 'Processing Transaction',
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
-      }
+      },
     );
   };
 
@@ -232,25 +214,17 @@ export default function UnlockPanel() {
                   <ImageWithFallback
                     height={38}
                     width={38}
-                    src={
-                      unlockToken.logoURI
-                        ? unlockToken.logoURI
-                        : placeholders.tokenImage
-                    }
-                    alt={
-                      unlockToken ? unlockToken.name : placeholders.tokenName
-                    }
+                    src={unlockToken.logoURI ? unlockToken.logoURI : placeholders.tokenImage}
+                    alt={unlockToken ? unlockToken.name : placeholders.tokenName}
                     fallbackSrc={placeholders.tokenImage}
                     // Add key to force re-render when token changes
-                    key={unlockToken?.address || "placeholder"}
+                    key={unlockToken?.address || 'placeholder'}
                   />
                 </span>
                 <span className="flex flex-col items-start">
                   <span className="flex flex-row">
                     <span className="text-xl font-bold text-left text-custom-primary-text">
-                      {unlockToken
-                        ? unlockToken.symbol
-                        : placeholders.tokenSymbol}
+                      {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol}
                     </span>
                     <span className="flex items-center">
                       <ChevronRight className="text-custom-primary-text" />
@@ -296,7 +270,7 @@ export default function UnlockPanel() {
           </div>
         </div>
         <div className="text-sm text-custom-muted-text">
-          {unlockToken ? unlockToken.name : "N/A"}
+          {unlockToken ? unlockToken.name : 'N/A'}
         </div>
       </div>
       <Collapsible className="w-full md:w-112 mt-2 rounded-2xl border border-custom-primary-color/30">
@@ -325,23 +299,17 @@ export default function UnlockPanel() {
                 <ImageWithFallback
                   height={48}
                   width={48}
-                  src={
-                    unlockToken?.logoURI
-                      ? unlockToken.logoURI
-                      : placeholders.tokenImage
-                  }
+                  src={unlockToken?.logoURI ? unlockToken.logoURI : placeholders.tokenImage}
                   alt={unlockToken ? unlockToken.name : placeholders.tokenName}
                   fallbackSrc={placeholders.tokenImage}
                   // Add key to force re-render when token changes
-                  key={unlockToken?.address || "placeholder"}
+                  key={unlockToken?.address || 'placeholder'}
                 />
               </span>
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
-                    {unlockToken
-                      ? "li" + unlockToken.symbol
-                      : "li" + placeholders.tokenSymbol}
+                    {unlockToken ? 'li' + unlockToken.symbol : 'li' + placeholders.tokenSymbol}
                   </span>
                 </span>
               </span>
@@ -355,37 +323,30 @@ export default function UnlockPanel() {
                 <ImageWithFallback
                   height={48}
                   width={48}
-                  src={
-                    unlockToken?.logoURI
-                      ? unlockToken.logoURI
-                      : placeholders.tokenImage
-                  }
+                  src={unlockToken?.logoURI ? unlockToken.logoURI : placeholders.tokenImage}
                   alt={unlockToken ? unlockToken.name : placeholders.tokenName}
                   fallbackSrc={placeholders.tokenImage}
                   // Add key to force re-render when token changes
-                  key={unlockToken?.address || "placeholder"}
+                  key={unlockToken?.address || 'placeholder'}
                 />
               </span>
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
-                    {unlockToken
-                      ? unlockToken.symbol
-                      : placeholders.tokenSymbol}
+                    {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol}
                   </span>
                 </span>
               </span>
             </div>
           </div>
           <div className="text-muted-foreground text-sm px-6 pb-4">
-            Lock your{" "}
-            {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol} or any
-            token and receive li
-            {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol}/liquid
-            locked tokens that represent your locked position. Use li
-            {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol} in
-            other DeFi protocols while earning rewards. Burn your liquid locked
-            tokens to unlock your original tokens. No lock-up period required.
+            Lock your {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol} or any token and
+            receive li
+            {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol}/liquid locked tokens that
+            represent your locked position. Use li
+            {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol} in other DeFi protocols
+            while earning rewards. Burn your liquid locked tokens to unlock your original tokens. No
+            lock-up period required.
           </div>
         </CollapsibleContent>
       </Collapsible>
@@ -401,7 +362,7 @@ export default function UnlockPanel() {
             <div>
               {unlockToken
                 ? `1 li${unlockToken.symbol} = 1 ${unlockToken.symbol}`
-                : "1 Liquid Locked Token = 1 Original Token"}
+                : '1 Liquid Locked Token = 1 Original Token'}
             </div>
           }
           <div className="w-full md:w-104 flex justify-between mt-2">

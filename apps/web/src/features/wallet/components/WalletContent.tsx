@@ -1,27 +1,34 @@
-"use client";
-import React, { useEffect } from "react";
-import { Connector, CreateConnectorFn, useAccount, useConnect, useDisconnect, useSwitchChain } from "wagmi";
-import { Blockchain } from "@/types/global";
-import { useAtom, useAtomValue } from "jotai";
-import { currentUserAtom, selectedBlockchainAtom } from "@/store/global";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { LogOut, Wallet } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+'use client';
+import React, { useEffect } from 'react';
+import {
+  Connector,
+  CreateConnectorFn,
+  useAccount,
+  useConnect,
+  useDisconnect,
+  useSwitchChain,
+} from 'wagmi';
+import { Blockchain } from '@/types/global';
+import { useAtom, useAtomValue } from 'jotai';
+import { currentUserAtom, selectedBlockchainAtom } from '@/store/global';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { LogOut, Wallet } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import Image from "next/image";
-import { blockchains } from "@/constants/blockchains";
-import { useRouter } from "next/navigation";
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import Image from 'next/image';
+import { blockchains } from '@/constants/blockchains';
+import { useRouter } from 'next/navigation';
 
 const formatWalletAddress = (address: string | null) => {
-  if (!address) return "";
+  if (!address) return '';
   return `${address.slice(0, 8)}...${address.slice(-4)}`;
 };
 
@@ -30,7 +37,11 @@ const handleNoWalletConnectAttempt = (blockchain: Blockchain) => {
 };
 
 const WalletContent: React.FC = () => {
-  const { address: evmAddress, isConnected: isEvmConnected, chainId: currentChainId } = useAccount();
+  const {
+    address: evmAddress,
+    isConnected: isEvmConnected,
+    chainId: currentChainId,
+  } = useAccount();
   const { disconnect: disconnectEvm, disconnectAsync } = useDisconnect();
   const [currentUser, setCurrentUser] = useAtom(currentUserAtom);
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
@@ -40,13 +51,13 @@ const WalletContent: React.FC = () => {
   const handleDisconnect = async () => {
     disconnectAsync();
     router.refresh();
-  }
+  };
 
   useEffect(() => {
     const disconnectWallet = async () => {
       await handleDisconnect();
       return;
-    }
+    };
 
     if (isEvmConnected && evmAddress && currentChainId) {
       if (currentChainId != selectedBlockchain.chainId) {
@@ -56,13 +67,13 @@ const WalletContent: React.FC = () => {
       setCurrentUser({
         address: evmAddress,
         loggedIn: true,
-        chainId: currentChainId
+        chainId: currentChainId,
       });
     } else {
       setCurrentUser({
-        address: "",
+        address: '',
         loggedIn: false,
-        chainId: blockchains[0].chainId
+        chainId: blockchains[0].chainId,
       });
     }
   }, [selectedBlockchain, evmAddress, isEvmConnected]);
@@ -104,7 +115,7 @@ function EvmWalletConnect() {
   const { isConnected: isEvmConnected, chainId: currentChainId } = useAccount();
 
   const handleConnection = (connector: Connector<CreateConnectorFn>) => {
-    if (typeof window !== "undefined" && window.ethereum == undefined) {
+    if (typeof window !== 'undefined' && window.ethereum == undefined) {
       handleNoWalletConnectAttempt(selectedBlockchain);
       return;
     }
@@ -115,7 +126,7 @@ function EvmWalletConnect() {
       // If not connected at all, proceed with normal connection
       connect({ connector, chainId: selectedBlockchain.chainId });
     }
-  }
+  };
 
   return (
     <Dialog>
@@ -160,10 +171,9 @@ function EvmWalletConnect() {
                     </span>
                   </span>
                   <span className="text-gray-700">
-                    {connector.name === "MetaMask" ||
-                    connector.name === "Injected"
-                      ? "Default"
-                      : "Detected"}
+                    {connector.name === 'MetaMask' || connector.name === 'Injected'
+                      ? 'Default'
+                      : 'Detected'}
                   </span>
                 </span>
               </Button>
