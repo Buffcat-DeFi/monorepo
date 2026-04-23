@@ -8,7 +8,7 @@ export type Blockchain = {
   isSupported: boolean;
 };
 
-export type CoinGeckoTokenType = {
+export type CoinGeckoToken = {
   chainId: number;
   address: string;
   name: string;
