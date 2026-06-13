@@ -32,7 +32,6 @@ export default function ClaimRewardsPanel() {
   const [selectedTokens, setSelectedTokens] = useAtom(selectedTokensAtom);
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
   const currentUser = useAtomValue(currentUserAtom);
-  const [amount, setAmount] = useState<string>('1');
   const { writeContractAsync } = useWriteContract();
   const [chosenRewardTokens, setChosenRewardTokens] = useState<CoinGeckoToken[]>([]);
   const [isRewardsModalOpen, setIsRewardsModalOpen] = useState(false);
@@ -79,7 +78,7 @@ export default function ClaimRewardsPanel() {
   return (
     <div className="flex flex-col items-center">
       <div className="w-full md:w-112 rounded-2xl px-4 py-2">
-        <div className="text-xs text-custom-muted-text">You Unlock</div>
+        <div className="text-xs text-custom-muted-text">You Claim</div>
         <div className="flex justify-between">
           <Button
             onClick={handletokenSelectorTrigger}
@@ -127,25 +126,6 @@ export default function ClaimRewardsPanel() {
               </span>
             )}
           </Button>
-          <div>
-            <Input
-              type="text"
-              pattern="^\d*\.?\d*$"
-              min={0}
-              inputMode="decimal"
-              placeholder="1.00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              aria-label="amount"
-              step="any"
-              className="h-9 my-2 !text-3xl font-bold flex items-center shadow-none
-              border-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-transparent
-              text-right placeholder:text-custom-primary-text p-0
-              [&::-webkit-outer-spin-button]:appearance-none
-              [&::-webkit-inner-spin-button]:appearance-none
-              [-moz-appearance:textfield]"
-            />
-          </div>
         </div>
         <div className="text-sm text-custom-muted-text">
           {unlockToken ? unlockToken.name : 'N/A'}
