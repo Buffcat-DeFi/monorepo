@@ -6,9 +6,44 @@ import { motion } from 'motion/react';
 import { HowItWorks } from '@/components/HowItWorks';
 import { UseCases } from '@/components/UseCases';
 import ClaimRewardsPanel from './ClaimRewardsPanel';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+const dummyLocks = [
+  {
+    id: 'lock-1',
+    symbol: 'ETH',
+    amount: '12.50',
+    logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
+  },
+  {
+    id: 'lock-2',
+    symbol: 'wstETH',
+    amount: '4.80',
+    logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
+  },
+  {
+    id: 'lock-3',
+    symbol: 'rETH',
+    amount: '35.00',
+    logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
+  },
+  {
+    id: 'lock-4',
+    symbol: 'cbETH',
+    amount: '8.25',
+    logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
+  },
+];
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('Lock');
+  const [selectedLock, setSelectedLock] = useState('lock-1');
 
   return (
     <div className="min-h-screen mx-auto">
@@ -29,7 +64,7 @@ export default function Dashboard() {
     bg-custom-bg border-2 border-custom-primary-color custom-box-shadow"
       >
         <Tabs defaultValue="Lock" onValueChange={(value) => setActiveTab(value)}>
-          <TabsList className="w-full bg-transparent flex justify-between border-b-2 border-gray-200 rounded-none">
+          <TabsList className="w-full bg-transparent flex justify-between items-center border-b-2 border-gray-200 rounded-none pb-1">
             <div>
               <TabsTrigger
                 key="Lock"
@@ -65,7 +100,34 @@ export default function Dashboard() {
                 Claim Rewards
               </TabsTrigger>
             </div>
+            <div className="flex items-center gap-2 mb-1">
+              <Select value={selectedLock} onValueChange={setSelectedLock}>
+                <SelectTrigger className="h-8 w-[140px] text-xs border-0 bg-white/50 backdrop-blur-sm dark:bg-black/50 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors focus:ring-0">
+                  <SelectValue placeholder="Select Lock" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border border-gray-200 dark:bg-neutral-900 dark:border-neutral-800">
+                  {dummyLocks.map((lock) => (
+                    <SelectItem
+                      key={lock.id}
+                      value={lock.id}
+                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
+                    >
+                      <div className="flex items-center gap-2">
+                        <img src={lock.logo} alt={lock.symbol} className="w-4 h-4 object-contain" />
+                        <span className="font-semibold text-gray-900 dark:text-gray-100">
+                          {lock.symbol}
+                        </span>
+                        <span className="text-gray-500 text-[10px] dark:text-gray-400 font-medium">
+                          ({lock.amount})
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </TabsList>
+
           <div className="px-4">
             <TabsContent key="Lock" value="Lock">
               <LockPanel />

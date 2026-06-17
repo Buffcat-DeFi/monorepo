@@ -7,6 +7,7 @@ import {
   Settings,
   X,
   CalendarClock,
+  Lock,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,9 @@ import { useTransactionDialog } from '../hooks/transactionDialogHook';
 import { useWriteContract } from 'wagmi';
 import { CoinGeckoToken } from '@/types/global';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import { envVariables } from '@/lib/envVariables';
+import buffcatAbi from '../lib/evm/buffcat.json';
 
 export default function ClaimRewardsPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
@@ -36,6 +40,7 @@ export default function ClaimRewardsPanel() {
   const [chosenRewardTokens, setChosenRewardTokens] = useState<CoinGeckoToken[]>([]);
   const [isRewardsModalOpen, setIsRewardsModalOpen] = useState(false);
   const [claimDays, setClaimDays] = useState<number>(0);
+  const [lockId, setLockId] = useState<string>('0');
 
   const unlockToken = useMemo(() => {
     return selectedTokens.unlockToken[selectedBlockchain.id];
@@ -73,7 +78,56 @@ export default function ClaimRewardsPanel() {
 
   const { withConfirmation } = useTransactionDialog();
 
-  const handleClaimRewards = async () => {};
+  const handleClaimRewards = async () => {
+    if (!currentUser.loggedIn) {
+      toast.error('Connect a wallet first.');
+      return;
+    }
+    if (chosenRewardTokens.length === 0) {
+      toast.error('Select at least one reward token.');
+      return;
+    }
+    if (!claimDays || claimDays <= 0 || isNaN(claimDays)) {
+      toast.error('Claim days must be a valid number greater than 0.');
+      return;
+    }
+    if (!lockId || lockId.trim() === '' || isNaN(parseInt(lockId)) || parseInt(lockId) < 0 || !Number.isInteger(parseFloat(lockId))) {
+      toast.error('Invalid Lock ID.');
+      return;
+    }
+    const buffcatContract =
+      selectedBlockchain.id == 'eth'
+        ? envVariables.buffcatContract.eth
+        : envVariables.buffcatContract.base;
+    if (buffcatContract == '') {
+      toast.error(`${selectedBlockchain.name} Buffcat contract address not set.`);
+      return;
+    }
+
+    const tokenAddresses = chosenRewardTokens.map(t => t.address);
+
+    await withConfirmation(
+      async () => {
+        const sig = await writeContractAsync({
+          address: buffcatContract as `0x${string}`,
+          abi: buffcatAbi.abi,
+          functionName: 'claimRewards',
+          args: [tokenAddresses, BigInt(lockId), BigInt(claimDays)],
+          chainId: selectedBlockchain.chainId,
+        });
+        toast.success('Signature', {
+          description: `${sig}`,
+        });
+      },
+      {
+        title: 'Claim Rewards?',
+        description: `Do you want to claim rewards for ${claimDays} days?`,
+        successMessage: 'Your rewards have been claimed successfully.',
+        loadingTitle: 'Processing Transaction',
+        loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
+      },
+    );
+  };
 
   return (
     <div className="flex flex-col items-center">
@@ -214,6 +268,26 @@ export default function ClaimRewardsPanel() {
       >
         <CardContent className="px-4 py-4">
           <div className="flex items-center gap-2 mb-3">
+            <Lock className="h-4 w-4 text-custom-muted-text" />
+            <span className="text-sm font-semibold text-custom-muted-text uppercase">
+              Lock ID
+            </span>
+          </div>
+          <Input
+            type="number"
+            placeholder="0"
+            value={lockId}
+            onChange={(e) => setLockId(e.target.value)}
+            className="h-12 rounded-xl border-custom-primary-color/30 focus-visible:ring-custom-primary-color"
+          />
+        </CardContent>
+      </Card>
+      <Card
+        className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
+      border border-custom-primary-color/30"
+      >
+        <CardContent className="px-4 py-4">
+          <div className="flex items-center gap-2 mb-3">
             <CalendarClock className="h-4 w-4 text-custom-muted-text" />
             <span className="text-sm font-semibold text-custom-muted-text uppercase">
               Claim Unclaimed Days
@@ -224,7 +298,7 @@ export default function ClaimRewardsPanel() {
             type="number"
             placeholder="0"
             value={claimDays}
-            onChange={(e) => setClaimDays(parseInt(e.target.value))}
+            onChange={(e) => setClaimDays(parseInt(e.target.value) || 0)}
             className="h-12 rounded-xl border-custom-primary-color/30 focus-visible:ring-custom-primary-color"
           />
         </CardContent>

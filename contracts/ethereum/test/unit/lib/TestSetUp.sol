@@ -13,13 +13,12 @@ import "../../../lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IER
 import "../../../lib/openzeppelin-contracts-upgradeable/contracts/utils/PausableUpgradeable.sol";
 import {MockFeedRegistry} from "./MockFeedRegistry.sol";
 import {IUniswapV3Factory} from "../../../lib/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import {UniswapV3Factory} from "../../../lib/v3-core/contracts/UniswapV3Factory.sol";
 import {IUniswapV3Pool} from "../../../lib/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import {FixedPoint96} from "../../../lib/v3-core/contracts/libraries/FixedPoint96.sol";
-import {UniswapV3PoolDeployer} from "../../../lib/v3-core/contracts/UniswapV3PoolDeployer.sol";
 import {IUniswapV3PoolDeployer} from "../../../lib/v3-core/contracts/interfaces/IUniswapV3PoolDeployer.sol";
 import {TickMath} from "../../../lib/v3-core/contracts/libraries/TickMath.sol";
-import {OracleLibrary} from "../../../lib/v3-periphery/contracts/libraries/OracleLibrary.sol";
+import '@uniswap/v3-core/contracts/libraries/FullMath.sol';
+import '@uniswap/v3-core/contracts/libraries/TickMath.sol';
 import "../../../lib/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
 import "../../../lib/v3-core/contracts/interfaces/callback/IUniswapV3MintCallback.sol";
 import "../../../lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
@@ -27,8 +26,8 @@ import "../../../lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
 contract TestSetUp is Test, IUniswapV3MintCallback {
     BuffCatUpgradeable public buffCat;
     MockFeedRegistry public registry;
-    IUniswapV3PoolDeployer public poolDeployer;
     IUniswapV3Factory public factory;
+    address constant UNISWAP_V3_FACTORY = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
     address public pool;
     address[2] public pairs;
     uint32 public TWAP_PERIOD = 300; // 5 minutes
@@ -62,8 +61,8 @@ contract TestSetUp is Test, IUniswapV3MintCallback {
         // Deploy mock registry
         registry = new MockFeedRegistry();
         // deploy Uniswap V3 factory
-        poolDeployer = new UniswapV3PoolDeployer();
-        factory = new UniswapV3Factory();
+        vm.createSelectFork(vm.envString("MAINNET_RPC_URL"));
+        factory = IUniswapV3Factory(UNISWAP_V3_FACTORY);
 
         // Deploy tokens
         token1 = new MockERC20("Token1", "T1");

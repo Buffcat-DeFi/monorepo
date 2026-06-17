@@ -15,12 +15,12 @@ import '../lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol';
 // OpenZeppelin (Upgradeable) Imports
 import '../lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol';
 import '../lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol';
-import '../lib/openzeppelin-contracts-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol';
 import '../lib/openzeppelin-contracts-upgradeable/contracts/utils/PausableUpgradeable.sol';
 import '../lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol';
 
 // Uniswap Imports
-import '../lib/v3-periphery/contracts/libraries/OracleLibrary.sol';
+import '@uniswap/v3-core/contracts/libraries/FullMath.sol';
+import '@uniswap/v3-core/contracts/libraries/TickMath.sol';
 import '../lib/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
 import '../lib/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import {FixedPoint96} from '../lib/v3-core/contracts/libraries/FixedPoint96.sol';
@@ -59,7 +59,7 @@ contract BuffCatUpgradeable is
   OwnableUpgradeable,
   UUPSUpgradeable,
   PausableUpgradeable,
-  ReentrancyGuardUpgradeable
+  ReentrancyGuard
 {
   using SafeERC20 for IERC20;
 
@@ -194,8 +194,6 @@ contract BuffCatUpgradeable is
   ) public initializer {
     // Initialize OpenZeppelin contracts
     __Ownable_init(msg.sender);
-    __UUPSUpgradeable_init();
-    __ReentrancyGuard_init();
     __Pausable_init();
 
     // Initialize core addresses

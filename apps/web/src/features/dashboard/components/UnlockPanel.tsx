@@ -6,6 +6,7 @@ import {
   Unlock,
   ArrowRightLeft,
   Settings,
+  Lock,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,7 @@ export default function UnlockPanel() {
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
   const currentUser = useAtomValue(currentUserAtom);
   const [amount, setAmount] = useState<string>('1');
+  const [lockId, setLockId] = useState<string>('0');
   const { writeContractAsync } = useWriteContract();
 
   const unlockToken = useMemo(() => {
@@ -117,7 +119,7 @@ export default function UnlockPanel() {
           address: derivativeAddress as `0x${string}`,
           abi: erc20Abi,
           functionName: 'approve',
-          args: [buffcatContract, approvalAmount],
+          args: [buffcatContract, BigInt(Math.floor(approvalAmount))],
           chainId: selectedBlockchain.chainId,
         });
         toast.success('Signature', {
@@ -154,6 +156,10 @@ export default function UnlockPanel() {
       toast.error('Invalid Amount Input');
       return;
     }
+    if (!lockId || lockId.trim() === '' || isNaN(parseInt(lockId)) || parseInt(lockId) < 0 || !Number.isInteger(parseFloat(lockId))) {
+      toast.error('Invalid Lock ID.');
+      return;
+    }
     const decimals = selectedTokens.unlockToken[selectedBlockchain.id]?.decimals;
     let unlockAmount = parsedAmount;
     if (!decimals) {
@@ -179,8 +185,8 @@ export default function UnlockPanel() {
         const sig = await writeContractAsync({
           address: buffcatContract as `0x${string}`,
           abi: buffcatAbi.abi,
-          functionName: 'unlock',
-          args: [tokenAddress, unlockAmount],
+          functionName: 'unlockAssets',
+          args: [BigInt(lockId), BigInt(Math.floor(unlockAmount))],
           chainId: selectedBlockchain.chainId,
         });
         toast.success('Signature', {
@@ -353,6 +359,26 @@ export default function UnlockPanel() {
       {/* {selectedTokens.unlockToken[selectedBlockchain.id] && (
         <TokenInfo token={selectedTokens.unlockToken[selectedBlockchain.id]} />
       )} */}
+      <Card
+        className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
+      border border-custom-primary-color/30"
+      >
+        <CardContent className="px-4 py-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Lock className="h-4 w-4 text-custom-muted-text" />
+            <span className="text-sm font-semibold text-custom-muted-text uppercase">
+              Lock ID
+            </span>
+          </div>
+          <Input
+            type="number"
+            placeholder="0"
+            value={lockId}
+            onChange={(e) => setLockId(e.target.value)}
+            className="h-12 rounded-xl border-custom-primary-color/30 focus-visible:ring-custom-primary-color"
+          />
+        </CardContent>
+      </Card>
       <Card
         className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
       border border-custom-primary-color/30"

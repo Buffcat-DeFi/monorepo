@@ -39,6 +39,7 @@ import { useDialog } from '@/components/Dialog';
 import { useTokenDerivative } from '../hooks/query/contract';
 import { isValidFloat } from '../lib/utils';
 import { Slider } from '@/components/ui/slider';
+import { isAddress } from 'viem';
 
 export default function LockPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
@@ -153,7 +154,7 @@ export default function LockPanel() {
           address: tokenAddress as `0x${string}`,
           abi: erc20Abi,
           functionName: 'approve',
-          args: [buffcatContract, approvalAmount],
+          args: [buffcatContract, BigInt(Math.floor(approvalAmount))],
           chainId: selectedBlockchain.chainId,
         });
         toast.success('Signature', {
@@ -190,6 +191,10 @@ export default function LockPanel() {
       toast.error('Invalid Amount Input');
       return;
     }
+    if (referrerWallet && referrerWallet !== '' && !isAddress(referrerWallet)) {
+      toast.error('Invalid Referrer Wallet Address.');
+      return;
+    }
     const decimals = selectedTokens.lockToken[selectedBlockchain.id]?.decimals;
     let lockAmount = parsedAmount;
     if (!decimals) {
@@ -210,8 +215,14 @@ export default function LockPanel() {
         const sig = await writeContractAsync({
           address: buffcatContract as `0x${string}`,
           abi: buffcatAbi.abi,
-          functionName: 'lock',
-          args: [tokenAddress, lockAmount],
+          functionName: 'lockAssets',
+          args: [
+            tokenAddress,
+            BigInt(Math.floor(lockAmount)),
+            BigInt(lockDuration),
+            lockType,
+            referrerWallet === '' ? '0x0000000000000000000000000000000000000000' : referrerWallet
+          ],
           chainId: selectedBlockchain.chainId,
         });
         toast.success('Signature', {
