@@ -2,6 +2,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LockPanel from './LockPanel';
 import UnlockPanel from './UnlockPanel';
 import { useState } from 'react';
+import { useAtom } from 'jotai';
+import { selectedLockAtom } from '@/store/global';
 import { motion } from 'motion/react';
 import { HowItWorks } from '@/components/HowItWorks';
 import { UseCases } from '@/components/UseCases';
@@ -16,25 +18,25 @@ import {
 
 const dummyLocks = [
   {
-    id: 'lock-1',
+    id: '1',
     symbol: 'ETH',
     amount: '12.50',
     logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
   },
   {
-    id: 'lock-2',
+    id: '2',
     symbol: 'wstETH',
     amount: '4.80',
     logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
   },
   {
-    id: 'lock-3',
+    id: '3',
     symbol: 'rETH',
     amount: '35.00',
     logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
   },
   {
-    id: 'lock-4',
+    id: '4',
     symbol: 'cbETH',
     amount: '8.25',
     logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
@@ -43,7 +45,7 @@ const dummyLocks = [
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('Lock');
-  const [selectedLock, setSelectedLock] = useState('lock-1');
+  const [selectedLock, setSelectedLock] = useAtom(selectedLockAtom);
 
   return (
     <div className="min-h-screen mx-auto">

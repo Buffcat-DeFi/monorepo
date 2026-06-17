@@ -1,8 +1,6 @@
-import { Blockchain, CoinGeckoTokenType } from "@/types/global";
+import { Blockchain, CoinGeckoToken } from '@/types/global';
 
-export async function getTokensList(
-  blockchain: Blockchain,
-): Promise<CoinGeckoTokenType[]> {
+export async function getTokensList(blockchain: Blockchain): Promise<CoinGeckoToken[]> {
   try {
     const url = `https://tokens.coingecko.com/${blockchain.name.toLowerCase()}/all.json`;
     const res = await fetch(url);

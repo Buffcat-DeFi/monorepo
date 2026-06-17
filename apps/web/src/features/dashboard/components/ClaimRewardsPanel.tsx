@@ -18,6 +18,7 @@ import {
   selectedBlockchainAtom,
   selectedTokensAtom,
   tokenSelectorAtom,
+  selectedLockAtom,
 } from '@/store/global';
 import { placeholders } from '@/constants/placeholders';
 import { useMemo, useState } from 'react';
@@ -40,7 +41,7 @@ export default function ClaimRewardsPanel() {
   const [chosenRewardTokens, setChosenRewardTokens] = useState<CoinGeckoToken[]>([]);
   const [isRewardsModalOpen, setIsRewardsModalOpen] = useState(false);
   const [claimDays, setClaimDays] = useState<number>(0);
-  const [lockId, setLockId] = useState<string>('0');
+  const lockId = useAtomValue(selectedLockAtom);
 
   const unlockToken = useMemo(() => {
     return selectedTokens.unlockToken[selectedBlockchain.id];
@@ -91,7 +92,13 @@ export default function ClaimRewardsPanel() {
       toast.error('Claim days must be a valid number greater than 0.');
       return;
     }
-    if (!lockId || lockId.trim() === '' || isNaN(parseInt(lockId)) || parseInt(lockId) < 0 || !Number.isInteger(parseFloat(lockId))) {
+    if (
+      !lockId ||
+      lockId.trim() === '' ||
+      isNaN(parseInt(lockId)) ||
+      parseInt(lockId) < 0 ||
+      !Number.isInteger(parseFloat(lockId))
+    ) {
       toast.error('Invalid Lock ID.');
       return;
     }
@@ -104,7 +111,7 @@ export default function ClaimRewardsPanel() {
       return;
     }
 
-    const tokenAddresses = chosenRewardTokens.map(t => t.address);
+    const tokenAddresses = chosenRewardTokens.map((t) => t.address);
 
     await withConfirmation(
       async () => {
@@ -262,7 +269,7 @@ export default function ClaimRewardsPanel() {
           </div>
         </CollapsibleContent>
       </Collapsible>
-      <Card
+      {/*<Card
         className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
       border border-custom-primary-color/30"
       >
@@ -281,7 +288,7 @@ export default function ClaimRewardsPanel() {
             className="h-12 rounded-xl border-custom-primary-color/30 focus-visible:ring-custom-primary-color"
           />
         </CardContent>
-      </Card>
+      </Card>*/}
       <Card
         className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
       border border-custom-primary-color/30"

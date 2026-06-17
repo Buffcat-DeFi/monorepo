@@ -17,6 +17,7 @@ import {
   selectedBlockchainAtom,
   selectedTokensAtom,
   tokenSelectorAtom,
+  selectedLockAtom,
 } from '@/store/global';
 import { placeholders } from '@/constants/placeholders';
 import { useMemo, useState } from 'react';
@@ -39,7 +40,7 @@ export default function UnlockPanel() {
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
   const currentUser = useAtomValue(currentUserAtom);
   const [amount, setAmount] = useState<string>('1');
-  const [lockId, setLockId] = useState<string>('0');
+  const lockId = useAtomValue(selectedLockAtom);
   const { writeContractAsync } = useWriteContract();
 
   const unlockToken = useMemo(() => {
@@ -156,7 +157,13 @@ export default function UnlockPanel() {
       toast.error('Invalid Amount Input');
       return;
     }
-    if (!lockId || lockId.trim() === '' || isNaN(parseInt(lockId)) || parseInt(lockId) < 0 || !Number.isInteger(parseFloat(lockId))) {
+    if (
+      !lockId ||
+      lockId.trim() === '' ||
+      isNaN(parseInt(lockId)) ||
+      parseInt(lockId) < 0 ||
+      !Number.isInteger(parseFloat(lockId))
+    ) {
       toast.error('Invalid Lock ID.');
       return;
     }
@@ -359,7 +366,7 @@ export default function UnlockPanel() {
       {/* {selectedTokens.unlockToken[selectedBlockchain.id] && (
         <TokenInfo token={selectedTokens.unlockToken[selectedBlockchain.id]} />
       )} */}
-      <Card
+      {/*<Card
         className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
       border border-custom-primary-color/30"
       >
@@ -378,7 +385,7 @@ export default function UnlockPanel() {
             className="h-12 rounded-xl border-custom-primary-color/30 focus-visible:ring-custom-primary-color"
           />
         </CardContent>
-      </Card>
+      </Card>*/}
       <Card
         className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
       border border-custom-primary-color/30"
