@@ -1,0 +1,8 @@
+Data website needs to fetch -
+1. User locks:
+2. Claimable tokens:
+3. User unclaimed days:
+4. Locked value: Done
+5. Unlock value: Done
+6. Potential Rewards (dollar value & amount - fees):
+7. How it works:
