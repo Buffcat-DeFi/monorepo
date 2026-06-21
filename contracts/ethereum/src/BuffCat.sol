@@ -1090,4 +1090,8 @@ contract BuffCatUpgradeable is
     _unpause();
     return true;
   }
+
+  function getPoolTokens() external returns (address[] memory) {
+    return poolTokens;
+  }
 }

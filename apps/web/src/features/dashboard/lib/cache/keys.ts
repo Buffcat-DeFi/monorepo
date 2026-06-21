@@ -1,17 +1,30 @@
-import { SupportedBlockchain } from "@/types/global";
+import { SupportedBlockchain } from '@/types/global';
 
-export type CacheKey = "all_tokens_list";
+export type CacheKey =
+  | 'all_tokens_list'
+  | 'boost'
+  | 'claimable'
+  | 'locks'
+  | 'pool'
+  | 'token_metadata'
+  | 'token_price';
 
 export function getCacheKey(
   cacheKey: CacheKey,
-  blockchainParam: SupportedBlockchain
-) {
-  return `buff_cat_${blockchainParam}_${cacheKey}`;
+  blockchainParam: SupportedBlockchain,
+  userKey?: string,
+): string {
+  return userKey
+    ? `buff_cat_${blockchainParam}_${cacheKey}_${userKey}`
+    : `buff_cat_${blockchainParam}_${cacheKey}`;
 }
 
 export function getCacheTimestampKey(
   cacheKey: CacheKey,
-  blockchainParam: SupportedBlockchain
-) {
-  return `buff_cat_${blockchainParam}_${cacheKey}_timestamp`;
+  blockchainParam: SupportedBlockchain,
+  userKey?: string,
+): string {
+  return userKey
+    ? `buff_cat_${blockchainParam}_${cacheKey}_${userKey}_timestamp`
+    : `buff_cat_${blockchainParam}_${cacheKey}_timestamp`;
 }

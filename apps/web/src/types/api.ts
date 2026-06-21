@@ -1,3 +1,9 @@
+import { z } from "zod";
+
+export type ErrorResponse = {
+  message: string;
+};
+
 export type TokenData = {
   name: string | null;
   symbol: string | null;
@@ -43,3 +49,55 @@ export type CoingeckoApiResponse = {
     };
   };
 };
+
+export const chainRequestSchema = z.object({
+  chain: z.enum(["eth", "base"]),
+});
+
+export const userRequestSchema = chainRequestSchema.extend({
+  userKey: z.string(),
+});
+
+export const tokenRequestSchema = chainRequestSchema.extend({
+  tokenAddress: z.string(),
+});
+
+export const boostResponseSchema = z.object({
+  data: z.string(),
+});
+export type BoostResponse = z.infer<typeof boostResponseSchema>;
+
+export const claimableResponseSchema = z.object({
+  data: z.array(z.string()),
+});
+export type ClaimableResponse = z.infer<typeof claimableResponseSchema>;
+
+export const lockSchema = z.object({
+  amount: z.string(),
+  lockStart: z.string(),
+  lockEnd: z.string(),
+  lastClaim: z.string(),
+  withdrawn: z.string(),
+  _days: z.string(),
+  daysOfUnclaimedRewards: z.string(),
+  lockedToken: z.string(),
+  lockType: z.number(),
+});
+export type Lock = z.infer<typeof lockSchema>;
+
+export const locksResponseSchema = z.object({
+  data: z.array(lockSchema),
+});
+export type LocksResponse = z.infer<typeof locksResponseSchema>;
+
+export const poolResponseSchema = z.object({
+  data: z.object({
+    dailyNonStablePoolClaimLimit: z.string(),
+    dailyStablePoolClaimLimit: z.string(),
+    nonStableRewardPoolUSDValue: z.string(),
+    stableRewardPoolUSDValue: z.string(),
+  }),
+});
+export type PoolResponse = z.infer<typeof poolResponseSchema>;
+
+export type TokenMetadataResponse = CoingeckoApiResponse;
