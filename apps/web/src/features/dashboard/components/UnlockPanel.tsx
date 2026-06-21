@@ -40,6 +40,12 @@ export default function UnlockPanel() {
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
   const currentUser = useAtomValue(currentUserAtom);
   const [amount, setAmount] = useState<string>('1');
+  const calculatedValue = useMemo(() => {
+    if (!isValidFloat(amount)) return '0';
+    const parsed = parseFloat(amount);
+    const result = parsed - parsed * 0.005;
+    return Number(result.toFixed(6)).toString();
+  }, [amount]);
   const lockId = useAtomValue(selectedLockAtom);
   const { writeContractAsync } = useWriteContract();
 
@@ -391,13 +397,12 @@ export default function UnlockPanel() {
       border border-custom-primary-color/30"
       >
         <CardContent className="px-4">
-          {
+          <div className="w-full md:w-104 flex justify-between mt-2">
+            <div className="text-custom-muted-text">Unlocked Value</div>
             <div>
-              {unlockToken
-                ? `1 li${unlockToken.symbol} = 1 ${unlockToken.symbol}`
-                : '1 Liquid Locked Token = 1 Original Token'}
+              <span>{calculatedValue} {unlockToken ? unlockToken.symbol : "--"}</span>
             </div>
-          }
+          </div>
           <div className="w-full md:w-104 flex justify-between mt-2">
             <div className="text-custom-muted-text">Platform Fee</div>
             <div>

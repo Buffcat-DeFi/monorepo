@@ -47,6 +47,12 @@ export default function LockPanel() {
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
   const currentUser = useAtomValue(currentUserAtom);
   const [amount, setAmount] = useState<string>('1');
+  const calculatedValue = useMemo(() => {
+    if (!isValidFloat(amount)) return '0';
+    const parsed = parseFloat(amount);
+    const result = parsed - parsed * 0.005;
+    return Number(result.toFixed(6)).toString();
+  }, [amount]);
   const { writeContractAsync } = useWriteContract();
   const { showConsentDialog } = useDialog();
   const { refetch: refetchDerivativeData } = useTokenDerivative({
@@ -534,10 +540,11 @@ export default function LockPanel() {
       {/* Summary Card */}
       <Card className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none border border-custom-primary-color/30">
         <CardContent className="px-4">
-          <div>
-            {lockToken
-              ? `1 ${lockToken.symbol} = 1 li${lockToken.symbol}`
-              : '1 Token = 1 Liquid Locked Token'}
+          <div className="w-full md:w-104 flex justify-between mt-2">
+            <div className="text-custom-muted-text">Locked Value</div>
+            <div>
+              <span>{calculatedValue} {lockToken ? lockToken.symbol : "--"}</span>
+            </div>
           </div>
           <div className="w-full md:w-104 flex justify-between mt-2">
             <div className="text-custom-muted-text">Platform Fee</div>
