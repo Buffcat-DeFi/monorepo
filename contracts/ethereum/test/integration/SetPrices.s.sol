@@ -13,7 +13,7 @@ contract TestingScript is Script {
     uint256 ownerPrivateKey = vm.envUint('OWNER_PRIVATE_KEY_HEX');
     address owner = vm.addr(ownerPrivateKey);
 
-    address registryAddress = vm.envAddress('FEED_REGISTRY_ADDRESS');
+    address registryAddress = vm.envAddress('CHAINLINK_FEED_REGISTRY_ADDRESS');
     registry = FeedRegistryInterface(registryAddress);
 
     address token1 = vm.envAddress('TOKEN1_ADDRESS');
