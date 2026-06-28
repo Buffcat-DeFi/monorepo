@@ -2,7 +2,7 @@
 pragma solidity ^0.8.22;
 
 import 'forge-std/Script.sol';
-import '../../src/BuffCat.sol';
+import '../../../src/BuffCat.sol';
 import {ERC1967Proxy} from '@openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol';
 
 contract DeployBuffCatUpgradeableOnSepolia is Script {

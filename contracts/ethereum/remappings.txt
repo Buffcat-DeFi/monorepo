@@ -2,6 +2,7 @@
 @openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
 @openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
 @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+canonical-weth/=lib/canonical-weth/contracts/
 chainlink-brownie-contracts/=lib/chainlink-brownie-contracts/
 erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/
 forge-std/=lib/forge-std/src/
@@ -10,5 +11,3 @@ openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/
 openzeppelin-contracts/=lib/openzeppelin-contracts/
 v3-core/=lib/v3-core/contracts/
 v3-periphery/=lib/v3-periphery/contracts/
-@uniswap/v3-core/=lib/v3-core/
-@uniswap/v3-periphery/=lib/v3-periphery/

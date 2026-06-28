@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Script} from '../../lib/forge-std/src/Script.sol';
-import {console} from '../../lib/forge-std/src/console.sol';
+import {Script} from 'forge-std/Script.sol';
+import {console} from 'forge-std/console.sol';
 import {MockERC20} from '../unit/lib/MockERC20.sol';
 
 contract TestingScript is Script {
@@ -18,7 +18,7 @@ contract TestingScript is Script {
   MockERC20 public usdc;
   MockERC20 public usdt;
 
-  uint256 public constant INITIAL_BALANCE = 100000 * 10 ** 18;
+  uint256 public constant INITIAL_BALANCE = 100_000_000 * 10 ** 18;
 
   function run() external {
     uint256 ownerPrivateKey = vm.envUint('OWNER_PRIVATE_KEY_HEX');
