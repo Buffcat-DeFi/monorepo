@@ -6,6 +6,7 @@ import 'forge-std/Script.sol';
 import 'forge-std/console.sol';
 import '@openzeppelin-contracts/token/ERC20/IERC20.sol';
 import {IUniswapV3Factory} from 'v3-core/interfaces/IUniswapV3Factory.sol';
+import {IUniswapV3Pool} from 'v3-core/interfaces/IUniswapV3Pool.sol';
 import {INonfungiblePositionManager} from 'v3-periphery/interfaces/INonfungiblePositionManager.sol';
 import {FixedPoint96} from 'v3-core/libraries/FixedPoint96.sol';
 import 'v3-core/libraries/FullMath.sol';
@@ -43,16 +44,27 @@ contract CreatePoolsAndLiquidity is Script {
     address usdc = vm.envAddress('USDC_ADDRESS');
     address usdt = vm.envAddress('USDT_ADDRESS');
 
+    console.log('--- Starting Uniswap V3 Pool Deployments & LP Provision ---');
+    console.log('User/LP Account         :', user);
+    console.log('Position Manager Address:', address(positionManager));
+    console.log('UniswapV3 Factory Address:', address(factory));
+    console.log('-----------------------------------------------------------');
+
     vm.startBroadcast(userPrivateKey);
 
+    console.log('Setting maximum Position Manager allowances...');
     IERC20(usdc).approve(address(positionManager), type(uint256).max);
     IERC20(usdt).approve(address(positionManager), type(uint256).max);
     for (uint256 i = 0; i < tokensWhitelist.length; i++) {
       IERC20(tokensWhitelist[i]).approve(address(positionManager), type(uint256).max);
     }
+    console.log('Allowances granted for stablecoins and all 9 whitelist tokens.');
+    console.log('-----------------------------------------------------------');
 
     uint160 sqrtPriceX96 = TickMath.getSqrtRatioAtTick(0);
 
+    // ================== USDC LOOPS ==================
+    console.log('>>> Processing USDC Liquidity Pools...');
     for (uint256 i = 0; i < tokensWhitelist.length; i++) {
       if (tokensWhitelist[i] < usdc) {
         token0 = tokensWhitelist[i];
@@ -72,7 +84,6 @@ contract CreatePoolsAndLiquidity is Script {
       IUniswapV3Pool(usdcPool).increaseObservationCardinalityNext(32);
 
       int24 spacing = IUniswapV3Pool(usdcPool).tickSpacing();
-
       int24 tickLower = (TickMath.MIN_TICK / spacing) * spacing;
       int24 tickUpper = (TickMath.MAX_TICK / spacing) * spacing;
 
@@ -97,8 +108,17 @@ contract CreatePoolsAndLiquidity is Script {
       (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1) = positionManager.mint(
         params
       );
+
+      console.log('Pool (USDC Pair) Ready:', usdcPool);
+      console.log('  -> Token0:', token0);
+      console.log('  -> Token1:', token1);
+      console.log('  -> LP Position Minted! Token ID:', tokenId, '| Liquidity Amount:', liquidity);
     }
 
+    console.log('-----------------------------------------------------------');
+
+    // ================== USDT LOOPS ==================
+    console.log('>>> Processing USDT Liquidity Pools...');
     for (uint256 i = 0; i < tokensWhitelist.length; i++) {
       if (tokensWhitelist[i] < usdt) {
         token0 = tokensWhitelist[i];
@@ -118,7 +138,6 @@ contract CreatePoolsAndLiquidity is Script {
       IUniswapV3Pool(usdtPool).increaseObservationCardinalityNext(32);
 
       int24 spacing = IUniswapV3Pool(usdtPool).tickSpacing();
-
       int24 tickLower = (TickMath.MIN_TICK / spacing) * spacing;
       int24 tickUpper = (TickMath.MAX_TICK / spacing) * spacing;
 
@@ -143,7 +162,15 @@ contract CreatePoolsAndLiquidity is Script {
       (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1) = positionManager.mint(
         params
       );
+
+      console.log('Pool (USDT Pair) Ready:', usdtPool);
+      console.log('  -> Token0:', token0);
+      console.log('  -> Token1:', token1);
+      console.log('  -> LP Position Minted! Token ID:', tokenId, '| Liquidity Amount:', liquidity);
     }
+
+    console.log('-----------------------------------------------------------');
+    console.log('--- All Pools Created and Liquidity Provided Successfully ---');
 
     vm.stopBroadcast();
   }

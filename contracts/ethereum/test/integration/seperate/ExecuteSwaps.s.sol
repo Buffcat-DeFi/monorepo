@@ -28,28 +28,42 @@ contract ExecuteSwaps is Script {
     tokensWhitelist[7] = vm.envAddress('TOKEN8_ADDRESS');
     tokensWhitelist[8] = vm.envAddress('TOKEN9_ADDRESS');
 
+    console.log('--- Starting TWAP Generation Script ---');
+    console.log('User Address       :', user);
+    console.log('Swap Router Target :', address(swapRouter));
+    console.log('Target Out Asset   :', usdc);
+    console.log('---------------------------------------');
+
     vm.startBroadcast(userPrivateKey);
 
+    console.log('>>> Initiating Round 1: Approvals and Swaps...');
     for (uint256 i = 0; i < tokensWhitelist.length; i++) {
-      IERC20(tokensWhitelist[i]).approve(address(swapRouter), type(uint256).max);
+      address targetToken = tokensWhitelist[i];
 
-      _swapExactInputSingle(swapRouter, tokensWhitelist[i], usdc, user);
+      IERC20(targetToken).approve(address(swapRouter), type(uint256).max);
+      console.log('Max allowance granted for token index [', i, ']:', targetToken);
+
+      _swapExactInputSingle(swapRouter, targetToken, usdc, user);
     }
 
     vm.stopBroadcast();
     console.log('Initial swaps completed.');
+    console.log('---------------------------------------');
 
     vm.warp(block.timestamp + 10 minutes);
-    console.log('Time warped by 10 minutes.');
+    console.log('Time warped by 10 minutes. Current timestamp:', block.timestamp);
+    console.log('---------------------------------------');
 
     vm.startBroadcast(userPrivateKey);
 
+    console.log('>>> Initiating Round 2: Post-Warp Swaps...');
     for (uint256 i = 0; i < tokensWhitelist.length; i++) {
       _swapExactInputSingle(swapRouter, tokensWhitelist[i], usdc, user);
     }
 
     vm.stopBroadcast();
     console.log('Second swaps completed. TWAP is now fully readable.');
+    console.log('--- TWAP Routine Finished Execution ---');
   }
 
   function _swapExactInputSingle(
@@ -59,6 +73,8 @@ contract ExecuteSwaps is Script {
     address recipient
   ) internal {
     uint256 amountIn = 100 ether;
+
+    console.log('Swapping 100 tokens of In-Asset:', tokenIn);
 
     ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
       tokenIn: tokenIn,
