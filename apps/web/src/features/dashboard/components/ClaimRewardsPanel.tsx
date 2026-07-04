@@ -44,16 +44,14 @@ export default function ClaimRewardsPanel() {
   const [claimDays, setClaimDays] = useState<number>(0);
   const lockId = useAtomValue(selectedLockAtom);
 
-  const unlockToken = useMemo(() => {
-    return selectedTokens.unlockToken[selectedBlockchain.id];
-  }, [selectedTokens.unlockToken[selectedBlockchain.id]]);
+  const primaryToken = chosenRewardTokens[0];
 
   const setTokenSelectorState = useSetAtom(tokenSelectorAtom);
 
   const handletokenSelectorTrigger = () => {
     setTokenSelectorState({
       isOpen: true,
-      mode: 'all',
+      mode: 'claimable',
       onClose: () => setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
       onSelectToken: handleSelectToken,
     });
@@ -74,7 +72,7 @@ export default function ClaimRewardsPanel() {
   const handleAddRewardToken = () => {
     setTokenSelectorState({
       isOpen: true,
-      mode: 'all',
+      mode: 'claimable',
       onClose: () => setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
       onSelectToken: handleSelectToken,
     });
@@ -149,17 +147,17 @@ export default function ClaimRewardsPanel() {
             variant="ghost"
             className="me-6 my-2 !py-6 !ps-0 hover:bg-custom-primary-color/20 cursor-pointer flex items-center"
           >
-            {unlockToken ? (
+            {primaryToken ? (
               <>
                 <div className="mr-2 flex-shrink-0 flex items-center">
-                  {unlockToken?.logoURI && unlockToken.logoURI !== '' ? (
+                  {primaryToken?.logoURI && primaryToken.logoURI !== '' ? (
                     <ImageWithFallback
                       height={38}
                       width={38}
-                      src={unlockToken.logoURI}
-                      alt={unlockToken.name}
+                      src={primaryToken.logoURI}
+                      alt={primaryToken.name}
                       fallbackSrc={placeholders.tokenImage}
-                      key={unlockToken.address}
+                      key={primaryToken.address}
                     />
                   ) : (
                     <CircleQuestionMark
@@ -171,7 +169,7 @@ export default function ClaimRewardsPanel() {
                 <span className="flex flex-col items-start">
                   <span className="flex flex-row">
                     <span className="text-xl font-bold text-left text-custom-primary-text">
-                      {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol}
+                      {primaryToken ? primaryToken.symbol : placeholders.tokenSymbol}
                     </span>
                     <span className="flex items-center">
                       <ChevronRight className="text-custom-primary-text" />
@@ -198,7 +196,7 @@ export default function ClaimRewardsPanel() {
           </Button>
         </div>
         <div className="text-sm text-custom-muted-text">
-          {unlockToken ? unlockToken.name : 'N/A'}
+          {primaryToken ? primaryToken.name : 'N/A'}
         </div>
       </div>
       <Collapsible className="w-full md:w-112 mt-2 rounded-2xl border border-custom-primary-color/30">
@@ -224,14 +222,14 @@ export default function ClaimRewardsPanel() {
           <div className="h-24 rounded-2xl grid grid-cols-3 px-18">
             <div className="flex flex-col items-center">
               <div className="flex-shrink-0 flex items-center">
-                {unlockToken?.logoURI && unlockToken.logoURI !== '' ? (
+                {primaryToken?.logoURI && primaryToken.logoURI !== '' ? (
                   <ImageWithFallback
                     height={48}
                     width={48}
-                    src={unlockToken.logoURI}
-                    alt={unlockToken.name}
+                    src={primaryToken.logoURI}
+                    alt={primaryToken.name}
                     fallbackSrc={placeholders.tokenImage}
-                    key={unlockToken.address}
+                    key={primaryToken.address}
                   />
                 ) : (
                   <CircleQuestionMark
@@ -243,7 +241,7 @@ export default function ClaimRewardsPanel() {
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
-                    {unlockToken ? 'li' + unlockToken.symbol : 'li' + placeholders.tokenSymbol}
+                    {primaryToken ? 'li' + primaryToken.symbol : 'li' + placeholders.tokenSymbol}
                   </span>
                 </span>
               </span>
@@ -254,14 +252,14 @@ export default function ClaimRewardsPanel() {
             </div>
             <div className="flex flex-col items-center">
               <div className="flex-shrink-0 flex items-center">
-                {unlockToken?.logoURI && unlockToken.logoURI !== '' ? (
+                {primaryToken?.logoURI && primaryToken.logoURI !== '' ? (
                   <ImageWithFallback
                     height={48}
                     width={48}
-                    src={unlockToken.logoURI}
-                    alt={unlockToken.name}
+                    src={primaryToken.logoURI}
+                    alt={primaryToken.name}
                     fallbackSrc={placeholders.tokenImage}
-                    key={unlockToken.address}
+                    key={primaryToken.address}
                   />
                 ) : (
                   <CircleQuestionMark
@@ -273,18 +271,18 @@ export default function ClaimRewardsPanel() {
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
-                    {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol}
+                    {primaryToken ? primaryToken.symbol : placeholders.tokenSymbol}
                   </span>
                 </span>
               </span>
             </div>
           </div>
           <div className="text-muted-foreground text-sm px-6 pb-4">
-            Lock your {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol} or any token and
-            receive li
-            {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol}/liquid locked tokens that
-            represent your locked position. Use li
-            {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol} in other DeFi protocols
+            Lock your {primaryToken ? primaryToken.symbol : placeholders.tokenSymbol} or any token
+            and receive li
+            {primaryToken ? primaryToken.symbol : placeholders.tokenSymbol}/liquid locked tokens
+            that represent your locked position. Use li
+            {primaryToken ? primaryToken.symbol : placeholders.tokenSymbol} in other DeFi protocols
             while earning rewards. Burn your liquid locked tokens to unlock your original tokens. No
             lock-up period required.
           </div>
@@ -376,7 +374,12 @@ export default function ClaimRewardsPanel() {
                   </div>
                 </>
               ) : (
-                <div className="text-xs">+ Add A Token</div>
+                <div
+                  className="text-xs cursor-pointer hover:underline text-custom-primary-text"
+                  onClick={handleAddRewardToken}
+                >
+                  + Add A Token
+                </div>
               )}
             </div>
           </div>

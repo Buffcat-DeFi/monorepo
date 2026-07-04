@@ -3,7 +3,7 @@ import { CoingeckoApiResponse } from './api';
 
 export type TokenSelectorAtom = {
   isOpen: boolean;
-  mode: 'all' | 'locks';
+  mode: 'all' | 'locks' | 'claimable';
   onClose: () => void;
   onSelectToken: (token: CoinGeckoToken) => void;
 };

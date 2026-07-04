@@ -8,16 +8,90 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { typography } from '@/styles/typography';
 import { TokenSelectorAtom } from '@/types/state';
-import { useAllTokensList } from '../hooks/query/tokens';
+import { useAllTokensList, useTokenMetadata, useERCMetadata } from '../hooks/query/tokens';
+import { useClaimable } from '../hooks/query/contract';
 import { placeholders } from '@/constants/placeholders';
 import { Loading } from '@/components/Loading';
 import { CoinGeckoToken, Blockchain } from '@/types/global';
 import { userLocks } from '@/store/global';
-import { useTokenMetadata, useERCMetadata } from '../hooks/query/tokens';
 import { ethers } from 'ethers';
 import { CircleQuestionMark } from 'lucide-react';
 
 interface TokenSelectorProps extends TokenSelectorAtom {}
+
+const TokenSelectorClaimableItem = ({
+  tokenAddress,
+  chain,
+  onSelect,
+}: {
+  tokenAddress: string;
+  chain: Blockchain;
+  onSelect: (t: CoinGeckoToken) => void;
+}) => {
+  const {
+    data: metadata,
+    isLoading: metadataLoading,
+    isError: metadataError,
+  } = useTokenMetadata(chain, tokenAddress);
+  const isMetadataUnavailable = metadataLoading || metadataError || !metadata?.data;
+  const { data: ercMetadata } = useERCMetadata(chain, tokenAddress, {
+    enabled: !!isMetadataUnavailable,
+  });
+
+  const symbol =
+    !isMetadataUnavailable && metadata?.data?.attributes?.symbol
+      ? metadata.data.attributes.symbol
+      : ercMetadata?.symbol || `${tokenAddress.slice(0, 6)}...${tokenAddress.slice(-4)}`;
+
+  const name =
+    !isMetadataUnavailable && metadata?.data?.attributes?.name
+      ? metadata.data.attributes.name
+      : ercMetadata?.name || symbol;
+
+  const decimals =
+    !isMetadataUnavailable && metadata?.data?.attributes?.decimals
+      ? metadata.data.attributes.decimals
+      : ercMetadata?.decimals || 18;
+
+  const logoUrl = metadata?.data?.attributes?.image_url;
+
+  const logo =
+    !isMetadataUnavailable && logoUrl ? (
+      <Image
+        height={32}
+        width={32}
+        src={logoUrl}
+        alt={symbol}
+        className="w-8 h-8 mr-3 rounded-full flex-shrink-0"
+      />
+    ) : (
+      <CircleQuestionMark size={32} className="w-8 h-8 mr-3 text-gray-400 flex-shrink-0" />
+    );
+
+  const handleSelect = () => {
+    onSelect({
+      chainId: chain.chainId,
+      address: tokenAddress,
+      name,
+      symbol,
+      decimals,
+      logoURI: logoUrl || '',
+    });
+  };
+
+  return (
+    <button
+      className="w-full flex items-center px-3 py-3 rounded-lg cursor-pointer hover:bg-custom-primary-color hover:text-custom-secondary-text"
+      onClick={handleSelect}
+    >
+      {logo}
+      <div className="text-left min-w-0 flex-1">
+        <div className="font-medium truncate">{name}</div>
+        <div className="text-sm opacity-70">{symbol}</div>
+      </div>
+    </button>
+  );
+};
 
 const TokenSelectorLockItem = ({
   lock,
@@ -111,6 +185,11 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
   const { isFetching, data: tokensList } = useAllTokensList(selectedBlockchain);
   const locks = useAtomValue(userLocks);
+  const { data: claimableResponse, isLoading: isClaimableLoading } = useClaimable(
+    selectedBlockchain,
+    { enabled: mode === 'claimable' },
+  );
+  const claimableTokens = claimableResponse?.data || [];
 
   const limitedList = useMemo(() => {
     if (tokensList) {
@@ -157,7 +236,11 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
         {/* Header with close button */}
         <div className="flex justify-between p-4">
           <div className={typography.h4}>
-            {mode === 'locks' ? 'Select A Lock' : 'Select A Token'}
+            {mode === 'locks'
+              ? 'Select A Lock'
+              : mode === 'claimable'
+                ? 'Select Claimable Token'
+                : 'Select A Token'}
           </div>
           <button
             onClick={onClose}
@@ -169,7 +252,7 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
         <Separator />
 
         {/* Search input - fixed height */}
-        {mode !== 'locks' && (
+        {mode !== 'locks' && mode !== 'claimable' && (
           <div className="p-4 flex-shrink-0">
             <Input
               type="text"
@@ -183,7 +266,7 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
         {/* Scrollable content area */}
         <div className="flex-1 overflow-hidden px-4 pb-4">
           <ScrollArea className="h-full">
-            <div className="space-y-1">
+            <div className="space-y-1 mt-4">
               {mode === 'locks' ? (
                 locks.length === 0 ? (
                   <div className="text-center py-8">
@@ -194,6 +277,25 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
                     <TokenSelectorLockItem
                       key={index.toString()}
                       lock={lock}
+                      chain={selectedBlockchain}
+                      onSelect={(token) => onSelectToken && onSelectToken(token)}
+                    />
+                  ))
+                )
+              ) : mode === 'claimable' ? (
+                isClaimableLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loading type="dots" size="dxl" />
+                  </div>
+                ) : claimableTokens.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div>No Claimable Tokens Found</div>
+                  </div>
+                ) : (
+                  claimableTokens.map((tokenAddress) => (
+                    <TokenSelectorClaimableItem
+                      key={tokenAddress}
+                      tokenAddress={tokenAddress}
                       chain={selectedBlockchain}
                       onSelect={(token) => onSelectToken && onSelectToken(token)}
                     />
@@ -228,7 +330,10 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
                         className="w-8 h-8 mr-3 rounded-full flex-shrink-0"
                       />
                     ) : (
-                      <CircleQuestionMark size={32} className="w-8 h-8 mr-3 text-gray-400 flex-shrink-0" />
+                      <CircleQuestionMark
+                        size={32}
+                        className="w-8 h-8 mr-3 text-gray-400 flex-shrink-0"
+                      />
                     )}
                     <div className="text-left min-w-0 flex-1">
                       <div className="font-medium truncate">{token.name}</div>
