@@ -3,7 +3,12 @@ import LockPanel from './LockPanel';
 import UnlockPanel from './UnlockPanel';
 import { useState, useEffect } from 'react';
 import { useAtom, useAtomValue } from 'jotai';
-import { selectedLockAtom, currentUserAtom, selectedBlockchainAtom } from '@/store/global';
+import {
+  selectedLockAtom,
+  currentUserAtom,
+  selectedBlockchainAtom,
+  userLocks,
+} from '@/store/global';
 import { motion } from 'motion/react';
 import { HowItWorks } from '@/components/HowItWorks';
 import { UseCases } from '@/components/UseCases';
@@ -81,21 +86,32 @@ export default function Dashboard() {
   const [selectedLock, setSelectedLock] = useAtom(selectedLockAtom);
   const currentUser = useAtomValue(currentUserAtom);
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
+  const [userLocksValue, setUserLocksValue] = useAtom(userLocks);
 
   const { data: locksResponse, isLoading: locksLoading } = useLocks(
     selectedBlockchain,
     currentUser.address,
+    {
+      enabled: !!currentUser.loggedIn,
+    },
   );
 
-  const locks = locksResponse?.data || [];
+  useEffect(() => {
+    if (currentUser.loggedIn && locksResponse) {
+      setUserLocksValue(locksResponse?.data || []);
+    }
+  }, [currentUser, locksResponse]);
 
   useEffect(() => {
-    if (locks.length > 0 && (!selectedLock || parseInt(selectedLock) >= locks.length)) {
+    if (
+      userLocksValue.length > 0 &&
+      (!selectedLock || parseInt(selectedLock) >= userLocksValue.length)
+    ) {
       setSelectedLock('0');
-    } else if (locks.length === 0 && selectedLock !== '') {
+    } else if (userLocksValue.length === 0 && selectedLock !== '') {
       setSelectedLock('');
     }
-  }, [locks.length, selectedLock, setSelectedLock]);
+  }, [userLocksValue.length, selectedLock, setSelectedLock]);
 
   return (
     <div className="min-h-screen mx-auto">
@@ -165,8 +181,8 @@ export default function Dashboard() {
                     <div className="flex justify-center p-2">
                       <Loading size="sm" type="spinner" />
                     </div>
-                  ) : locks.length > 0 ? (
-                    locks.map((lock, index) => (
+                  ) : userLocksValue.length > 0 ? (
+                    userLocksValue.map((lock, index) => (
                       <LockDropdownItem
                         key={index.toString()}
                         value={index.toString()}

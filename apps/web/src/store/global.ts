@@ -2,6 +2,8 @@ import { blockchains } from '@/constants/blockchains';
 import { Blockchain, CoinGeckoToken } from '../types/global';
 import { TokenSelectorAtom, SelectedTokensAtom, Tab } from '../types/state';
 import { atom } from 'jotai';
+import { lockSchema } from '@/types/api';
+import z from 'zod';
 
 export const currentUserAtom = atom<{
   address: string;
@@ -42,3 +44,5 @@ export const currentTabAtom = atom<Tab>('lock');
 export const selectedBlockchainAtom = atom<Blockchain>(blockchains[0]);
 
 export const selectedLockAtom = atom<string>('1');
+
+export const userLocks = atom<z.infer<typeof lockSchema>[]>([]);
