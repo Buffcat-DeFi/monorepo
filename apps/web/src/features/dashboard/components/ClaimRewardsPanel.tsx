@@ -3,11 +3,9 @@ import {
   ChevronDown,
   ChevronRight,
   Sparkles,
-  ArrowRightLeft,
   Settings,
   X,
   CalendarClock,
-  Lock,
   CircleQuestionMark,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -32,6 +30,118 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { toast } from 'sonner';
 import { envVariables } from '@/lib/envVariables';
 import buffcatAbi from '../lib/evm/buffcat.json';
+import { useTokenMetadata, useERCMetadata } from '../hooks/query/tokens';
+import { Blockchain } from '@/types/global';
+
+const ClaimTokenAvatar = ({
+  tokenAddress,
+  chain,
+  index,
+}: {
+  tokenAddress: string;
+  chain: Blockchain;
+  index: number;
+}) => {
+  const {
+    data: metadata,
+    isLoading: metadataLoading,
+    isError: metadataError,
+  } = useTokenMetadata(chain, tokenAddress);
+  const isMetadataUnavailable = metadataLoading || metadataError || !metadata?.data;
+  const { data: ercMetadata } = useERCMetadata(chain, tokenAddress, {
+    enabled: !!isMetadataUnavailable,
+  });
+
+  const symbol =
+    !isMetadataUnavailable && metadata?.data?.attributes?.symbol
+      ? metadata.data.attributes.symbol
+      : ercMetadata?.symbol || `${tokenAddress.slice(0, 6)}...`;
+  const logoUrl = metadata?.data?.attributes?.image_url;
+
+  return (
+    <div className="relative border-1 rounded-4xl border-black" style={{ zIndex: 3 - index }}>
+      {logoUrl ? (
+        <ImageWithFallback
+          height={24}
+          width={24}
+          src={logoUrl}
+          alt={symbol}
+          fallbackSrc={placeholders.tokenImage}
+          className="rounded-full border-2 border-background"
+        />
+      ) : (
+        <CircleQuestionMark
+          size={24}
+          className="w-[24px] h-[24px] rounded-full border-2 border-background bg-white text-gray-400 flex-shrink-0"
+        />
+      )}
+    </div>
+  );
+};
+
+const ClaimTokenModalItem = ({
+  tokenAddress,
+  chain,
+  onRemove,
+}: {
+  tokenAddress: string;
+  chain: Blockchain;
+  onRemove: () => void;
+}) => {
+  const {
+    data: metadata,
+    isLoading: metadataLoading,
+    isError: metadataError,
+  } = useTokenMetadata(chain, tokenAddress);
+  const isMetadataUnavailable = metadataLoading || metadataError || !metadata?.data;
+  const { data: ercMetadata } = useERCMetadata(chain, tokenAddress, {
+    enabled: !!isMetadataUnavailable,
+  });
+
+  const symbol =
+    !isMetadataUnavailable && metadata?.data?.attributes?.symbol
+      ? metadata.data.attributes.symbol
+      : ercMetadata?.symbol || `${tokenAddress.slice(0, 6)}...${tokenAddress.slice(-4)}`;
+  const name =
+    !isMetadataUnavailable && metadata?.data?.attributes?.name
+      ? metadata.data.attributes.name
+      : ercMetadata?.name || symbol;
+  const logoUrl = metadata?.data?.attributes?.image_url;
+
+  return (
+    <div className="flex items-center justify-between p-3 rounded-lg border border-custom-primary-color/30">
+      <div className="flex items-center gap-3">
+        {logoUrl ? (
+          <ImageWithFallback
+            height={32}
+            width={32}
+            src={logoUrl}
+            alt={symbol}
+            fallbackSrc={placeholders.tokenImage}
+            className="rounded-full"
+          />
+        ) : (
+          <CircleQuestionMark
+            size={32}
+            className="w-[32px] h-[32px] rounded-full bg-white text-gray-400 flex-shrink-0"
+          />
+        )}
+        <div className="flex flex-col">
+          <span className="font-semibold">{symbol}</span>
+          <span className="text-xs text-custom-muted-text">{name}</span>
+        </div>
+      </div>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onRemove}
+        className="hover:bg-red-500/20 cursor-pointer"
+      >
+        <X className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+};
 
 export default function ClaimRewardsPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
@@ -39,7 +149,9 @@ export default function ClaimRewardsPanel() {
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
   const currentUser = useAtomValue(currentUserAtom);
   const { writeContractAsync } = useWriteContract();
-  const [chosenRewardTokens, setChosenRewardTokens] = useState<CoinGeckoToken[]>([]);
+  const chosenRewardTokens = useMemo(() => {
+    return selectedTokens.rewardTokens[selectedBlockchain.id] || [];
+  }, [selectedTokens.rewardTokens[selectedBlockchain.id]]);
   const [isRewardsModalOpen, setIsRewardsModalOpen] = useState(false);
   const [claimDays, setClaimDays] = useState<number>(0);
   const lockId = useAtomValue(selectedLockAtom);
@@ -58,15 +170,32 @@ export default function ClaimRewardsPanel() {
   };
 
   const handleSelectToken = (token: CoinGeckoToken) => {
-    const isAlreadySelected = chosenRewardTokens.some((t) => t.address === token.address);
+    const isAlreadySelected = chosenRewardTokens.some((t) => t === token.address);
     if (!isAlreadySelected) {
-      setChosenRewardTokens((prev) => [...prev, token]);
+      setSelectedTokens((prev) => ({
+        ...prev,
+        rewardTokens: {
+          ...prev.rewardTokens,
+          [selectedBlockchain.id]: [
+            ...(prev.rewardTokens[selectedBlockchain.id] || []),
+            token.address,
+          ],
+        },
+      }));
     }
     setTokenSelectorState((prev) => ({ ...prev, isOpen: false }));
   };
 
   const handleRemoveToken = (tokenAddress: string) => {
-    setChosenRewardTokens((prev) => prev.filter((token) => token.address !== tokenAddress));
+    setSelectedTokens((prev) => ({
+      ...prev,
+      rewardTokens: {
+        ...prev.rewardTokens,
+        [selectedBlockchain.id]: (prev.rewardTokens[selectedBlockchain.id] || []).filter(
+          (token) => token !== tokenAddress,
+        ),
+      },
+    }));
   };
 
   const handleAddRewardToken = () => {
@@ -112,7 +241,7 @@ export default function ClaimRewardsPanel() {
       return;
     }
 
-    const tokenAddresses = chosenRewardTokens.map((t) => t.address);
+    const tokenAddresses = chosenRewardTokens.map((t) => t);
 
     await withConfirmation(
       async () => {
@@ -147,56 +276,16 @@ export default function ClaimRewardsPanel() {
             variant="ghost"
             className="me-6 my-2 !py-6 !ps-0 hover:bg-custom-primary-color/20 cursor-pointer flex items-center"
           >
-            {primaryToken ? (
-              <>
-                <div className="mr-2 flex-shrink-0 flex items-center">
-                  {primaryToken?.logoURI && primaryToken.logoURI !== '' ? (
-                    <ImageWithFallback
-                      height={38}
-                      width={38}
-                      src={primaryToken.logoURI}
-                      alt={primaryToken.name}
-                      fallbackSrc={placeholders.tokenImage}
-                      key={primaryToken.address}
-                    />
-                  ) : (
-                    <CircleQuestionMark
-                      size={38}
-                      className="w-[38px] h-[38px] text-gray-400 flex-shrink-0"
-                    />
-                  )}
-                </div>
-                <span className="flex flex-col items-start">
-                  <span className="flex flex-row">
-                    <span className="text-xl font-bold text-left text-custom-primary-text">
-                      {primaryToken ? primaryToken.symbol : placeholders.tokenSymbol}
-                    </span>
-                    <span className="flex items-center">
-                      <ChevronRight className="text-custom-primary-text" />
-                    </span>
-                  </span>
-                  <span className="text-sm text-custom-muted-text">
-                    on {selectedBlockchain.name}
-                  </span>
+            <span className="flex flex-col items-start">
+              <span className="flex flex-row">
+                <span className="text-xl font-bold text-left text-custom-primary-text">Select</span>
+                <span className="flex items-center">
+                  <ChevronRight className="text-custom-primary-text" />
                 </span>
-              </>
-            ) : (
-              <span className="flex flex-col items-start">
-                <span className="flex flex-row">
-                  <span className="text-xl font-bold text-left text-custom-primary-text">
-                    Select
-                  </span>
-                  <span className="flex items-center">
-                    <ChevronRight className="text-custom-primary-text" />
-                  </span>
-                </span>
-                <span className="text-sm text-custom-muted-text">A Token</span>
               </span>
-            )}
+              <span className="text-sm text-custom-muted-text">A Token</span>
+            </span>
           </Button>
-        </div>
-        <div className="text-sm text-custom-muted-text">
-          {primaryToken ? primaryToken.name : 'N/A'}
         </div>
       </div>
       <Collapsible className="w-full md:w-112 mt-2 rounded-2xl border border-custom-primary-color/30">
@@ -219,95 +308,13 @@ export default function ClaimRewardsPanel() {
           </div>
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-6">
-          <div className="h-24 rounded-2xl grid grid-cols-3 px-18">
-            <div className="flex flex-col items-center">
-              <div className="flex-shrink-0 flex items-center">
-                {primaryToken?.logoURI && primaryToken.logoURI !== '' ? (
-                  <ImageWithFallback
-                    height={48}
-                    width={48}
-                    src={primaryToken.logoURI}
-                    alt={primaryToken.name}
-                    fallbackSrc={placeholders.tokenImage}
-                    key={primaryToken.address}
-                  />
-                ) : (
-                  <CircleQuestionMark
-                    size={48}
-                    className="w-[48px] h-[48px] text-gray-400 flex-shrink-0"
-                  />
-                )}
-              </div>
-              <span className="flex flex-col items-start">
-                <span className="flex flex-row">
-                  <span className="text-sm font-bold text-left text-custom-primary-text">
-                    {primaryToken ? 'li' + primaryToken.symbol : 'li' + placeholders.tokenSymbol}
-                  </span>
-                </span>
-              </span>
-            </div>
-            <div className="flex flex-col items-center">
-              1:1
-              <ArrowRightLeft className="h-8 w-8" />
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="flex-shrink-0 flex items-center">
-                {primaryToken?.logoURI && primaryToken.logoURI !== '' ? (
-                  <ImageWithFallback
-                    height={48}
-                    width={48}
-                    src={primaryToken.logoURI}
-                    alt={primaryToken.name}
-                    fallbackSrc={placeholders.tokenImage}
-                    key={primaryToken.address}
-                  />
-                ) : (
-                  <CircleQuestionMark
-                    size={48}
-                    className="w-[48px] h-[48px] text-gray-400 flex-shrink-0"
-                  />
-                )}
-              </div>
-              <span className="flex flex-col items-start">
-                <span className="flex flex-row">
-                  <span className="text-sm font-bold text-left text-custom-primary-text">
-                    {primaryToken ? primaryToken.symbol : placeholders.tokenSymbol}
-                  </span>
-                </span>
-              </span>
-            </div>
-          </div>
           <div className="text-muted-foreground text-sm px-6 pb-4">
-            Lock your {primaryToken ? primaryToken.symbol : placeholders.tokenSymbol} or any token
-            and receive li
-            {primaryToken ? primaryToken.symbol : placeholders.tokenSymbol}/liquid locked tokens
-            that represent your locked position. Use li
-            {primaryToken ? primaryToken.symbol : placeholders.tokenSymbol} in other DeFi protocols
-            while earning rewards. Burn your liquid locked tokens to unlock your original tokens. No
-            lock-up period required.
+            Lock your token or any token and receive li tokens/liquid locked tokens that represent
+            your locked position. Use li tokens in other DeFi protocols while earning rewards. Burn
+            your liquid locked tokens to unlock your original tokens. No lock-up period required.
           </div>
         </CollapsibleContent>
       </Collapsible>
-      {/*<Card
-        className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
-      border border-custom-primary-color/30"
-      >
-        <CardContent className="px-4 py-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Lock className="h-4 w-4 text-custom-muted-text" />
-            <span className="text-sm font-semibold text-custom-muted-text uppercase">
-              Lock ID
-            </span>
-          </div>
-          <Input
-            type="number"
-            placeholder="0"
-            value={lockId}
-            onChange={(e) => setLockId(e.target.value)}
-            className="h-12 rounded-xl border-custom-primary-color/30 focus-visible:ring-custom-primary-color"
-          />
-        </CardContent>
-      </Card>*/}
       <Card
         className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
       border border-custom-primary-color/30"
@@ -343,31 +350,19 @@ export default function ClaimRewardsPanel() {
                     onClick={() => setIsRewardsModalOpen(true)}
                     className="flex -space-x-2 cursor-pointer"
                   >
-                    {chosenRewardTokens.slice(0, 3).map((token, index) => (
-                      <div
-                        key={token.address}
-                        className="relative border-1 rounded-4xl border-black"
-                        style={{ zIndex: 3 - index }}
-                      >
-                        {token.logoURI && token.logoURI !== '' ? (
-                          <ImageWithFallback
-                            height={24}
-                            width={24}
-                            src={token.logoURI}
-                            alt={token.symbol}
-                            fallbackSrc={placeholders.tokenImage}
-                            className="rounded-full border-2 border-background"
-                          />
-                        ) : (
-                          <CircleQuestionMark
-                            size={24}
-                            className="w-[24px] h-[24px] rounded-full border-2 border-background bg-white text-gray-400 flex-shrink-0"
-                          />
-                        )}
-                      </div>
+                    {chosenRewardTokens.slice(0, 3).map((tokenAddress, index) => (
+                      <ClaimTokenAvatar
+                        key={tokenAddress}
+                        tokenAddress={tokenAddress}
+                        chain={selectedBlockchain}
+                        index={index}
+                      />
                     ))}
                     {chosenRewardTokens.length > 3 && (
-                      <div className="flex items-center justify-center h-6 w-6 p-3 rounded-full bg-custom-primary-color text-custom-secondary-text border-2 border-background text-sm">
+                      <div
+                        className="flex items-center justify-center h-6 w-6 p-3
+                        rounded-full bg-custom-primary-color text-custom-secondary-text border-2 border-background text-sm"
+                      >
                         +{chosenRewardTokens.length - 3}
                       </div>
                     )}
@@ -409,41 +404,13 @@ export default function ClaimRewardsPanel() {
           </DialogHeader>
           <div className="space-y-2 max-h-96 overflow-y-auto no-scrollbar">
             {chosenRewardTokens.length > 0 ? (
-              chosenRewardTokens.map((token) => (
-                <div
-                  key={token.address}
-                  className="flex items-center justify-between p-3 rounded-lg border border-custom-primary-color/30"
-                >
-                  <div className="flex items-center gap-3">
-                    {token.logoURI && token.logoURI !== '' ? (
-                      <ImageWithFallback
-                        height={32}
-                        width={32}
-                        src={token.logoURI}
-                        alt={token.symbol}
-                        fallbackSrc={placeholders.tokenImage}
-                        className="rounded-full"
-                      />
-                    ) : (
-                      <CircleQuestionMark
-                        size={32}
-                        className="w-[32px] h-[32px] rounded-full bg-white text-gray-400 flex-shrink-0"
-                      />
-                    )}
-                    <div className="flex flex-col">
-                      <span className="font-semibold">{token.symbol}</span>
-                      <span className="text-xs text-custom-muted-text">{token.name}</span>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemoveToken(token.address)}
-                    className="hover:bg-red-500/20 cursor-pointer"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
+              chosenRewardTokens.map((tokenAddress) => (
+                <ClaimTokenModalItem
+                  key={tokenAddress}
+                  tokenAddress={tokenAddress}
+                  chain={selectedBlockchain}
+                  onRemove={() => handleRemoveToken(tokenAddress)}
+                />
               ))
             ) : (
               <div className="text-center py-8 text-custom-muted-text">

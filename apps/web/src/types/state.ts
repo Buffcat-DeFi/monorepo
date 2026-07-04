@@ -1,5 +1,5 @@
 import { CoinGeckoToken, SupportedBlockchain } from './global';
-import { CoingeckoApiResponse } from './api';
+import { CoingeckoApiResponse, Lock } from './api';
 
 export type TokenSelectorAtom = {
   isOpen: boolean;
@@ -13,10 +13,10 @@ export type SelectedTokensAtom = {
     [key in SupportedBlockchain]: CoinGeckoToken | null;
   };
   unlockToken: {
-    [key in SupportedBlockchain]: CoinGeckoToken | null;
+    [key in SupportedBlockchain]: Lock | null;
   };
   rewardTokens: {
-    [key in SupportedBlockchain]: CoinGeckoToken[] | null;
+    [key in SupportedBlockchain]: string[] | null;
   };
 };
 

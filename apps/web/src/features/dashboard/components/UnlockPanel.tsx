@@ -34,6 +34,7 @@ import { useTokenDerivative } from '../hooks/query/contract';
 import { CoinGeckoToken } from '@/types/global';
 import TokenInfo from './TokenInfo';
 import { isValidFloat } from '../lib/utils';
+import { useERCMetadata, useTokenMetadata } from '../hooks/query/tokens';
 
 export default function UnlockPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
@@ -53,6 +54,33 @@ export default function UnlockPanel() {
   const unlockToken = useMemo(() => {
     return selectedTokens.unlockToken[selectedBlockchain.id];
   }, [selectedTokens.unlockToken[selectedBlockchain.id]]);
+
+  const {
+    data: metadata,
+    isLoading: metadataLoading,
+    isError: metadataError,
+  } = useTokenMetadata(selectedBlockchain, unlockToken?.lockedToken ?? '');
+
+  const isMetadataUnavailable = metadataLoading || metadataError || !metadata?.data;
+
+  const { data: ercMetadata } = useERCMetadata(selectedBlockchain, unlockToken?.lockedToken ?? '', {
+    enabled: !!isMetadataUnavailable,
+  });
+
+  const unlockTokenMetadata = useMemo(() => {
+    if (isMetadataUnavailable)
+      return {
+        ...ercMetadata,
+        logoURI: null,
+      };
+    else
+      return {
+        name: metadata.data.attributes.name,
+        symbol: metadata.data.attributes.symbol,
+        decimals: metadata.data.attributes.decimals,
+        logoURI: metadata.data.attributes.image_url,
+      };
+  }, [metadata, isMetadataUnavailable, ercMetadata]);
 
   const setTokenSelectorState = useSetAtom(tokenSelectorAtom);
 
@@ -78,7 +106,7 @@ export default function UnlockPanel() {
 
   const { data: tokenDerivativeData } = useTokenDerivative({
     chain: selectedBlockchain,
-    tokenAddressOrMint: selectedTokens.unlockToken[selectedBlockchain.id]?.address ?? '',
+    tokenAddressOrMint: selectedTokens.unlockToken[selectedBlockchain.id]?.lockedToken ?? '',
   });
 
   const { withConfirmation } = useTransactionDialog();
@@ -88,7 +116,7 @@ export default function UnlockPanel() {
       toast.error('Connect a wallet first.');
       return;
     }
-    const tokenAddress = selectedTokens.unlockToken[selectedBlockchain.id]?.address;
+    const tokenAddress = selectedTokens.unlockToken[selectedBlockchain.id]?.lockedToken;
     if (!tokenAddress) {
       toast.error('Select a token and try again.');
       return;
@@ -102,7 +130,7 @@ export default function UnlockPanel() {
       toast.error('Invalid Amount Input');
       return;
     }
-    const decimals = selectedTokens.unlockToken[selectedBlockchain.id]?.decimals;
+    const decimals = unlockTokenMetadata?.decimals;
     let approvalAmount = parsedAmount;
     if (!decimals) {
       toast.error('Token decimals not found, toggle to use raw values instead.');
@@ -138,7 +166,7 @@ export default function UnlockPanel() {
       {
         title: 'Approve Tokens?',
         description: `Do you want to approve ${amount}
-        Liquid ${selectedTokens.unlockToken[selectedBlockchain.id]?.name.toString()}?`,
+        Liquid ${unlockTokenMetadata.name ?? ''}?`,
         successMessage: 'Your tokens have been approved successfully.',
         loadingTitle: 'Processing Transaction',
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
@@ -151,7 +179,7 @@ export default function UnlockPanel() {
       toast.error('Connect a wallet first.');
       return;
     }
-    const tokenAddress = selectedTokens.unlockToken[selectedBlockchain.id]?.address;
+    const tokenAddress = selectedTokens.unlockToken[selectedBlockchain.id]?.lockedToken;
     if (!tokenAddress) {
       toast.error('Select a token and try again.');
       return;
@@ -175,7 +203,7 @@ export default function UnlockPanel() {
       toast.error('Invalid Lock ID.');
       return;
     }
-    const decimals = selectedTokens.unlockToken[selectedBlockchain.id]?.decimals;
+    const decimals = unlockTokenMetadata.decimals;
     let unlockAmount = parsedAmount;
     if (!decimals) {
       toast.error('Token decimals not found, toggle to use raw values instead.');
@@ -211,7 +239,7 @@ export default function UnlockPanel() {
       {
         title: 'Unlock Tokens?',
         description: `Do you want to unlock ${amount}
-        ${selectedTokens.unlockToken[selectedBlockchain.id]?.name.toString()}?`,
+        ${unlockTokenMetadata?.name ?? ''}?`,
         successMessage: 'Your tokens have been unlocked successfully.',
         loadingTitle: 'Processing Transaction',
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
@@ -232,14 +260,14 @@ export default function UnlockPanel() {
             {unlockToken ? (
               <>
                 <div className="mr-2 flex-shrink-0 flex items-center">
-                  {unlockToken.logoURI && unlockToken.logoURI !== '' ? (
+                  {unlockTokenMetadata.logoURI && unlockTokenMetadata.logoURI !== '' ? (
                     <ImageWithFallback
                       height={38}
                       width={38}
-                      src={unlockToken.logoURI}
-                      alt={unlockToken.name}
+                      src={unlockTokenMetadata.logoURI}
+                      alt={unlockTokenMetadata.name}
                       fallbackSrc={placeholders.tokenImage}
-                      key={unlockToken.address}
+                      key={unlockToken.lockedToken}
                     />
                   ) : (
                     <CircleQuestionMark
@@ -251,7 +279,7 @@ export default function UnlockPanel() {
                 <span className="flex flex-col items-start">
                   <span className="flex flex-row">
                     <span className="text-xl font-bold text-left text-custom-primary-text">
-                      {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol}
+                      {unlockTokenMetadata ? unlockTokenMetadata.symbol : placeholders.tokenSymbol}
                     </span>
                     <span className="flex items-center">
                       <ChevronRight className="text-custom-primary-text" />
@@ -297,7 +325,7 @@ export default function UnlockPanel() {
           </div>
         </div>
         <div className="text-sm text-custom-muted-text">
-          {unlockToken ? unlockToken.name : 'N/A'}
+          {unlockTokenMetadata ? unlockTokenMetadata.name : 'N/A'}
         </div>
       </div>
       <Collapsible className="w-full md:w-112 mt-2 rounded-2xl border border-custom-primary-color/30">
@@ -323,14 +351,14 @@ export default function UnlockPanel() {
           <div className="h-24 rounded-2xl grid grid-cols-3 px-18">
             <div className="flex flex-col items-center">
               <div className="flex-shrink-0 flex items-center">
-                {unlockToken?.logoURI && unlockToken.logoURI !== '' ? (
+                {unlockTokenMetadata?.logoURI && unlockTokenMetadata.logoURI !== '' ? (
                   <ImageWithFallback
                     height={48}
                     width={48}
-                    src={unlockToken.logoURI}
-                    alt={unlockToken.name}
+                    src={unlockTokenMetadata.logoURI}
+                    alt={unlockTokenMetadata.name}
                     fallbackSrc={placeholders.tokenImage}
-                    key={unlockToken.address}
+                    key={unlockToken?.lockedToken}
                   />
                 ) : (
                   <CircleQuestionMark
@@ -342,7 +370,9 @@ export default function UnlockPanel() {
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
-                    {unlockToken ? 'li' + unlockToken.symbol : 'li' + placeholders.tokenSymbol}
+                    {unlockTokenMetadata
+                      ? 'li' + unlockTokenMetadata.symbol
+                      : 'li' + placeholders.tokenSymbol}
                   </span>
                 </span>
               </span>
@@ -353,14 +383,14 @@ export default function UnlockPanel() {
             </div>
             <div className="flex flex-col items-center">
               <div className="flex-shrink-0 flex items-center">
-                {unlockToken?.logoURI && unlockToken.logoURI !== '' ? (
+                {unlockTokenMetadata?.logoURI && unlockTokenMetadata.logoURI !== '' ? (
                   <ImageWithFallback
                     height={48}
                     width={48}
-                    src={unlockToken.logoURI}
-                    alt={unlockToken.name}
+                    src={unlockTokenMetadata.logoURI}
+                    alt={unlockTokenMetadata.name}
                     fallbackSrc={placeholders.tokenImage}
-                    key={unlockToken.address}
+                    key={unlockToken?.lockedToken}
                   />
                 ) : (
                   <CircleQuestionMark
@@ -372,46 +402,23 @@ export default function UnlockPanel() {
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
-                    {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol}
+                    {unlockTokenMetadata ? unlockTokenMetadata.symbol : placeholders.tokenSymbol}
                   </span>
                 </span>
               </span>
             </div>
           </div>
           <div className="text-muted-foreground text-sm px-6 pb-4">
-            Lock your {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol} or any token and
-            receive li
-            {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol}/liquid locked tokens that
-            represent your locked position. Use li
-            {unlockToken ? unlockToken.symbol : placeholders.tokenSymbol} in other DeFi protocols
-            while earning rewards. Burn your liquid locked tokens to unlock your original tokens. No
-            lock-up period required.
+            Lock your {unlockTokenMetadata ? unlockTokenMetadata.symbol : placeholders.tokenSymbol}{' '}
+            or any token and receive li
+            {unlockTokenMetadata ? unlockTokenMetadata.symbol : placeholders.tokenSymbol}/liquid
+            locked tokens that represent your locked position. Use li
+            {unlockTokenMetadata ? unlockTokenMetadata.symbol : placeholders.tokenSymbol} in other
+            DeFi protocols while earning rewards. Burn your liquid locked tokens to unlock your
+            original tokens. No lock-up period required.
           </div>
         </CollapsibleContent>
       </Collapsible>
-      {/* {selectedTokens.unlockToken[selectedBlockchain.id] && (
-        <TokenInfo token={selectedTokens.unlockToken[selectedBlockchain.id]} />
-      )} */}
-      {/*<Card
-        className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
-      border border-custom-primary-color/30"
-      >
-        <CardContent className="px-4 py-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Lock className="h-4 w-4 text-custom-muted-text" />
-            <span className="text-sm font-semibold text-custom-muted-text uppercase">
-              Lock ID
-            </span>
-          </div>
-          <Input
-            type="number"
-            placeholder="0"
-            value={lockId}
-            onChange={(e) => setLockId(e.target.value)}
-            className="h-12 rounded-xl border-custom-primary-color/30 focus-visible:ring-custom-primary-color"
-          />
-        </CardContent>
-      </Card>*/}
       <Card
         className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
       border border-custom-primary-color/30"
@@ -421,7 +428,7 @@ export default function UnlockPanel() {
             <div className="text-custom-muted-text">Unlocked Value</div>
             <div>
               <span>
-                {calculatedValue} {unlockToken ? unlockToken.symbol : '--'}
+                {calculatedValue} {unlockTokenMetadata ? unlockTokenMetadata.symbol : '--'}
               </span>
             </div>
           </div>

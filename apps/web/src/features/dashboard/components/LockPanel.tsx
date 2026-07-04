@@ -284,7 +284,10 @@ export default function LockPanel() {
                       key={lockToken.address}
                     />
                   ) : (
-                    <CircleQuestionMark size={38} className="w-[38px] h-[38px] text-gray-400 flex-shrink-0" />
+                    <CircleQuestionMark
+                      size={38}
+                      className="w-[38px] h-[38px] text-gray-400 flex-shrink-0"
+                    />
                   )}
                 </div>
                 <span className="flex flex-col items-start">
@@ -370,7 +373,10 @@ export default function LockPanel() {
                     key={lockToken.address}
                   />
                 ) : (
-                  <CircleQuestionMark size={48} className="w-[48px] h-[48px] text-gray-400 flex-shrink-0" />
+                  <CircleQuestionMark
+                    size={48}
+                    className="w-[48px] h-[48px] text-gray-400 flex-shrink-0"
+                  />
                 )}
               </div>
               <span className="flex flex-col items-start">
@@ -397,7 +403,10 @@ export default function LockPanel() {
                     key={lockToken.address}
                   />
                 ) : (
-                  <CircleQuestionMark size={48} className="w-[48px] h-[48px] text-gray-400 flex-shrink-0" />
+                  <CircleQuestionMark
+                    size={48}
+                    className="w-[48px] h-[48px] text-gray-400 flex-shrink-0"
+                  />
                 )}
               </div>
               <span className="flex flex-col items-start">
