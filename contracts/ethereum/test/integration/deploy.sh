@@ -18,12 +18,11 @@ echo "Exported environment variables."
 
 RPC_URL="${RPC_URL:-http://127.0.0.1:8545}"
 
-echo "Deploying TestingScript..."
-forge script ./testing-script.s.sol:TestingScript \
+echo "Deploying Unified Setup Script..."
+forge script unified/setup.s.sol:UnifiedSetupScript \
   --rpc-url "$RPC_URL" \
   --broadcast \
   --private-key "$OWNER_PRIVATE_KEY_HEX" \
   -vvvv
 
 echo "Script completed."
-

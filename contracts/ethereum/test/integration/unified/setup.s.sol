@@ -215,7 +215,7 @@ contract UnifiedSetupScript is Script {
                 amount0Min: 0,
                 amount1Min: 0,
                 recipient: user,
-                deadline: block.timestamp
+                deadline: block.timestamp + 1 hours
             });
             positionManager.mint(params);
         }
@@ -256,7 +256,7 @@ contract UnifiedSetupScript is Script {
                 amount0Min: 0,
                 amount1Min: 0,
                 recipient: user,
-                deadline: block.timestamp
+                deadline: block.timestamp + 1 hours
             });
             positionManager.mint(params);
         }
@@ -306,7 +306,7 @@ contract UnifiedSetupScript is Script {
             tokenOut: tokenOut,
             fee: 10000,
             recipient: recipient,
-            deadline: block.timestamp,
+            deadline: block.timestamp + 1 hours,
             amountIn: 100 ether,
             amountOutMinimum: 0,
             sqrtPriceLimitX96: 0
