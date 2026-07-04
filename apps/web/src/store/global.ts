@@ -17,6 +17,7 @@ export const currentUserAtom = atom<{
 
 export const tokenSelectorAtom = atom<TokenSelectorAtom>({
   isOpen: false,
+  mode: 'all',
   onClose: () => {},
   onSelectToken: (token: CoinGeckoToken) => {},
 });

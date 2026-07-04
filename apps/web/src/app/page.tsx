@@ -24,6 +24,7 @@ export default function DashboardPage() {
         <Dashboard />
         <TokenSelector
           isOpen={tokenSelectorStateValue.isOpen}
+          mode={tokenSelectorStateValue.mode}
           onClose={tokenSelectorStateValue.onClose}
           onSelectToken={tokenSelectorStateValue.onSelectToken}
         />

@@ -8,6 +8,7 @@ import {
   X,
   CalendarClock,
   Lock,
+  CircleQuestionMark,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,7 @@ export default function ClaimRewardsPanel() {
   const handletokenSelectorTrigger = () => {
     setTokenSelectorState({
       isOpen: true,
+      mode: 'all',
       onClose: () => setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
       onSelectToken: handleSelectToken,
     });
@@ -72,6 +74,7 @@ export default function ClaimRewardsPanel() {
   const handleAddRewardToken = () => {
     setTokenSelectorState({
       isOpen: true,
+      mode: 'all',
       onClose: () => setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
       onSelectToken: handleSelectToken,
     });
@@ -148,17 +151,23 @@ export default function ClaimRewardsPanel() {
           >
             {unlockToken ? (
               <>
-                <span>
-                  <ImageWithFallback
-                    height={38}
-                    width={38}
-                    src={unlockToken.logoURI ? unlockToken.logoURI : placeholders.tokenImage}
-                    alt={unlockToken ? unlockToken.name : placeholders.tokenName}
-                    fallbackSrc={placeholders.tokenImage}
-                    // Add key to force re-render when token changes
-                    key={unlockToken?.address || 'placeholder'}
-                  />
-                </span>
+                <div className="mr-2 flex-shrink-0 flex items-center">
+                  {unlockToken?.logoURI && unlockToken.logoURI !== '' ? (
+                    <ImageWithFallback
+                      height={38}
+                      width={38}
+                      src={unlockToken.logoURI}
+                      alt={unlockToken.name}
+                      fallbackSrc={placeholders.tokenImage}
+                      key={unlockToken.address}
+                    />
+                  ) : (
+                    <CircleQuestionMark
+                      size={38}
+                      className="w-[38px] h-[38px] text-gray-400 flex-shrink-0"
+                    />
+                  )}
+                </div>
                 <span className="flex flex-col items-start">
                   <span className="flex flex-row">
                     <span className="text-xl font-bold text-left text-custom-primary-text">
@@ -214,17 +223,23 @@ export default function ClaimRewardsPanel() {
         <CollapsibleContent className="mt-6">
           <div className="h-24 rounded-2xl grid grid-cols-3 px-18">
             <div className="flex flex-col items-center">
-              <span>
-                <ImageWithFallback
-                  height={48}
-                  width={48}
-                  src={unlockToken?.logoURI ? unlockToken.logoURI : placeholders.tokenImage}
-                  alt={unlockToken ? unlockToken.name : placeholders.tokenName}
-                  fallbackSrc={placeholders.tokenImage}
-                  // Add key to force re-render when token changes
-                  key={unlockToken?.address || 'placeholder'}
-                />
-              </span>
+              <div className="flex-shrink-0 flex items-center">
+                {unlockToken?.logoURI && unlockToken.logoURI !== '' ? (
+                  <ImageWithFallback
+                    height={48}
+                    width={48}
+                    src={unlockToken.logoURI}
+                    alt={unlockToken.name}
+                    fallbackSrc={placeholders.tokenImage}
+                    key={unlockToken.address}
+                  />
+                ) : (
+                  <CircleQuestionMark
+                    size={48}
+                    className="w-[48px] h-[48px] text-gray-400 flex-shrink-0"
+                  />
+                )}
+              </div>
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
@@ -238,17 +253,23 @@ export default function ClaimRewardsPanel() {
               <ArrowRightLeft className="h-8 w-8" />
             </div>
             <div className="flex flex-col items-center">
-              <span>
-                <ImageWithFallback
-                  height={48}
-                  width={48}
-                  src={unlockToken?.logoURI ? unlockToken.logoURI : placeholders.tokenImage}
-                  alt={unlockToken ? unlockToken.name : placeholders.tokenName}
-                  fallbackSrc={placeholders.tokenImage}
-                  // Add key to force re-render when token changes
-                  key={unlockToken?.address || 'placeholder'}
-                />
-              </span>
+              <div className="flex-shrink-0 flex items-center">
+                {unlockToken?.logoURI && unlockToken.logoURI !== '' ? (
+                  <ImageWithFallback
+                    height={48}
+                    width={48}
+                    src={unlockToken.logoURI}
+                    alt={unlockToken.name}
+                    fallbackSrc={placeholders.tokenImage}
+                    key={unlockToken.address}
+                  />
+                ) : (
+                  <CircleQuestionMark
+                    size={48}
+                    className="w-[48px] h-[48px] text-gray-400 flex-shrink-0"
+                  />
+                )}
+              </div>
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
@@ -330,14 +351,21 @@ export default function ClaimRewardsPanel() {
                         className="relative border-1 rounded-4xl border-black"
                         style={{ zIndex: 3 - index }}
                       >
-                        <ImageWithFallback
-                          height={24}
-                          width={24}
-                          src={token.logoURI || placeholders.tokenImage}
-                          alt={token.symbol}
-                          fallbackSrc={placeholders.tokenImage}
-                          className="rounded-full border-2 border-background"
-                        />
+                        {token.logoURI && token.logoURI !== '' ? (
+                          <ImageWithFallback
+                            height={24}
+                            width={24}
+                            src={token.logoURI}
+                            alt={token.symbol}
+                            fallbackSrc={placeholders.tokenImage}
+                            className="rounded-full border-2 border-background"
+                          />
+                        ) : (
+                          <CircleQuestionMark
+                            size={24}
+                            className="w-[24px] h-[24px] rounded-full border-2 border-background bg-white text-gray-400 flex-shrink-0"
+                          />
+                        )}
                       </div>
                     ))}
                     {chosenRewardTokens.length > 3 && (
@@ -384,14 +412,21 @@ export default function ClaimRewardsPanel() {
                   className="flex items-center justify-between p-3 rounded-lg border border-custom-primary-color/30"
                 >
                   <div className="flex items-center gap-3">
-                    <ImageWithFallback
-                      height={32}
-                      width={32}
-                      src={token.logoURI || placeholders.tokenImage}
-                      alt={token.symbol}
-                      fallbackSrc={placeholders.tokenImage}
-                      className="rounded-full"
-                    />
+                    {token.logoURI && token.logoURI !== '' ? (
+                      <ImageWithFallback
+                        height={32}
+                        width={32}
+                        src={token.logoURI}
+                        alt={token.symbol}
+                        fallbackSrc={placeholders.tokenImage}
+                        className="rounded-full"
+                      />
+                    ) : (
+                      <CircleQuestionMark
+                        size={32}
+                        className="w-[32px] h-[32px] rounded-full bg-white text-gray-400 flex-shrink-0"
+                      />
+                    )}
                     <div className="flex flex-col">
                       <span className="font-semibold">{token.symbol}</span>
                       <span className="text-xs text-custom-muted-text">{token.name}</span>

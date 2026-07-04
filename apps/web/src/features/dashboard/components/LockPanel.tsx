@@ -12,6 +12,7 @@ import {
   LockKeyhole,
   Unlock as UnlockIcon,
   Users,
+  CircleQuestionMark,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -102,6 +103,7 @@ export default function LockPanel() {
   const handletokenSelectorTrigger = () => {
     setTokenSelectorState({
       isOpen: true,
+      mode: 'all',
       onClose: () => setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
       onSelectToken: handleSelectToken,
     });
@@ -227,7 +229,7 @@ export default function LockPanel() {
             BigInt(Math.floor(lockAmount)),
             BigInt(lockDuration),
             lockType,
-            referrerWallet === '' ? '0x0000000000000000000000000000000000000000' : referrerWallet
+            referrerWallet === '' ? '0x0000000000000000000000000000000000000000' : referrerWallet,
           ],
           chainId: selectedBlockchain.chainId,
         });
@@ -271,17 +273,20 @@ export default function LockPanel() {
           >
             {lockToken ? (
               <>
-                <span>
-                  <ImageWithFallback
-                    height={38}
-                    width={38}
-                    src={lockToken.logoURI ? lockToken.logoURI : placeholders.tokenImage}
-                    alt={lockToken ? lockToken.name : placeholders.tokenName}
-                    fallbackSrc={placeholders.tokenImage}
-                    // Add key to force re-render when token changes
-                    key={lockToken?.address || 'placeholder'}
-                  />
-                </span>
+                <div className="mr-2 flex-shrink-0 flex items-center">
+                  {lockToken.logoURI && lockToken.logoURI !== '' ? (
+                    <ImageWithFallback
+                      height={38}
+                      width={38}
+                      src={lockToken.logoURI}
+                      alt={lockToken.name}
+                      fallbackSrc={placeholders.tokenImage}
+                      key={lockToken.address}
+                    />
+                  ) : (
+                    <CircleQuestionMark size={38} className="w-[38px] h-[38px] text-gray-400 flex-shrink-0" />
+                  )}
+                </div>
                 <span className="flex flex-col items-start">
                   <span className="flex flex-row">
                     <span className="text-xl font-bold text-left text-custom-primary-text">
@@ -354,17 +359,20 @@ export default function LockPanel() {
         <CollapsibleContent className="mt-6">
           <div className="h-24 rounded-2xl grid grid-cols-3 px-18">
             <div className="flex flex-col items-center">
-              <span>
-                <ImageWithFallback
-                  height={48}
-                  width={48}
-                  src={lockToken?.logoURI ? lockToken.logoURI : placeholders.tokenImage}
-                  alt={lockToken ? lockToken.name : placeholders.tokenName}
-                  fallbackSrc={placeholders.tokenImage}
-                  // Add key to force re-render when token changes
-                  key={lockToken?.address || 'placeholder'}
-                />
-              </span>
+              <div className="flex-shrink-0 flex items-center">
+                {lockToken?.logoURI && lockToken.logoURI !== '' ? (
+                  <ImageWithFallback
+                    height={48}
+                    width={48}
+                    src={lockToken.logoURI}
+                    alt={lockToken.name}
+                    fallbackSrc={placeholders.tokenImage}
+                    key={lockToken.address}
+                  />
+                ) : (
+                  <CircleQuestionMark size={48} className="w-[48px] h-[48px] text-gray-400 flex-shrink-0" />
+                )}
+              </div>
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
@@ -378,17 +386,20 @@ export default function LockPanel() {
               <ArrowRightLeft className="h-8 w-8" />
             </div>
             <div className="flex flex-col items-center">
-              <span>
-                <ImageWithFallback
-                  height={48}
-                  width={48}
-                  src={lockToken?.logoURI ? lockToken.logoURI : placeholders.tokenImage}
-                  alt={lockToken ? lockToken.name : placeholders.tokenName}
-                  fallbackSrc={placeholders.tokenImage}
-                  // Add key to force re-render when token changes
-                  key={lockToken?.address || 'placeholder'}
-                />
-              </span>
+              <div className="flex-shrink-0 flex items-center">
+                {lockToken?.logoURI && lockToken.logoURI !== '' ? (
+                  <ImageWithFallback
+                    height={48}
+                    width={48}
+                    src={lockToken.logoURI}
+                    alt={lockToken.name}
+                    fallbackSrc={placeholders.tokenImage}
+                    key={lockToken.address}
+                  />
+                ) : (
+                  <CircleQuestionMark size={48} className="w-[48px] h-[48px] text-gray-400 flex-shrink-0" />
+                )}
+              </div>
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
@@ -543,7 +554,9 @@ export default function LockPanel() {
           <div className="w-full md:w-104 flex justify-between mt-2">
             <div className="text-custom-muted-text">Locked Value</div>
             <div>
-              <span>{calculatedValue} {lockToken ? lockToken.symbol : "--"}</span>
+              <span>
+                {calculatedValue} {lockToken ? lockToken.symbol : '--'}
+              </span>
             </div>
           </div>
           <div className="w-full md:w-104 flex justify-between mt-2">

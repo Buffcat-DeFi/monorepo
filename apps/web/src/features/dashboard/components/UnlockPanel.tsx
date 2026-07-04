@@ -7,6 +7,7 @@ import {
   ArrowRightLeft,
   Settings,
   Lock,
+  CircleQuestionMark,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -58,6 +59,7 @@ export default function UnlockPanel() {
   const handletokenSelectorTrigger = () => {
     setTokenSelectorState({
       isOpen: true,
+      mode: 'locks',
       onClose: () => setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
       onSelectToken: handleSelectToken,
     });
@@ -229,17 +231,23 @@ export default function UnlockPanel() {
           >
             {unlockToken ? (
               <>
-                <span>
-                  <ImageWithFallback
-                    height={38}
-                    width={38}
-                    src={unlockToken.logoURI ? unlockToken.logoURI : placeholders.tokenImage}
-                    alt={unlockToken ? unlockToken.name : placeholders.tokenName}
-                    fallbackSrc={placeholders.tokenImage}
-                    // Add key to force re-render when token changes
-                    key={unlockToken?.address || 'placeholder'}
-                  />
-                </span>
+                <div className="mr-2 flex-shrink-0 flex items-center">
+                  {unlockToken.logoURI && unlockToken.logoURI !== '' ? (
+                    <ImageWithFallback
+                      height={38}
+                      width={38}
+                      src={unlockToken.logoURI}
+                      alt={unlockToken.name}
+                      fallbackSrc={placeholders.tokenImage}
+                      key={unlockToken.address}
+                    />
+                  ) : (
+                    <CircleQuestionMark
+                      size={38}
+                      className="w-[38px] h-[38px] text-gray-400 flex-shrink-0"
+                    />
+                  )}
+                </div>
                 <span className="flex flex-col items-start">
                   <span className="flex flex-row">
                     <span className="text-xl font-bold text-left text-custom-primary-text">
@@ -314,17 +322,23 @@ export default function UnlockPanel() {
         <CollapsibleContent className="mt-6">
           <div className="h-24 rounded-2xl grid grid-cols-3 px-18">
             <div className="flex flex-col items-center">
-              <span>
-                <ImageWithFallback
-                  height={48}
-                  width={48}
-                  src={unlockToken?.logoURI ? unlockToken.logoURI : placeholders.tokenImage}
-                  alt={unlockToken ? unlockToken.name : placeholders.tokenName}
-                  fallbackSrc={placeholders.tokenImage}
-                  // Add key to force re-render when token changes
-                  key={unlockToken?.address || 'placeholder'}
-                />
-              </span>
+              <div className="flex-shrink-0 flex items-center">
+                {unlockToken?.logoURI && unlockToken.logoURI !== '' ? (
+                  <ImageWithFallback
+                    height={48}
+                    width={48}
+                    src={unlockToken.logoURI}
+                    alt={unlockToken.name}
+                    fallbackSrc={placeholders.tokenImage}
+                    key={unlockToken.address}
+                  />
+                ) : (
+                  <CircleQuestionMark
+                    size={48}
+                    className="w-[48px] h-[48px] text-gray-400 flex-shrink-0"
+                  />
+                )}
+              </div>
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
@@ -338,17 +352,23 @@ export default function UnlockPanel() {
               <ArrowRightLeft className="h-8 w-8" />
             </div>
             <div className="flex flex-col items-center">
-              <span>
-                <ImageWithFallback
-                  height={48}
-                  width={48}
-                  src={unlockToken?.logoURI ? unlockToken.logoURI : placeholders.tokenImage}
-                  alt={unlockToken ? unlockToken.name : placeholders.tokenName}
-                  fallbackSrc={placeholders.tokenImage}
-                  // Add key to force re-render when token changes
-                  key={unlockToken?.address || 'placeholder'}
-                />
-              </span>
+              <div className="flex-shrink-0 flex items-center">
+                {unlockToken?.logoURI && unlockToken.logoURI !== '' ? (
+                  <ImageWithFallback
+                    height={48}
+                    width={48}
+                    src={unlockToken.logoURI}
+                    alt={unlockToken.name}
+                    fallbackSrc={placeholders.tokenImage}
+                    key={unlockToken.address}
+                  />
+                ) : (
+                  <CircleQuestionMark
+                    size={48}
+                    className="w-[48px] h-[48px] text-gray-400 flex-shrink-0"
+                  />
+                )}
+              </div>
               <span className="flex flex-col items-start">
                 <span className="flex flex-row">
                   <span className="text-sm font-bold text-left text-custom-primary-text">
@@ -400,7 +420,9 @@ export default function UnlockPanel() {
           <div className="w-full md:w-104 flex justify-between mt-2">
             <div className="text-custom-muted-text">Unlocked Value</div>
             <div>
-              <span>{calculatedValue} {unlockToken ? unlockToken.symbol : "--"}</span>
+              <span>
+                {calculatedValue} {unlockToken ? unlockToken.symbol : '--'}
+              </span>
             </div>
           </div>
           <div className="w-full md:w-104 flex justify-between mt-2">

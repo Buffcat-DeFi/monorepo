@@ -168,35 +168,37 @@ export default function Dashboard() {
                 Claim Rewards
               </TabsTrigger>
             </div>
-            <div className="flex items-center gap-2 mb-1">
-              <Select value={selectedLock || undefined} onValueChange={setSelectedLock}>
-                <SelectTrigger
-                  className="h-8 text-xs border-0 bg-white/50 cursor-pointer
-                  backdrop-blur-sm dark:bg-black/50 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors focus:ring-0"
-                >
-                  <SelectValue placeholder="Select Lock" />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 dark:bg-neutral-900 dark:border-neutral-800">
-                  {locksLoading ? (
-                    <div className="flex justify-center p-2">
-                      <Loading size="sm" type="spinner" />
-                    </div>
-                  ) : userLocksValue.length > 0 ? (
-                    userLocksValue.map((lock, index) => (
-                      <LockDropdownItem
-                        key={index.toString()}
-                        value={index.toString()}
-                        lock={lock}
-                        chain={selectedBlockchain}
-                        className="cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
-                      />
-                    ))
-                  ) : (
-                    <div className="p-2 text-sm text-gray-500 text-center">No Locks Found</div>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
+            {activeTab === 'ClaimRewards' && (
+              <div className="flex items-center gap-2 mb-1">
+                <Select value={selectedLock || undefined} onValueChange={setSelectedLock}>
+                  <SelectTrigger
+                    className="h-8 text-xs border-0 bg-white/50 cursor-pointer
+                    backdrop-blur-sm dark:bg-black/50 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors focus:ring-0"
+                  >
+                    <SelectValue placeholder="Select Lock" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border border-gray-200 dark:bg-neutral-900 dark:border-neutral-800">
+                    {locksLoading ? (
+                      <div className="flex justify-center p-2">
+                        <Loading size="sm" type="spinner" />
+                      </div>
+                    ) : userLocksValue.length > 0 ? (
+                      userLocksValue.map((lock, index) => (
+                        <LockDropdownItem
+                          key={index.toString()}
+                          value={index.toString()}
+                          lock={lock}
+                          chain={selectedBlockchain}
+                          className="cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
+                        />
+                      ))
+                    ) : (
+                      <div className="p-2 text-sm text-gray-500 text-center">No Locks Found</div>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </TabsList>
 
           <div className="px-4">
