@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Script} from 'forge-std/Script.sol';
 import {console} from 'forge-std/console.sol';
-import {MockFeedRegistry} from '../../test/unit/lib/MockFeedRegistry.sol';
+import {MockFeedRegistry} from '../../unit/lib/MockFeedRegistry.sol';
 
 contract TestingScript is Script {
   MockFeedRegistry public registry;

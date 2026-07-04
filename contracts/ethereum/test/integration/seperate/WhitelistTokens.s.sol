@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Script} from '../../lib/forge-std/src/Script.sol';
-import {console} from '../../lib/forge-std/src/console.sol';
-import {IBuffcat} from '../../src/IBuffcat.sol';
+import {Script} from '../../../lib/forge-std/src/Script.sol';
+import {console} from '../../../lib/forge-std/src/console.sol';
+import {IBuffCat} from '../../../src/IBuffCat.sol';
 
 contract TestingScript is Script {
-  IBuffcat public buffCat;
+  IBuffCat public buffCat;
 
   function run() external {
     uint256 ownerPrivateKey = vm.envUint('OWNER_PRIVATE_KEY_HEX');
     address owner = vm.addr(ownerPrivateKey);
 
     address buffcatAddress = vm.envAddress('BUFFCAT_ADDRESS');
-    buffCat = IBuffcat(buffcatAddress);
+    buffCat = IBuffCat(buffcatAddress);
 
     address token1 = vm.envAddress('TOKEN1_ADDRESS');
     address token2 = vm.envAddress('TOKEN2_ADDRESS');

@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Script} from '../../lib/forge-std/src/Script.sol';
-import {BuffCatUpgradeable, LockType, LockInfo} from '../../archive/chainlinkOracleOnly/BuffCat.sol';
-import {MockERC20} from '../unit/lib/MockERC20.sol';
-import {ERC1967Proxy} from '../../lib/openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol';
-import '../../lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol';
-import '../../lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol';
-import '../../lib/openzeppelin-contracts-upgradeable/contracts/utils/PausableUpgradeable.sol';
-import {MockFeedRegistry} from '../../test/unit/lib/MockFeedRegistry.sol';
-import {Denominations} from '../../lib/chainlink-brownie-contracts/contracts/src/v0.8/Denominations.sol';
+import {Script} from '../../../lib/forge-std/src/Script.sol';
+import {BuffCatUpgradeable, LockType, LockInfo} from '../../../archive/chainlinkOracleOnly/BuffCat.sol';
+import {MockERC20} from '../../unit/lib/MockERC20.sol';
+import {ERC1967Proxy} from '../../../lib/openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol';
+import '../../../lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol';
+import '../../../lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol';
+import '../../../lib/openzeppelin-contracts-upgradeable/contracts/utils/PausableUpgradeable.sol';
+import {MockFeedRegistry} from '../../../test/unit/lib/MockFeedRegistry.sol';
+import {Denominations} from '../../../lib/chainlink-brownie-contracts/contracts/src/v0.8/Denominations.sol';
 
 contract TestingScript is Script {
   BuffCatUpgradeable public buffCat;

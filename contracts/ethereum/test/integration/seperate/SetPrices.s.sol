@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Script} from '../../lib/forge-std/src/Script.sol';
-import {console} from '../../lib/forge-std/src/console.sol';
-import {Denominations} from '../../lib/chainlink-brownie-contracts/contracts/src/v0.8/Denominations.sol';
-import {FeedRegistryInterface} from '../../lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/FeedRegistryInterface.sol';
+import {Script} from 'forge-std/Script.sol';
+import {console} from 'forge-std/console.sol';
+import {Denominations} from '../../../lib/chainlink-brownie-contracts/contracts/src/v0.8/Denominations.sol';
+import {MockFeedRegistry} from '../../unit/lib/MockFeedRegistry.sol';
 
 contract TestingScript is Script {
-  FeedRegistryInterface internal registry;
+  MockFeedRegistry internal registry;
 
   function run() external {
     uint256 ownerPrivateKey = vm.envUint('OWNER_PRIVATE_KEY_HEX');
     address owner = vm.addr(ownerPrivateKey);
 
     address registryAddress = vm.envAddress('CHAINLINK_FEED_REGISTRY_ADDRESS');
-    registry = FeedRegistryInterface(registryAddress);
+    registry = MockFeedRegistry(registryAddress);
 
     address token1 = vm.envAddress('TOKEN1_ADDRESS');
     address token2 = vm.envAddress('TOKEN2_ADDRESS');

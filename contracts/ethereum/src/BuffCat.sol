@@ -19,8 +19,8 @@ import '../lib/openzeppelin-contracts-upgradeable/contracts/utils/PausableUpgrad
 import '../lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol';
 
 // Uniswap Imports
-import '@uniswap/v3-core/contracts/libraries/FullMath.sol';
-import '@uniswap/v3-core/contracts/libraries/TickMath.sol';
+import 'v3-core/libraries/FullMath.sol';
+import 'v3-core/libraries/TickMath.sol';
 import '../lib/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
 import '../lib/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import {FixedPoint96} from '../lib/v3-core/contracts/libraries/FixedPoint96.sol';

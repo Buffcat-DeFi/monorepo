@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Script} from '../../lib/forge-std/src/Script.sol';
-import {console} from '../../lib/forge-std/src/console.sol';
-import {LockType} from '../../src/BuffCat.sol';
-import {IBuffCat} from '../../src/IBuffCat.sol';
-import '../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol';
+import {Script} from 'forge-std/Script.sol';
+import {console} from 'forge-std/console.sol';
+import {LockType} from '../../../src/BuffCat.sol';
+import {IBuffCat} from '../../../src/IBuffCat.sol';
+import '../../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol';
 
 contract TestingScript is Script {
-  IBuffcat public buffCat;
+  IBuffCat public buffCat;
   IERC20 public token1;
   IERC20 public token2;
   IERC20 public token3;
@@ -32,7 +32,7 @@ contract TestingScript is Script {
     address user = vm.addr(userPrivateKey);
 
     address buffcatAddress = vm.envAddress('BUFFCAT_ADDRESS');
-    buffCat = IBuffcat(buffcatAddress);
+    buffCat = IBuffCat(buffcatAddress);
 
     address token1Address = vm.envAddress('TOKEN1_ADDRESS');
     address token2Address = vm.envAddress('TOKEN2_ADDRESS');
