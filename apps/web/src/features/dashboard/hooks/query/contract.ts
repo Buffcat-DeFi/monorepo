@@ -119,7 +119,7 @@ export function useLocks(chain: Blockchain, userKey: string, options?: Omit<UseQ
   const query = useQuery<LocksResponse, Error>({
     queryKey: ["locks", chain?.id, userKey],
     enabled,
-    staleTime: Infinity,
+    staleTime: 1000 * 60 * 5,
     gcTime: 5 * 60_000,
     queryFn: async () => {
       const cachedData = getCachedLocks(chain.id, userKey);

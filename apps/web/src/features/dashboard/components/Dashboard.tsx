@@ -1,9 +1,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LockPanel from './LockPanel';
 import UnlockPanel from './UnlockPanel';
-import { useState } from 'react';
-import { useAtom } from 'jotai';
-import { selectedLockAtom } from '@/store/global';
+import { useState, useEffect } from 'react';
+import { useAtom, useAtomValue } from 'jotai';
+import { selectedLockAtom, currentUserAtom, selectedBlockchainAtom } from '@/store/global';
 import { motion } from 'motion/react';
 import { HowItWorks } from '@/components/HowItWorks';
 import { UseCases } from '@/components/UseCases';
@@ -15,37 +15,79 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useLocks } from '@/features/dashboard/hooks/query/contract';
+import { useTokenMetadata } from '@/features/dashboard/hooks/query/tokens';
+import { ethers } from 'ethers';
+import { Blockchain } from '@/types/global';
+import React from 'react';
+import { Loading } from '@/components/Loading';
+import { CircleQuestionMark } from 'lucide-react';
 
-const dummyLocks = [
-  {
-    id: '1',
-    symbol: 'ETH',
-    amount: '12.50',
-    logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
-  },
-  {
-    id: '2',
-    symbol: 'wstETH',
-    amount: '4.80',
-    logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
-  },
-  {
-    id: '3',
-    symbol: 'rETH',
-    amount: '35.00',
-    logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
-  },
-  {
-    id: '4',
-    symbol: 'cbETH',
-    amount: '8.25',
-    logo: 'https://cryptologos.cc/logos/ethereum-eth-logo.png',
-  },
-];
+const LockDropdownItem = React.forwardRef<
+  React.ElementRef<typeof SelectItem>,
+  React.ComponentPropsWithoutRef<typeof SelectItem> & { lock: any; chain: Blockchain }
+>(({ lock, chain, ...props }, ref) => {
+  const {
+    data: metadata,
+    isLoading: metadataLoading,
+    isError: metadataError,
+  } = useTokenMetadata(chain, lock.lockedToken);
+
+  const isMetadataUnavailable = metadataLoading || metadataError || !metadata?.data;
+
+  const symbol = isMetadataUnavailable
+    ? `${lock.lockedToken.slice(0, 6)}...${lock.lockedToken.slice(-4)}`
+    : metadata?.data?.attributes?.symbol || 'Unknown';
+
+  const decimals = isMetadataUnavailable ? 18 : metadata?.data?.attributes?.decimals || 18;
+  const logoUrl = metadata?.data?.attributes?.image_url;
+
+  const logo =
+    !isMetadataUnavailable && logoUrl ? (
+      <img src={logoUrl} alt={symbol} className="w-4 h-4 object-contain rounded-full" />
+    ) : (
+      <CircleQuestionMark className="w-4 h-4 text-gray-400" />
+    );
+
+  const amount = ethers.formatUnits(lock.amount, decimals);
+  const formattedAmount = parseFloat(amount).toLocaleString(undefined, {
+    maximumFractionDigits: 4,
+  });
+
+  return (
+    <SelectItem ref={ref as any} {...props}>
+      <div className="flex items-center gap-2">
+        {logo}
+        <span className="font-semibold text-gray-900 dark:text-gray-100">{symbol}</span>
+        <span className="text-gray-500 text-[10px] dark:text-gray-400 font-medium">
+          ({formattedAmount})
+        </span>
+      </div>
+    </SelectItem>
+  );
+});
+LockDropdownItem.displayName = 'LockDropdownItem';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('Lock');
   const [selectedLock, setSelectedLock] = useAtom(selectedLockAtom);
+  const currentUser = useAtomValue(currentUserAtom);
+  const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
+
+  const { data: locksResponse, isLoading: locksLoading } = useLocks(
+    selectedBlockchain,
+    currentUser.address,
+  );
+
+  const locks = locksResponse?.data || [];
+
+  useEffect(() => {
+    if (locks.length > 0 && (!selectedLock || parseInt(selectedLock) >= locks.length)) {
+      setSelectedLock('0');
+    } else if (locks.length === 0 && selectedLock !== '') {
+      setSelectedLock('');
+    }
+  }, [locks.length, selectedLock, setSelectedLock]);
 
   return (
     <div className="min-h-screen mx-auto">
@@ -103,28 +145,31 @@ export default function Dashboard() {
               </TabsTrigger>
             </div>
             <div className="flex items-center gap-2 mb-1">
-              <Select value={selectedLock} onValueChange={setSelectedLock}>
-                <SelectTrigger className="h-8 w-[140px] text-xs border-0 bg-white/50 backdrop-blur-sm dark:bg-black/50 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors focus:ring-0">
+              <Select value={selectedLock || undefined} onValueChange={setSelectedLock}>
+                <SelectTrigger
+                  className="h-8 w-[140px] text-xs border-0 bg-white/50 cursor-pointer
+                  backdrop-blur-sm dark:bg-black/50 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors focus:ring-0"
+                >
                   <SelectValue placeholder="Select Lock" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-gray-200 dark:bg-neutral-900 dark:border-neutral-800">
-                  {dummyLocks.map((lock) => (
-                    <SelectItem
-                      key={lock.id}
-                      value={lock.id}
-                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
-                    >
-                      <div className="flex items-center gap-2">
-                        <img src={lock.logo} alt={lock.symbol} className="w-4 h-4 object-contain" />
-                        <span className="font-semibold text-gray-900 dark:text-gray-100">
-                          {lock.symbol}
-                        </span>
-                        <span className="text-gray-500 text-[10px] dark:text-gray-400 font-medium">
-                          ({lock.amount})
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
+                  {locksLoading ? (
+                    <div className="flex justify-center p-2">
+                      <Loading size="sm" type="spinner" />
+                    </div>
+                  ) : locks.length > 0 ? (
+                    locks.map((lock, index) => (
+                      <LockDropdownItem
+                        key={index.toString()}
+                        value={index.toString()}
+                        lock={lock}
+                        chain={selectedBlockchain}
+                        className="cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
+                      />
+                    ))
+                  ) : (
+                    <div className="p-2 text-sm text-gray-500 text-center">No Locks Found</div>
+                  )}
                 </SelectContent>
               </Select>
             </div>
