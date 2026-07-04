@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useLocks } from '@/features/dashboard/hooks/query/contract';
-import { useTokenMetadata } from '@/features/dashboard/hooks/query/tokens';
+import { useTokenMetadata, useERCMetadata } from '@/features/dashboard/hooks/query/tokens';
 import { ethers } from 'ethers';
 import { Blockchain } from '@/types/global';
 import React from 'react';
@@ -35,11 +35,19 @@ const LockDropdownItem = React.forwardRef<
 
   const isMetadataUnavailable = metadataLoading || metadataError || !metadata?.data;
 
-  const symbol = isMetadataUnavailable
-    ? `${lock.lockedToken.slice(0, 6)}...${lock.lockedToken.slice(-4)}`
-    : metadata?.data?.attributes?.symbol || 'Unknown';
+  const { data: ercMetadata } = useERCMetadata(chain, lock.lockedToken, {
+    enabled: !!isMetadataUnavailable,
+  });
 
-  const decimals = isMetadataUnavailable ? 18 : metadata?.data?.attributes?.decimals || 18;
+  const symbol =
+    !isMetadataUnavailable && metadata?.data?.attributes?.symbol
+      ? metadata.data.attributes.symbol
+      : ercMetadata?.symbol || `${lock.lockedToken.slice(0, 6)}...${lock.lockedToken.slice(-4)}`;
+
+  const decimals =
+    !isMetadataUnavailable && metadata?.data?.attributes?.decimals
+      ? metadata.data.attributes.decimals
+      : ercMetadata?.decimals || 18;
   const logoUrl = metadata?.data?.attributes?.image_url;
 
   const logo =

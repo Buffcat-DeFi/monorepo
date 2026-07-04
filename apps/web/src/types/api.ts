@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export type ErrorResponse = {
   message: string;
@@ -50,8 +50,14 @@ export type CoingeckoApiResponse = {
   };
 };
 
+export type ERC20MetadataResponse = {
+  name: string | null;
+  symbol: string;
+  decimals: number | null;
+};
+
 export const chainRequestSchema = z.object({
-  chain: z.enum(["eth", "base"]),
+  chain: z.enum(['eth', 'base']),
 });
 
 export const userRequestSchema = chainRequestSchema.extend({
