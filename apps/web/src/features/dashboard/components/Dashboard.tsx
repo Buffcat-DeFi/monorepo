@@ -155,7 +155,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-2 mb-1">
               <Select value={selectedLock || undefined} onValueChange={setSelectedLock}>
                 <SelectTrigger
-                  className="h-8 w-[140px] text-xs border-0 bg-white/50 cursor-pointer
+                  className="h-8 text-xs border-0 bg-white/50 cursor-pointer
                   backdrop-blur-sm dark:bg-black/50 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors focus:ring-0"
                 >
                   <SelectValue placeholder="Select Lock" />
