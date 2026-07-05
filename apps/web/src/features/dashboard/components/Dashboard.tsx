@@ -128,7 +128,7 @@ export default function Dashboard() {
         <span className="crypto-blue-gradient">Impermanent Loss</span>
       </motion.h1>
       <section
-        className="mx-auto mt-6 mb-12 w-full md:w-120 rounded-2xl p-4
+        className="mx-auto mt-6 mb-12 w-full md:w-130 rounded-2xl p-4
     bg-custom-bg border-2 border-custom-primary-color custom-box-shadow"
       >
         <Tabs defaultValue="Lock" onValueChange={(value) => setActiveTab(value)}>

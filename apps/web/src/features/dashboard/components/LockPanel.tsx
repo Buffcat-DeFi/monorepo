@@ -552,7 +552,7 @@ export default function LockPanel() {
             placeholder="0x0000...0000"
             value={referrerWallet}
             onChange={(e) => setReferrerWallet(e.target.value)}
-            className="h-12 rounded-xl border-custom-primary-color/30 focus-visible:ring-custom-primary-color"
+            className="h-12 rounded-xl border-custom-primary-color/30 focus-visible:ring-0"
           />
         </CardContent>
       </Card>

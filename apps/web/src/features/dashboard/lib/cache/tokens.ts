@@ -1,5 +1,5 @@
 import { CoinGeckoToken, SupportedBlockchain } from '@/types/global';
-import { TokenMetadataResponse } from '@/types/api';
+import { ERC20MetadataResponse, TokenMetadataResponse } from '@/types/api';
 import { getCacheKey, getCacheTimestampKey } from './keys';
 import { ALL_TOKENS_LIST_CACHE_DURATION } from './durations';
 
@@ -42,18 +42,25 @@ export function getCachedAllTokens(blockchain: SupportedBlockchain): {
   }
 }
 
-export function cacheTokenMetadata(chain: SupportedBlockchain, tokenAddress: string, value: TokenMetadataResponse) {
+export function cacheTokenMetadata(
+  chain: SupportedBlockchain,
+  tokenAddress: string,
+  value: TokenMetadataResponse,
+) {
   try {
-    const cacheKey = getCacheKey("token_metadata", chain, tokenAddress);
+    const cacheKey = getCacheKey('token_metadata', chain, tokenAddress);
     localStorage.setItem(cacheKey, JSON.stringify(value));
   } catch (error) {
     console.error(error);
   }
 }
 
-export function getCachedTokenMetadata(chain: SupportedBlockchain, tokenAddress: string): { isCached: boolean; value: TokenMetadataResponse | null } {
+export function getCachedTokenMetadata(
+  chain: SupportedBlockchain,
+  tokenAddress: string,
+): { isCached: boolean; value: TokenMetadataResponse | null } {
   try {
-    const cacheKey = getCacheKey("token_metadata", chain, tokenAddress);
+    const cacheKey = getCacheKey('token_metadata', chain, tokenAddress);
     const cachedValue = localStorage.getItem(cacheKey);
     if (!cachedValue) return { isCached: false, value: null };
     const parsedValue = JSON.parse(cachedValue) as TokenMetadataResponse;
@@ -66,7 +73,45 @@ export function getCachedTokenMetadata(chain: SupportedBlockchain, tokenAddress:
 
 export function clearCachedTokenMetadata(chain: SupportedBlockchain, tokenAddress: string) {
   try {
-    const cacheKey = getCacheKey("token_metadata", chain, tokenAddress);
+    const cacheKey = getCacheKey('token_metadata', chain, tokenAddress);
+    localStorage.removeItem(cacheKey);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export function cacheERCTokenMetadata(
+  chain: SupportedBlockchain,
+  tokenAddress: string,
+  value: ERC20MetadataResponse,
+) {
+  try {
+    const cacheKey = getCacheKey('erc_token_metadata', chain, tokenAddress);
+    localStorage.setItem(cacheKey, JSON.stringify(value));
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export function getCachedERCTokenMetadata(
+  chain: SupportedBlockchain,
+  tokenAddress: string,
+): { isCached: boolean; value: ERC20MetadataResponse | null } {
+  try {
+    const cacheKey = getCacheKey('erc_token_metadata', chain, tokenAddress);
+    const cachedValue = localStorage.getItem(cacheKey);
+    if (!cachedValue) return { isCached: false, value: null };
+    const parsedValue = JSON.parse(cachedValue) as ERC20MetadataResponse;
+    return { isCached: true, value: parsedValue };
+  } catch (error) {
+    console.error(error);
+    return { isCached: false, value: null };
+  }
+}
+
+export function clearCachedERCTokenMetadata(chain: SupportedBlockchain, tokenAddress: string) {
+  try {
+    const cacheKey = getCacheKey('erc_token_metadata', chain, tokenAddress);
     localStorage.removeItem(cacheKey);
   } catch (error) {
     console.error(error);

@@ -1,6 +1,6 @@
 import { Blockchain, CoinGeckoToken, SupportedBlockchain } from '@/types/global';
-import { TokenMetadataResponse } from "@/types/api";
-import { cacheTokenMetadata } from "../../lib/cache/tokens";
+import { ERC20MetadataResponse, TokenMetadataResponse } from '@/types/api';
+import { cacheERCTokenMetadata, cacheTokenMetadata } from '../../lib/cache/tokens';
 
 export async function getTokensList(blockchain: Blockchain): Promise<CoinGeckoToken[]> {
   try {
@@ -18,12 +18,32 @@ export async function getTokensList(blockchain: Blockchain): Promise<CoinGeckoTo
   }
 }
 
-export async function fetchTokenMetadata(chain: SupportedBlockchain, tokenAddress: string): Promise<TokenMetadataResponse> {
-  const response = await fetch(`/api/token/metadata?chain=${chain}&tokenAddress=${tokenAddress}`);
+export async function fetchTokenMetadata(
+  chain: SupportedBlockchain,
+  tokenAddress: string,
+): Promise<TokenMetadataResponse> {
+  const response = await fetch(
+    `/api/token/metadata/coingecko?chain=${chain}&tokenAddress=${tokenAddress}`,
+  );
   const payload = await response.json();
   if (response.ok) {
     cacheTokenMetadata(chain, tokenAddress, payload);
     return payload;
   }
-  throw new Error(payload.message || "Failed to fetch token metadata");
+  throw new Error(payload.message || 'Failed to fetch token metadata');
+}
+
+export async function fetchERCTokenMetadata(
+  chain: SupportedBlockchain,
+  tokenAddress: string,
+): Promise<ERC20MetadataResponse> {
+  const response = await fetch(
+    `/api/token/metadata/erc?chain=${chain}&tokenAddress=${tokenAddress}`,
+  );
+  const payload = await response.json();
+  if (response.ok) {
+    cacheERCTokenMetadata(chain, tokenAddress, payload);
+    return payload;
+  }
+  throw new Error(payload.message || 'Failed to fetch token metadata');
 }

@@ -7,6 +7,7 @@ export type CacheKey =
   | 'locks'
   | 'pool'
   | 'token_metadata'
+  | 'erc_token_metadata'
   | 'token_price';
 
 export function getCacheKey(

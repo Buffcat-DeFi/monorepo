@@ -344,7 +344,7 @@ export default function ClaimRewardsPanel() {
             placeholder="0"
             value={claimDays}
             onChange={(e) => setClaimDays(parseInt(e.target.value) || 0)}
-            className="h-12 rounded-xl border-custom-primary-color/30 focus-visible:ring-custom-primary-color"
+            className="h-12 rounded-xl border-custom-primary-color/30 focus-visible:ring-0"
           />
         </CardContent>
       </Card>

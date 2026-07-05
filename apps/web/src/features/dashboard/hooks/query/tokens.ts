@@ -1,7 +1,12 @@
 import { Blockchain, CoinGeckoToken } from '@/types/global';
 import { ERC20MetadataResponse, TokenMetadataResponse } from '@/types/api';
-import { getCachedTokenMetadata, clearCachedTokenMetadata } from '../../lib/cache/tokens';
-import { fetchTokenMetadata } from '../../services/query/tokens';
+import {
+  getCachedTokenMetadata,
+  clearCachedTokenMetadata,
+  getCachedERCTokenMetadata,
+  clearCachedERCTokenMetadata,
+} from '../../lib/cache/tokens';
+import { fetchERCTokenMetadata, fetchTokenMetadata } from '../../services/query/tokens';
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { cacheAllTokens, getCachedAllTokens } from '../../lib/cache/tokens';
 import { getTokensList } from '../../services/query/tokens';
@@ -68,7 +73,7 @@ export function useERCMetadata(
 ) {
   const enabled = !!chain && !!tokenAddress;
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ['ercMetadata', chain?.id, tokenAddress],
     enabled,
     staleTime: 1000 * 60 * 5,
@@ -78,32 +83,26 @@ export function useERCMetadata(
     refetchOnMount: false,
     refetchOnReconnect: false,
     queryFn: async () => {
-      const rpcUrl =
-        chain.name === 'Ethereum'
-          ? process.env.NEXT_PUBLIC_ETH_RPC_URL!
-          : process.env.NEXT_PUBLIC_BASE_RPC_URL!;
-      const provider = new ethers.JsonRpcProvider(rpcUrl);
-
-      const abi = [
-        'function name() view returns (string)',
-        'function symbol() view returns (string)',
-        'function decimals() view returns (uint8)',
-      ];
-
-      const contract = new ethers.Contract(tokenAddress, abi, provider);
-
+      const cachedData = getCachedERCTokenMetadata(chain.id, tokenAddress);
+      if (cachedData.isCached && cachedData.value !== null) {
+        return cachedData.value;
+      }
       try {
-        const [name, symbol, decimals] = await Promise.all([
-          contract.name().catch(() => null),
-          contract.symbol().catch(() => `${tokenAddress.slice(0, 6)}...${tokenAddress.slice(-4)}`),
-          contract.decimals().catch(() => null),
-        ]);
-
-        return { name, symbol, decimals: Number(decimals) };
-      } catch (e) {
-        return null;
+        return await fetchERCTokenMetadata(chain.id, tokenAddress);
+      } catch (error) {
+        return null; // Cache the failure as null to prevent infinite refetching of unknown tokens
       }
     },
     ...options,
   });
+
+  const refresh = async () => {
+    clearCachedERCTokenMetadata(chain.id, tokenAddress);
+    return query.refetch();
+  };
+
+  return {
+    ...query,
+    refresh,
+  };
 }
