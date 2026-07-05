@@ -7,6 +7,7 @@ import {
   ArrowRightLeft,
   Settings,
   CircleQuestionMark,
+  TriangleAlert,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,7 @@ import { Lock } from '@/types/api';
 
 export default function UnlockPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
+  const [isWarningOpen, setIsWarningOpen] = useState(true);
   const [selectedTokens, setSelectedTokens] = useAtom(selectedTokensAtom);
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
   const currentUser = useAtomValue(currentUserAtom);
@@ -134,11 +136,9 @@ export default function UnlockPanel() {
     }
     const decimals = unlockTokenMetadata?.decimals;
     let approvalAmount = parsedAmount;
-    if (!decimals) {
-      toast.error('Token decimals not found, toggle to use raw values instead.');
-      return;
+    if (decimals) {
+      approvalAmount = parsedAmount * 10 ** decimals;
     }
-    approvalAmount = parsedAmount * 10 ** decimals;
     const buffcatContract =
       selectedBlockchain.id == 'eth'
         ? envVariables.buffcatContract.eth
@@ -205,13 +205,11 @@ export default function UnlockPanel() {
       toast.error('Invalid Lock ID.');
       return;
     }
-    const decimals = unlockTokenMetadata.decimals;
+    const decimals = unlockTokenMetadata?.decimals;
     let unlockAmount = parsedAmount;
-    if (!decimals) {
-      toast.error('Token decimals not found, toggle to use raw values instead.');
-      return;
+    if (decimals) {
+      unlockAmount = parsedAmount * 10 ** decimals;
     }
-    unlockAmount = parsedAmount * 10 ** decimals;
     const buffcatContract =
       selectedBlockchain.id == 'eth'
         ? envVariables.buffcatContract.eth
@@ -421,6 +419,33 @@ export default function UnlockPanel() {
           </div>
         </CollapsibleContent>
       </Collapsible>
+      {!!unlockToken && !unlockTokenMetadata?.decimals && (
+        <Collapsible
+          open={isWarningOpen}
+          onOpenChange={setIsWarningOpen}
+          className="w-full md:w-112 mt-2 rounded-2xl border border-yellow-500/50 bg-yellow-500/10"
+        >
+          <CollapsibleTrigger className="w-full py-2 px-4 flex justify-between cursor-pointer">
+            <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-500">
+              <TriangleAlert className="h-4 w-4" />
+              <span className="font-semibold">Warning</span>
+            </div>
+            <div className="flex items-center text-yellow-600 dark:text-yellow-500">
+              {isWarningOpen ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-2 px-4 pb-4 text-sm text-yellow-700 dark:text-yellow-400">
+            We couldn't fetch the token metadata. The value you input above will be sent exactly
+            as-is in the smart contract call, without the 10 ** decimals multiplication. Please look
+            up the token's decimals yourself and input the raw value (e.g., if you want to send 1
+            token with 18 decimals, input 1000000000000000000).
+          </CollapsibleContent>
+        </Collapsible>
+      )}
       <Card
         className="w-full md:w-112 rounded-2xl text-custom-primary-text mt-2 bg-transparent shadow-none
       border border-custom-primary-color/30"
