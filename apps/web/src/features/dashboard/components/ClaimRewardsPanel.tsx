@@ -18,6 +18,7 @@ import {
   selectedTokensAtom,
   tokenSelectorAtom,
   selectedLockAtom,
+  userLocks,
 } from '@/store/global';
 import { placeholders } from '@/constants/placeholders';
 import { useMemo, useState } from 'react';
@@ -167,9 +168,12 @@ export default function ClaimRewardsPanel() {
   const [isRewardsModalOpen, setIsRewardsModalOpen] = useState(false);
   const [claimDays, setClaimDays] = useState<number>(0);
   const lockId = useAtomValue(selectedLockAtom);
-
-  const primaryToken = chosenRewardTokens[0];
-
+  const userLocksValue = useAtomValue(userLocks);
+  const selectedLock = useMemo(() => {
+    if (parseInt(lockId)) {
+      return userLocksValue[parseInt(lockId)];
+    } else return null;
+  }, [lockId, userLocksValue]);
   const setTokenSelectorState = useSetAtom(tokenSelectorAtom);
 
   const handleTokenSelectorTrigger = () => {
@@ -338,7 +342,9 @@ export default function ClaimRewardsPanel() {
             <span className="text-sm font-semibold text-custom-muted-text uppercase">
               Claim Unclaimed Days
             </span>
-            <span className="text-xs text-custom-muted-text ml-auto">Unclaimed Days: 17</span>
+            <span className="text-xs text-custom-muted-text ml-auto">
+              Unclaimed Days: {selectedLock ? selectedLock.daysOfUnclaimedRewards : '--'}
+            </span>
           </div>
           <Input
             type="number"
