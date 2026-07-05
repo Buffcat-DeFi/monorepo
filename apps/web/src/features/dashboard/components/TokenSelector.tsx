@@ -153,7 +153,8 @@ const TokenSelectorLockItem = ({
     );
 
   const amount = ethers.formatUnits(lock.amount, decimals);
-  const formattedAmount = parseFloat(amount).toLocaleString(undefined, {
+  const withdrawn = ethers.formatUnits(lock.withdrawn, decimals);
+  const formattedAmount = (parseFloat(amount) - parseFloat(withdrawn)).toLocaleString(undefined, {
     maximumFractionDigits: 4,
   });
 

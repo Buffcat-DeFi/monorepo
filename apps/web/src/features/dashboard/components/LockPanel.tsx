@@ -37,7 +37,7 @@ import { envVariables } from '@/lib/envVariables';
 import { CoinGeckoToken, LockType } from '@/types/global';
 import TokenInfo from './TokenInfo';
 import { useDialog } from '@/components/Dialog';
-import { useTokenDerivative } from '../hooks/query/contract';
+import { useClaimable, useLocks, useTokenDerivative } from '../hooks/query/contract';
 import { isValidFloat } from '../lib/utils';
 import { Slider } from '@/components/ui/slider';
 import { isAddress } from 'viem';
@@ -55,11 +55,8 @@ export default function LockPanel() {
     return Number(result.toFixed(6)).toString();
   }, [amount]);
   const { writeContractAsync } = useWriteContract();
-  const { showConsentDialog } = useDialog();
-  const { refetch: refetchDerivativeData } = useTokenDerivative({
-    chain: selectedBlockchain,
-    tokenAddressOrMint: selectedTokens.lockToken[selectedBlockchain.id]?.address ?? '',
-  });
+  const { refresh: refreshClaimable } = useClaimable(selectedBlockchain);
+  const { refresh: refreshLocks } = useLocks(selectedBlockchain, currentUser.address);
 
   // Lock duration state (in days)
   const [lockDuration, setLockDuration] = useState<number>(1034);
@@ -125,7 +122,7 @@ export default function LockPanel() {
   const { withConfirmation } = useTransactionDialog();
 
   const handleTokenApproval = async () => {
-    if (!currentUser.loggedIn) {
+    if (!currentUser.loggedIn || currentUser.address === '') {
       toast.error('Connect a wallet first.');
       return;
     }
@@ -183,7 +180,7 @@ export default function LockPanel() {
   };
 
   const handleLockTokens = async () => {
-    if (!currentUser.loggedIn) {
+    if (!currentUser.loggedIn || currentUser.address === '') {
       toast.error('Connect a wallet first.');
       return;
     }
@@ -238,19 +235,8 @@ export default function LockPanel() {
         toast.success('Signature', {
           description: `${sig}`,
         });
-        showConsentDialog({
-          title: 'Attention!',
-          description: `Some wallets may not recongnize derivatives right away.
-            Add the token to your wallet manually using the address from updated
-            derivative info section.`,
-          onConfirm: () => {
-            return;
-          },
-          onCancel: () => {
-            return;
-          },
-        });
-        refetchDerivativeData();
+        await refreshLocks();
+        await refreshClaimable();
       },
       {
         title: 'Lock Tokens?',

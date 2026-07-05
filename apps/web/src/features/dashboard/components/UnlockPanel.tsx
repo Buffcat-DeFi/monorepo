@@ -2,7 +2,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import {
   ChevronDown,
   ChevronRight,
-  CircleCheck,
   Unlock,
   ArrowRightLeft,
   Settings,
@@ -28,14 +27,11 @@ import { useTransactionDialog } from '../hooks/transactionDialogHook';
 import { toast } from 'sonner';
 import { envVariables } from '@/lib/envVariables';
 import { useWriteContract } from 'wagmi';
-import erc20Abi from '../lib/evm/erc20.json';
 import buffcatAbi from '../lib/evm/buffcat.json';
-import { useTokenDerivative } from '../hooks/query/contract';
-import { CoinGeckoToken } from '@/types/global';
-import TokenInfo from './TokenInfo';
 import { isValidFloat } from '../lib/utils';
 import { useERCMetadata, useTokenMetadata } from '../hooks/query/tokens';
 import { Lock } from '@/types/api';
+import { useClaimable, useLocks } from '../hooks/query/contract';
 
 export default function UnlockPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
@@ -52,6 +48,8 @@ export default function UnlockPanel() {
   }, [amount]);
   const lockId = useAtomValue(selectedLockAtom);
   const { writeContractAsync } = useWriteContract();
+  const { refresh: refreshClaimable } = useClaimable(selectedBlockchain);
+  const { refresh: refreshLocks } = useLocks(selectedBlockchain, currentUser.address);
 
   const unlockToken = useMemo(() => {
     return selectedTokens.unlockToken[selectedBlockchain.id];
@@ -108,73 +106,7 @@ export default function UnlockPanel() {
     setTokenSelectorState((prev) => ({ ...prev, isOpen: false }));
   };
 
-  const { data: tokenDerivativeData } = useTokenDerivative({
-    chain: selectedBlockchain,
-    tokenAddressOrMint: selectedTokens.unlockToken[selectedBlockchain.id]?.lockedToken ?? '',
-  });
-
   const { withConfirmation } = useTransactionDialog();
-
-  const handleTokenApproval = async () => {
-    if (!currentUser.loggedIn) {
-      toast.error('Connect a wallet first.');
-      return;
-    }
-    const tokenAddress = selectedTokens.unlockToken[selectedBlockchain.id]?.lockedToken;
-    if (!tokenAddress) {
-      toast.error('Select a token and try again.');
-      return;
-    }
-    if (!isValidFloat(amount)) {
-      toast.error('Invalid input.');
-      return;
-    }
-    let parsedAmount = parseFloat(amount);
-    if (parsedAmount == 0 || parsedAmount < 0) {
-      toast.error('Invalid Amount Input');
-      return;
-    }
-    const decimals = unlockTokenMetadata?.decimals;
-    let approvalAmount = parsedAmount;
-    if (decimals) {
-      approvalAmount = parsedAmount * 10 ** decimals;
-    }
-    const buffcatContract =
-      selectedBlockchain.id == 'eth'
-        ? envVariables.buffcatContract.eth
-        : envVariables.buffcatContract.base;
-    if (buffcatContract == '') {
-      toast.error(`${selectedBlockchain.name} Buffcat contract address not set.`);
-      return;
-    }
-    const derivativeAddress = tokenDerivativeData;
-    if (!derivativeAddress) {
-      toast.error('Derivative address not found, try again.');
-      return;
-    }
-    await withConfirmation(
-      async () => {
-        const sig = await writeContractAsync({
-          address: derivativeAddress as `0x${string}`,
-          abi: erc20Abi,
-          functionName: 'approve',
-          args: [buffcatContract, BigInt(Math.floor(approvalAmount))],
-          chainId: selectedBlockchain.chainId,
-        });
-        toast.success('Signature', {
-          description: `${sig}`,
-        });
-      },
-      {
-        title: 'Approve Tokens?',
-        description: `Do you want to approve ${amount}
-        Liquid ${unlockTokenMetadata.name ?? ''}?`,
-        successMessage: 'Your tokens have been approved successfully.',
-        loadingTitle: 'Processing Transaction',
-        loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
-      },
-    );
-  };
 
   const handleUnlockTokens = async () => {
     if (!currentUser.loggedIn) {
@@ -218,11 +150,6 @@ export default function UnlockPanel() {
       toast.error(`${selectedBlockchain.name} Buffcat contract address not set.`);
       return;
     }
-    const derivativeAddress = tokenDerivativeData;
-    if (!derivativeAddress) {
-      toast.error('Derivative address not found, try again.');
-      return;
-    }
     await withConfirmation(
       async () => {
         const sig = await writeContractAsync({
@@ -235,6 +162,8 @@ export default function UnlockPanel() {
         toast.success('Signature', {
           description: `${sig}`,
         });
+        await refreshLocks();
+        await refreshClaimable();
       },
       {
         title: 'Unlock Tokens?',
@@ -468,15 +397,6 @@ export default function UnlockPanel() {
           </div>
         </CardContent>
       </Card>
-      <ThemedButton
-        style="primary"
-        variant="outline"
-        size="lg"
-        className="w-74 md:w-112 mt-2"
-        onClick={handleTokenApproval}
-      >
-        <CircleCheck /> Approve Tokens
-      </ThemedButton>
       <ThemedButton
         style="secondary"
         variant="outline"
