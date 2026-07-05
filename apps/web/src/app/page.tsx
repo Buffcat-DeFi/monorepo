@@ -26,7 +26,9 @@ export default function DashboardPage() {
           isOpen={tokenSelectorStateValue.isOpen}
           mode={tokenSelectorStateValue.mode}
           onClose={tokenSelectorStateValue.onClose}
-          onSelectToken={tokenSelectorStateValue.onSelectToken}
+          onSelectLockToken={tokenSelectorStateValue.onSelectLockToken}
+          onSelectUnlockToken={tokenSelectorStateValue.onSelectUnlockToken}
+          onSelectRewardToken={tokenSelectorStateValue.onSelectRewardToken}
         />
       </div>
     </>

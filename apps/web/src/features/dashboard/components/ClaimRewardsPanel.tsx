@@ -172,26 +172,25 @@ export default function ClaimRewardsPanel() {
 
   const setTokenSelectorState = useSetAtom(tokenSelectorAtom);
 
-  const handletokenSelectorTrigger = () => {
-    setTokenSelectorState({
+  const handleTokenSelectorTrigger = () => {
+    setTokenSelectorState((prev) => ({
       isOpen: true,
       mode: 'claimable',
       onClose: () => setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
-      onSelectToken: handleSelectToken,
-    });
+      onSelectLockToken: prev.onSelectLockToken,
+      onSelectUnlockToken: prev.onSelectUnlockToken,
+      onSelectRewardToken: handleSelectToken,
+    }));
   };
 
-  const handleSelectToken = (token: CoinGeckoToken) => {
-    const isAlreadySelected = chosenRewardTokens.some((t) => t === token.address);
+  const handleSelectToken = (token: string) => {
+    const isAlreadySelected = chosenRewardTokens.some((t) => t === token);
     if (!isAlreadySelected) {
       setSelectedTokens((prev) => ({
         ...prev,
         rewardTokens: {
           ...prev.rewardTokens,
-          [selectedBlockchain.id]: [
-            ...(prev.rewardTokens[selectedBlockchain.id] || []),
-            token.address,
-          ],
+          [selectedBlockchain.id]: [...(prev.rewardTokens[selectedBlockchain.id] || []), token],
         },
       }));
     }
@@ -211,12 +210,14 @@ export default function ClaimRewardsPanel() {
   };
 
   const handleAddRewardToken = () => {
-    setTokenSelectorState({
+    setTokenSelectorState((prev) => ({
       isOpen: true,
       mode: 'claimable',
       onClose: () => setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
-      onSelectToken: handleSelectToken,
-    });
+      onSelectLockToken: prev.onSelectLockToken,
+      onSelectUnlockToken: prev.onSelectUnlockToken,
+      onSelectRewardToken: handleSelectToken,
+    }));
   };
 
   const { withConfirmation } = useTransactionDialog();
@@ -284,7 +285,7 @@ export default function ClaimRewardsPanel() {
         <div className="text-xs text-custom-muted-text">You Claim</div>
         <div className="flex justify-between">
           <Button
-            onClick={handletokenSelectorTrigger}
+            onClick={handleTokenSelectorTrigger}
             variant="ghost"
             className="me-6 my-2 !py-6 !ps-0 hover:bg-custom-primary-color/20 cursor-pointer flex items-center"
           >

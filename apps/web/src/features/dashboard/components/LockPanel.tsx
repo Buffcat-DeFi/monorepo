@@ -101,12 +101,14 @@ export default function LockPanel() {
   const setTokenSelectorState = useSetAtom(tokenSelectorAtom);
 
   const handletokenSelectorTrigger = () => {
-    setTokenSelectorState({
+    setTokenSelectorState((prev) => ({
       isOpen: true,
       mode: 'all',
       onClose: () => setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
-      onSelectToken: handleSelectToken,
-    });
+      onSelectLockToken: handleSelectToken,
+      onSelectUnlockToken: prev.onSelectUnlockToken,
+      onSelectRewardToken: prev.onSelectRewardToken,
+    }));
   };
 
   const handleSelectToken = (token: CoinGeckoToken) => {

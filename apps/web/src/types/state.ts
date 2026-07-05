@@ -5,7 +5,9 @@ export type TokenSelectorAtom = {
   isOpen: boolean;
   mode: 'all' | 'locks' | 'claimable';
   onClose: () => void;
-  onSelectToken: (token: CoinGeckoToken) => void;
+  onSelectLockToken: (token: CoinGeckoToken) => void;
+  onSelectUnlockToken: (lock: Lock) => void;
+  onSelectRewardToken: (token: string) => void;
 };
 
 export type SelectedTokensAtom = {

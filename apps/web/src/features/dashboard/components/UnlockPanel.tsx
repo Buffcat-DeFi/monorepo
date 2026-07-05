@@ -6,7 +6,6 @@ import {
   Unlock,
   ArrowRightLeft,
   Settings,
-  Lock,
   CircleQuestionMark,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -35,6 +34,7 @@ import { CoinGeckoToken } from '@/types/global';
 import TokenInfo from './TokenInfo';
 import { isValidFloat } from '../lib/utils';
 import { useERCMetadata, useTokenMetadata } from '../hooks/query/tokens';
+import { Lock } from '@/types/api';
 
 export default function UnlockPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
@@ -85,15 +85,17 @@ export default function UnlockPanel() {
   const setTokenSelectorState = useSetAtom(tokenSelectorAtom);
 
   const handletokenSelectorTrigger = () => {
-    setTokenSelectorState({
+    setTokenSelectorState((prev) => ({
       isOpen: true,
       mode: 'locks',
       onClose: () => setTokenSelectorState((prev) => ({ ...prev, isOpen: false })),
-      onSelectToken: handleSelectToken,
-    });
+      onSelectLockToken: prev.onSelectLockToken,
+      onSelectUnlockToken: handleSelectToken,
+      onSelectRewardToken: prev.onSelectRewardToken,
+    }));
   };
 
-  const handleSelectToken = (token: CoinGeckoToken) => {
+  const handleSelectToken = (token: Lock) => {
     setSelectedTokens((prev) => ({
       ...prev,
       unlockToken: {

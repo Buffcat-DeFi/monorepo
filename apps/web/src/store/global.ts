@@ -4,6 +4,7 @@ import { TokenSelectorAtom, SelectedTokensAtom, Tab } from '../types/state';
 import { atom } from 'jotai';
 import { lockSchema } from '@/types/api';
 import z from 'zod';
+import { Lock } from '@/types/api';
 
 export const currentUserAtom = atom<{
   address: string;
@@ -19,7 +20,9 @@ export const tokenSelectorAtom = atom<TokenSelectorAtom>({
   isOpen: false,
   mode: 'all',
   onClose: () => {},
-  onSelectToken: (token: CoinGeckoToken) => {},
+  onSelectLockToken: (token: CoinGeckoToken) => {},
+  onSelectUnlockToken: (lock: Lock) => {},
+  onSelectRewardToken: (token: string) => {},
 });
 
 export const selectedTokensAtom = atom<SelectedTokensAtom>({

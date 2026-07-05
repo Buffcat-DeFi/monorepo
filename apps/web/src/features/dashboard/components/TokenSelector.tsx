@@ -16,6 +16,7 @@ import { CoinGeckoToken, Blockchain } from '@/types/global';
 import { userLocks } from '@/store/global';
 import { ethers } from 'ethers';
 import { CircleQuestionMark } from 'lucide-react';
+import { Lock } from '@/types/api';
 
 interface TokenSelectorProps extends TokenSelectorAtom {}
 
@@ -26,7 +27,7 @@ const TokenSelectorClaimableItem = ({
 }: {
   tokenAddress: string;
   chain: Blockchain;
-  onSelect: (t: CoinGeckoToken) => void;
+  onSelect: (t: string) => void;
 }) => {
   const {
     data: metadata,
@@ -77,14 +78,7 @@ const TokenSelectorClaimableItem = ({
     );
 
   const handleSelect = () => {
-    onSelect({
-      chainId: chain.chainId,
-      address: tokenAddress,
-      name,
-      symbol,
-      decimals,
-      logoURI: logoUrl || '',
-    });
+    onSelect(tokenAddress);
   };
 
   return (
@@ -106,9 +100,9 @@ const TokenSelectorLockItem = ({
   chain,
   onSelect,
 }: {
-  lock: any;
+  lock: Lock;
   chain: Blockchain;
-  onSelect: (t: CoinGeckoToken) => void;
+  onSelect: (t: Lock) => void;
 }) => {
   const {
     data: metadata,
@@ -164,14 +158,7 @@ const TokenSelectorLockItem = ({
   });
 
   const handleSelect = () => {
-    onSelect({
-      chainId: chain.chainId,
-      address: lock.lockedToken,
-      name,
-      symbol,
-      decimals,
-      logoURI: logoUrl || '',
-    });
+    onSelect(lock);
   };
 
   return (
@@ -195,7 +182,9 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
   isOpen,
   mode,
   onClose,
-  onSelectToken,
+  onSelectLockToken,
+  onSelectUnlockToken,
+  onSelectRewardToken,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
@@ -294,7 +283,7 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
                       key={index.toString()}
                       lock={lock}
                       chain={selectedBlockchain}
-                      onSelect={(token) => onSelectToken && onSelectToken(token)}
+                      onSelect={(lock) => onSelectUnlockToken && onSelectUnlockToken(lock)}
                     />
                   ))
                 )
@@ -313,7 +302,7 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
                       key={tokenAddress}
                       tokenAddress={tokenAddress}
                       chain={selectedBlockchain}
-                      onSelect={(token) => onSelectToken && onSelectToken(token)}
+                      onSelect={(token) => onSelectRewardToken && onSelectRewardToken(token)}
                     />
                   ))
                 )
@@ -335,7 +324,7 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
                     key={token.address}
                     className="w-full flex items-center px-3 py-3 rounded-lg cursor-pointer
                     hover:bg-custom-primary-color hover:text-custom-secondary-text"
-                    onClick={() => onSelectToken && onSelectToken(token)}
+                    onClick={() => onSelectLockToken && onSelectLockToken(token)}
                   >
                     {token.logoURI && token.logoURI !== '' ? (
                       <Image
