@@ -93,19 +93,29 @@ const ClaimTokenModalItem = ({
     isLoading: metadataLoading,
     isError: metadataError,
   } = useTokenMetadata(chain, tokenAddress);
+
   const isMetadataUnavailable = metadataLoading || metadataError || !metadata?.data;
-  const { data: ercMetadata } = useERCMetadata(chain, tokenAddress, {
+
+  const {
+    data: ercMetadata,
+    isLoading: ercMetadataLoading,
+    isError: ercMetadataError,
+  } = useERCMetadata(chain, tokenAddress, {
     enabled: !!isMetadataUnavailable,
   });
+
+  const isERCMetadataUnavailable = ercMetadataLoading || ercMetadataError || !ercMetadata;
 
   const symbol =
     !isMetadataUnavailable && metadata?.data?.attributes?.symbol
       ? metadata.data.attributes.symbol
       : ercMetadata?.symbol || `${tokenAddress.slice(0, 6)}...${tokenAddress.slice(-4)}`;
+
   const name =
     !isMetadataUnavailable && metadata?.data?.attributes?.name
       ? metadata.data.attributes.name
       : ercMetadata?.name || symbol;
+
   const logoUrl = metadata?.data?.attributes?.image_url;
 
   return (
@@ -127,8 +137,10 @@ const ClaimTokenModalItem = ({
           />
         )}
         <div className="flex flex-col">
-          <span className="font-semibold">{symbol}</span>
-          <span className="text-xs text-custom-muted-text">{name}</span>
+          <span className="font-semibold">{name}</span>
+          {!isERCMetadataUnavailable && (
+            <span className="text-xs text-custom-muted-text">{symbol}</span>
+          )}
         </div>
       </div>
       <Button

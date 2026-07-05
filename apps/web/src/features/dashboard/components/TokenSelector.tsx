@@ -33,10 +33,18 @@ const TokenSelectorClaimableItem = ({
     isLoading: metadataLoading,
     isError: metadataError,
   } = useTokenMetadata(chain, tokenAddress);
+
   const isMetadataUnavailable = metadataLoading || metadataError || !metadata?.data;
-  const { data: ercMetadata } = useERCMetadata(chain, tokenAddress, {
+
+  const {
+    data: ercMetadata,
+    isLoading: ercMetadataLoading,
+    isError: ercMetadataError,
+  } = useERCMetadata(chain, tokenAddress, {
     enabled: !!isMetadataUnavailable,
   });
+
+  const isERCMetadataUnavailable = ercMetadataLoading || ercMetadataError || !ercMetadata;
 
   const symbol =
     !isMetadataUnavailable && metadata?.data?.attributes?.symbol
@@ -87,7 +95,7 @@ const TokenSelectorClaimableItem = ({
       {logo}
       <div className="text-left min-w-0 flex-1">
         <div className="font-medium truncate">{name}</div>
-        <div className="text-sm opacity-70">{symbol}</div>
+        {!isERCMetadataUnavailable && <div className="text-sm opacity-70">{symbol}</div>}
       </div>
     </button>
   );
@@ -107,10 +115,18 @@ const TokenSelectorLockItem = ({
     isLoading: metadataLoading,
     isError: metadataError,
   } = useTokenMetadata(chain, lock.lockedToken);
+
   const isMetadataUnavailable = metadataLoading || metadataError || !metadata?.data;
-  const { data: ercMetadata } = useERCMetadata(chain, lock.lockedToken, {
+
+  const {
+    data: ercMetadata,
+    isLoading: ercMetadataLoading,
+    isError: ercMetadataError,
+  } = useERCMetadata(chain, lock.lockedToken, {
     enabled: !!isMetadataUnavailable,
   });
+
+  const isERCMetadataUnavailable = ercMetadataLoading || ercMetadataError || !ercMetadata;
 
   const symbol =
     !isMetadataUnavailable && metadata?.data?.attributes?.symbol
@@ -167,7 +183,7 @@ const TokenSelectorLockItem = ({
       <div className="text-left min-w-0 flex-1 flex justify-between items-center">
         <div>
           <div className="font-medium truncate">{name}</div>
-          <div className="text-sm opacity-70">{symbol}</div>
+          {!isERCMetadataUnavailable && <div className="text-sm opacity-70">{symbol}</div>}
         </div>
         <div className="text-sm font-semibold pr-2">{formattedAmount}</div>
       </div>
