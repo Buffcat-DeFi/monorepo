@@ -23,6 +23,5 @@ forge script unified/setup.s.sol:UnifiedSetupScript \
   --rpc-url "$RPC_URL" \
   --broadcast \
   --private-key "$OWNER_PRIVATE_KEY_HEX" \
-  -vvvv
 
 echo "Script completed."

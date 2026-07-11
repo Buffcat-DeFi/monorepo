@@ -54,7 +54,7 @@ interface INonfungiblePositionManager {
 }
 
 contract UnifiedSetupScript is Script {
-    uint256 public constant INITIAL_BALANCE = 100_000_000 * 10 ** 18;
+    uint256 public constant INITIAL_BALANCE = 1000 * 10 ** 18;
     uint256 public constant LOCK_AMOUNT = 100 * 10 ** 18;
 
     function run() external {
@@ -83,28 +83,50 @@ contract UnifiedSetupScript is Script {
 
         // 1. Deploy Tokens
         MockERC20 token1 = new MockERC20('Token1', 'T1');
+        console.log('Deployed Token1 at:', address(token1));
         MockERC20 token2 = new MockERC20('Token2', 'T2');
+        console.log('Deployed Token2 at:', address(token2));
         MockERC20 token3 = new MockERC20('Token3', 'T3');
+        console.log('Deployed Token3 at:', address(token3));
         MockERC20 token4 = new MockERC20('Token4', 'T4');
+        console.log('Deployed Token4 at:', address(token4));
         MockERC20 token5 = new MockERC20('Token5', 'T5');
+        console.log('Deployed Token5 at:', address(token5));
         MockERC20 token6 = new MockERC20('Token6', 'T6');
+        console.log('Deployed Token6 at:', address(token6));
         MockERC20 token7 = new MockERC20('Token7', 'T7');
+        console.log('Deployed Token7 at:', address(token7));
         MockERC20 token8 = new MockERC20('Token8', 'T8');
+        console.log('Deployed Token8 at:', address(token8));
         MockERC20 token9 = new MockERC20('Token9', 'T9');
+        console.log('Deployed Token9 at:', address(token9));
         MockERC20 usdc = new MockERC20('USD Centric', 'USDC');
+        console.log('Deployed USDC at:', address(usdc));
         MockERC20 usdt = new MockERC20('USD Tether', 'USDT');
+        console.log('Deployed USDT at:', address(usdt));
 
         token1.mint(user, INITIAL_BALANCE);
+        console.log('Minted Token1 to user');
         token2.mint(user, INITIAL_BALANCE);
+        console.log('Minted Token2 to user');
         token3.mint(user, INITIAL_BALANCE);
+        console.log('Minted Token3 to user');
         token4.mint(user, INITIAL_BALANCE);
+        console.log('Minted Token4 to user');
         token5.mint(user, INITIAL_BALANCE);
+        console.log('Minted Token5 to user');
         token6.mint(user, INITIAL_BALANCE);
+        console.log('Minted Token6 to user');
         token7.mint(user, INITIAL_BALANCE);
+        console.log('Minted Token7 to user');
         token8.mint(user, INITIAL_BALANCE);
+        console.log('Minted Token8 to user');
         token9.mint(user, INITIAL_BALANCE);
+        console.log('Minted Token9 to user');
         usdc.mint(user, INITIAL_BALANCE);
+        console.log('Minted USDC to user');
         usdt.mint(user, INITIAL_BALANCE);
+        console.log('Minted USDT to user');
 
         console.log('Tokens Deployed and Minted.');
 
@@ -125,20 +147,16 @@ contract UnifiedSetupScript is Script {
 
         // 3. Set Prices
         registry.setPrice(address(token1), Denominations.USD, int256(2000 * 10 ** 8));
+        console.log('Set price for Token1');
         registry.setPrice(address(token2), Denominations.USD, int256(60000 * 10 ** 8));
+        console.log('Set price for Token2');
         registry.setPrice(address(token3), Denominations.USD, int256(1 * 10 ** 8));
-        registry.setPrice(address(token4), Denominations.USD, int256(1 * 10 ** 8));
-        registry.setPrice(address(token5), Denominations.USD, int256(1 * 10 ** 8));
-        registry.setPrice(address(token6), Denominations.USD, int256(1 * 10 ** 8));
-        registry.setPrice(address(token7), Denominations.USD, int256(2000 * 10 ** 8));
-        registry.setPrice(address(token8), Denominations.USD, int256(2000 * 10 ** 8));
-        registry.setPrice(address(token9), Denominations.USD, int256(2000 * 10 ** 8));
-        registry.setPrice(address(usdc), Denominations.USD, int256(1 * 10 ** 8));
-        registry.setPrice(address(usdt), Denominations.USD, int256(1 * 10 ** 8));
+        console.log('Set price for Token3');
         console.log('Prices Set.');
 
         // 4. Deploy BuffCat Upgradeable
         BuffCatUpgradeable buffcatImpl = new BuffCatUpgradeable();
+        console.log('BuffCat Implementation deployed at:', address(buffcatImpl));
         bytes memory data = abi.encodeWithSelector(
             BuffCatUpgradeable.initialize.selector,
             developerPublicKey,
@@ -157,11 +175,12 @@ contract UnifiedSetupScript is Script {
         allAssets[10] = address(usdt);
 
         buffCat.whitelistTokens(allAssets);
-        buffCat.addStableCoin(address(token7));
-        buffCat.addStableCoin(address(token8));
-        buffCat.addStableCoin(address(token9));
+        console.log('Whitelisted all assets');
+
         buffCat.addStableCoin(address(usdc));
+        console.log('Added USDC as stablecoin');
         buffCat.addStableCoin(address(usdt));
+        console.log('Added USDT as stablecoin');
         console.log('Tokens whitelisted and stablecoins added.');
 
         vm.stopBroadcast();
@@ -171,16 +190,23 @@ contract UnifiedSetupScript is Script {
         vm.startBroadcast(userPrivateKey);
 
         IERC20(address(usdc)).approve(address(positionManager), type(uint256).max);
+        console.log('Approved PositionManager for USDC');
         IERC20(address(usdt)).approve(address(positionManager), type(uint256).max);
+        console.log('Approved PositionManager for USDT');
         for (uint256 i = 0; i < tokensWhitelist.length; i++) {
             IERC20(tokensWhitelist[i]).approve(address(positionManager), type(uint256).max);
+            console.log('Approved PositionManager for token in whitelist, index:', i);
         }
 
         uint160 calculatedInitialPrice = TickMath.getSqrtRatioAtTick(0);
         uint24 poolFee = 10000;
 
+        address[] memory tokenArr = new address[](6);
+        address[] memory poolArr = new address[](6);
+        address[] memory pairedTokenArr = new address[](6);
+
         // USDC Pools
-        for (uint256 i = 0; i < tokensWhitelist.length; i++) {
+        for (uint256 i = 3; i < tokensWhitelist.length; i++) {
             address token0;
             address token1;
             if (tokensWhitelist[i] < address(usdc)) {
@@ -197,8 +223,10 @@ contract UnifiedSetupScript is Script {
                 poolFee,
                 calculatedInitialPrice
             );
+            console.log('USDC Pool created/initialized at:', pool);
 
             IUniswapV3Pool(pool).increaseObservationCardinalityNext(32);
+            console.log('Increased observation cardinality for pool');
 
             int24 spacing = IUniswapV3Pool(pool).tickSpacing();
             int24 tickLower = (TickMath.MIN_TICK / spacing) * spacing;
@@ -218,55 +246,27 @@ contract UnifiedSetupScript is Script {
                 deadline: block.timestamp + 1 hours
             });
             positionManager.mint(params);
-        }
+            console.log('Minted liquidity in USDC pool');
 
-        // USDT Pools
-        for (uint256 i = 0; i < tokensWhitelist.length; i++) {
-            address token0;
-            address token1;
-            if (tokensWhitelist[i] < address(usdt)) {
-                token0 = tokensWhitelist[i];
-                token1 = address(usdt);
-            } else {
-                token0 = address(usdt);
-                token1 = tokensWhitelist[i];
-            }
-
-            address pool = positionManager.createAndInitializePoolIfNecessary(
-                token0,
-                token1,
-                poolFee,
-                calculatedInitialPrice
-            );
-
-            IUniswapV3Pool(pool).increaseObservationCardinalityNext(32);
-
-            int24 spacing = IUniswapV3Pool(pool).tickSpacing();
-            int24 tickLower = (TickMath.MIN_TICK / spacing) * spacing;
-            int24 tickUpper = (TickMath.MAX_TICK / spacing) * spacing;
-
-            INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
-                token0: token0,
-                token1: token1,
-                fee: poolFee,
-                tickLower: tickLower,
-                tickUpper: tickUpper,
-                amount0Desired: 10_000e6,
-                amount1Desired: 10_000e6,
-                amount0Min: 0,
-                amount1Min: 0,
-                recipient: user,
-                deadline: block.timestamp + 1 hours
-            });
-            positionManager.mint(params);
+            tokenArr[i-3] = token0;
+            poolArr[i-3] = pool;
+            pairedTokenArr[i-3] = token1;
         }
         console.log('Pools Created and Liquidity Added.');
 
         // 7. Execute Swaps for TWAP
-        for (uint256 i = 0; i < tokensWhitelist.length; i++) {
+        for (uint256 i = 3; i < tokensWhitelist.length; i++) {
             IERC20(tokensWhitelist[i]).approve(address(swapRouter), type(uint256).max);
+            console.log('Approved SwapRouter for token:', tokensWhitelist[i]);
             _swapExactInputSingle(swapRouter, tokensWhitelist[i], address(usdc), user);
+            console.log('Executed Initial Swap for TWAP for token:', tokensWhitelist[i]);
         }
+
+        vm.stopBroadcast();
+
+        vm.startBroadcast(ownerPrivateKey);
+
+        buffCat.addTokenPools(tokenArr, poolArr, pairedTokenArr, uint256(6));
 
         vm.stopBroadcast();
 
@@ -274,19 +274,22 @@ contract UnifiedSetupScript is Script {
         console.log('Time warped by 10 minutes.');
 
         vm.startBroadcast(userPrivateKey);
-        for (uint256 i = 0; i < tokensWhitelist.length; i++) {
+        for (uint256 i = 3; i < tokensWhitelist.length; i++) {
             _swapExactInputSingle(swapRouter, tokensWhitelist[i], address(usdc), user);
+            console.log('Executed 10-minute Swap for TWAP for token:', tokensWhitelist[i]);
         }
         console.log('Swaps executed for TWAP.');
 
         // 8. Lock Assets
         for (uint256 i = 0; i < allAssets.length; i++) {
             IERC20(allAssets[i]).approve(address(buffCat), INITIAL_BALANCE);
+            console.log('Approved BuffCat for asset:', allAssets[i]);
         }
 
-        uint256 totalLockAmount = LOCK_AMOUNT * 100;
-        for (uint256 i = 0; i < allAssets.length; i++) {
+        uint256 totalLockAmount = LOCK_AMOUNT;
+        for (uint256 i = 0; i < 6; i++) {
             buffCat.lockAssets(allAssets[i], totalLockAmount, 30, LockType.FLEXIBLE, address(0));
+            console.log('Locked asset:', allAssets[i]);
         }
         console.log('Assets Locked.');
 

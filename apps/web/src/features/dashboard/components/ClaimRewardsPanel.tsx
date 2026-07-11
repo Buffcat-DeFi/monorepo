@@ -26,7 +26,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import ThemedButton from '@/components/themed/button';
 import { useTransactionDialog } from '../hooks/transactionDialogHook';
 import { useWriteContract } from 'wagmi';
-import { CoinGeckoToken } from '@/types/global';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { envVariables } from '@/lib/envVariables';
@@ -235,7 +234,7 @@ export default function ClaimRewardsPanel() {
       toast.error('Select at least one reward token.');
       return;
     }
-    if (!claimDays || claimDays <= 0 || isNaN(claimDays)) {
+    if (claimDays < 0 || isNaN(claimDays)) {
       toast.error('Claim days must be a valid number greater than 0.');
       return;
     }
@@ -262,20 +261,24 @@ export default function ClaimRewardsPanel() {
 
     await withConfirmation(
       async () => {
-        const sig = await writeContractAsync({
-          address: buffcatContract as `0x${string}`,
-          abi: buffcatAbi.abi,
-          functionName: 'claimRewards',
-          args: [tokenAddresses, BigInt(lockId), BigInt(claimDays)],
-          chainId: selectedBlockchain.chainId,
-        });
-        toast.success('Signature', {
-          description: `${sig}`,
-        });
+        try {
+          const sig = await writeContractAsync({
+            address: buffcatContract as `0x${string}`,
+            abi: buffcatAbi.abi,
+            functionName: 'claimRewards',
+            args: [tokenAddresses, BigInt(lockId), BigInt(claimDays)],
+            chainId: selectedBlockchain.chainId,
+          });
+          toast.success('Signature', {
+            description: `${sig}`,
+          });
+        } catch (error) {
+          console.error('Transaction failed:', error);
+        }
       },
       {
         title: 'Claim Rewards?',
-        description: `Do you want to claim rewards for ${claimDays} days?`,
+        description: 'Do you want to claim rewards?',
         successMessage: 'Your rewards have been claimed successfully.',
         loadingTitle: 'Processing Transaction',
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
