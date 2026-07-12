@@ -26,7 +26,6 @@ forge script unified/DeployAndInitialize.s.sol:DeployAndInitializeScript \
     --broadcast \
     --skip-simulation \
     --private-key "$OWNER_PRIVATE_KEY_HEX" \
-    -vvvv
 
 echo
 echo "========================================"
@@ -46,8 +45,7 @@ forge script unified/FinalizeTWAPAndLock.s.sol:FinalizeTWAPAndLockScript \
     --broadcast \
     --skip-simulation \
     --private-key "$USER_PRIVATE_KEY_HEX" \
-    --via-ir \
-    -vvvv
+    --via-ir
 
 echo
 echo "========================================"

@@ -131,7 +131,7 @@ contract TestSetUp is Test, IUniswapV3MintCallback {
     registry.setPrice(address(token5), Denominations.USD, int256(1 * 10 ** 8)); // $1
     registry.setPrice(address(token6), Denominations.USD, int256(1 * 10 ** 8)); // $1
     registry.setPrice(address(token7), Denominations.USD, int256(2000 * 10 ** 8));
-    registry.setPrice(address(usdc), Denominations.USD, int256(17 * 10 ** 8)); // $1
+    registry.setPrice(address(usdc), Denominations.USD, int256(17 * 10 ** 8)); // $17
     registry.setPrice(address(usdt), Denominations.USD, int256(1 * 10 ** 8)); // $1
 
     // Whitelist stablecoins

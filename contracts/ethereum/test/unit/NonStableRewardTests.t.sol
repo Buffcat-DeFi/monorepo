@@ -194,5 +194,89 @@ contract NonStableRewardTests is TestSetUp {
 
     function testBatchNonStableRewardsClaimingAfterUnlocking97() public {}
 
-    function testNonStableRewardsClaimingWithUniswapReliantTokens() public {}
+    function testNonStableRewardsClaimingWithUniswapReliantTokens() public {
+        vm.startPrank(user2);
+
+        buffCat.lockAssets(
+            address(token2),
+            LOCK_AMOUNT,
+            30,
+            LockType.FLEXIBLE,
+            address(0)
+        );
+
+        // Token Count = 10
+        // Token Price = $60,000
+        // Lock Amount = 9.5 (-5%)
+        // Fee Cut (For Reward Pool) =  80% of (5% of 10) = 0.4
+        // Fee Cut (For Reward Pool in USD) = 0.4 * $60,000 = $24,000
+        // Since token2 is not set as stable
+        // Non Stable Reward Pool = $24,000
+        // Stable Reward Pool = $0
+        // Non Stable Claim Limit = $0
+        // Stable Claim Limit = $0
+
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+
+        buffCat.lockAssets(
+            address(token8),
+            LOCK_AMOUNT,
+            30,
+            LockType.FLEXIBLE,
+            address(0)
+        );
+
+        // Token Count = 10
+        // Paired with USDC in Uniswap Pool at rate 1:1
+        // USDC Price = $17
+        // Hence, Token Price = $17
+        // Lock Amount = 9.5 (-5%)
+        // Fee Cut (For Reward Pool) =  80% of (5% of 10) = 0.4
+        // Fee Cut (For Reward Pool in USD) = 0.4 * $17 = $6.8
+        // Since token8 is not set as stable
+        // Non Stable Reward Pool = $24,000 + $6.8 = $24,006.8
+        // Stable Reward Pool = $0
+
+        // Will become 10% of non stable reward pool when claim rewards is called
+        // Non Stable Claim Limit (Potentially) = 10% of $24,006.8 = $2,400.68
+        // Stable Claim Limit = $0
+
+        // Reward Calculation -
+        // Lock Amount (USD) = 9.5 * $17 = $161.5
+        // Multiplier = 1.0x (since call will be done before half time has passed)
+        // User Weighted = $161.5 * 1 = $161.5
+        // Total User Rewards = ($161.5 * $2,400.68) / $24,006.8 = $16.15
+        // Daily User Rewards = 10% of $16.15 = $1.615
+        // Total Rewards = $1.615 * 1 (since there are no unclaimed days of rewards) = $1.615
+        // $1.615 < $2,400.68 (Non Stable Daily Claim Limit) so, rewards stay the same
+        // Since we are claiming rewards in token2
+        // Token Rewards = $1.615 / $60,000 = 2.691666666666667e-5
+        // Available Token Rewards = 0.4
+        // 0.4 > 2.691666666666667e-5, there are enough tokens for claiming
+        // so contract will give users all the tokens it deserves
+        // plus it will take 5% fees
+        // Final Token Rewards = 2.691666666666667e-5 - (2.691666666666667e-5 * 0.05)
+        // = 2.691666666666667e-5 - 1.345833333333334e-6 = 2.557083333333334e-5
+
+        // User has to keep the lock for atleast a day before claiming
+        vm.warp(block.timestamp + 1 days);
+
+        address[] memory tokens = new address[](1);
+        tokens[0] = address(token2);
+        buffCat.claimRewards(tokens, 0, 0);
+
+        // Since user2 has addresses hasn't locked any of it's token2s
+        // Balance after claiming rewards in token2 should be INITIAL_BALANCE (100,000) + 2.557083333333334e-5
+        uint256 expectedRewards = 25570833333333; // 2.557083333333334e-5 * 1e18
+        uint256 token2Balance = token2.balanceOf(user1);
+        assertEq(
+            token2Balance,
+            INITIAL_BALANCE + expectedRewards,
+            "Wrong balance after claiming"
+        );
+
+        vm.stopPrank();
+    }
 }
