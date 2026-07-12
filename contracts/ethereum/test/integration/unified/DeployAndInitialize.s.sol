@@ -4,6 +4,7 @@ pragma abicoder v2;
 
 import {Script} from 'forge-std/Script.sol';
 import {console} from 'forge-std/console.sol';
+import {stdJson} from 'forge-std/StdJson.sol';
 import {MockERC20} from '../../unit/lib/MockERC20.sol';
 import {MockFeedRegistry} from '../../unit/lib/MockFeedRegistry.sol';
 import {Denominations} from '../../../lib/chainlink-brownie-contracts/contracts/src/v0.8/Denominations.sol';
@@ -53,7 +54,9 @@ interface INonfungiblePositionManager {
         );
 }
 
-contract UnifiedSetupScript is Script {
+contract DeployAndInitializeScript is Script {
+    using stdJson for string;
+
     uint256 public constant INITIAL_BALANCE = 1000 * 10 ** 18;
     uint256 public constant LOCK_AMOUNT = 100 * 10 ** 18;
 
@@ -75,7 +78,7 @@ contract UnifiedSetupScript is Script {
         INonfungiblePositionManager positionManager = INonfungiblePositionManager(positionManagerAddr);
         ISwapRouter swapRouter = ISwapRouter(swapRouterAddr);
 
-        console.log('--- Starting Unified Setup Script ---');
+        console.log('--- Starting DeployAndInitialize Script ---');
         console.log('Owner Address:', owner);
         console.log('User Address :', user);
 
@@ -274,50 +277,53 @@ contract UnifiedSetupScript is Script {
 
         vm.stopBroadcast();
 
-        vm.warp(block.timestamp + 10 minutes);
-        console.log('Time warped by 10 minutes.');
+        console.log('--- DeployAndInitialize Script Completed Successfully ---');
 
-        console.log("forge timestamp", block.timestamp);
-        vm.startBroadcast(userPrivateKey);
-        for (uint256 i = 3; i < tokensWhitelist.length; i++) {
-            _swapExactInputSingle(swapRouter, tokensWhitelist[i], address(usdc), user);
-            console.log('Executed 10-minute Swap for TWAP for token:', tokensWhitelist[i]);
+        // Print every deployed address at the end
+        console.log('--- Deployed Addresses ---');
+        console.log('Token1:', address(token1));
+        console.log('Token2:', address(token2));
+        console.log('Token3:', address(token3));
+        console.log('Token4:', address(token4));
+        console.log('Token5:', address(token5));
+        console.log('Token6:', address(token6));
+        console.log('Token7:', address(token7));
+        console.log('Token8:', address(token8));
+        console.log('Token9:', address(token9));
+        console.log('USDC:', address(usdc));
+        console.log('USDT:', address(usdt));
+        console.log('MockFeedRegistry:', address(registry));
+        console.log('BuffCat Impl:', address(buffcatImpl));
+        console.log('BuffCat Proxy:', address(proxy));
+        for(uint256 i = 0; i < 6; i++) {
+            console.log('Pool', i, ':', poolArr[i]);
         }
-        console.log("forge timestamp", block.timestamp);
-        console.log('Swaps executed for TWAP.');
 
-        // 8. Lock Assets
-        for (uint256 i = 0; i < allAssets.length; i++) {
-            IERC20(allAssets[i]).approve(address(buffCat), INITIAL_BALANCE);
-            console.log('Approved BuffCat for asset:', allAssets[i]);
-        }
+        // Save deployed addresses to JSON
+        string memory obj1 = "json";
+        vm.serializeAddress(obj1, "token1", address(token1));
+        vm.serializeAddress(obj1, "token2", address(token2));
+        vm.serializeAddress(obj1, "token3", address(token3));
+        vm.serializeAddress(obj1, "token4", address(token4));
+        vm.serializeAddress(obj1, "token5", address(token5));
+        vm.serializeAddress(obj1, "token6", address(token6));
+        vm.serializeAddress(obj1, "token7", address(token7));
+        vm.serializeAddress(obj1, "token8", address(token8));
+        vm.serializeAddress(obj1, "token9", address(token9));
+        vm.serializeAddress(obj1, "usdc", address(usdc));
+        vm.serializeAddress(obj1, "usdt", address(usdt));
+        vm.serializeAddress(obj1, "registry", address(registry));
+        vm.serializeAddress(obj1, "buffcatImpl", address(buffcatImpl));
+        vm.serializeAddress(obj1, "buffCatProxy", address(proxy));
+        vm.serializeAddress(obj1, "pool0", poolArr[0]);
+        vm.serializeAddress(obj1, "pool1", poolArr[1]);
+        vm.serializeAddress(obj1, "pool2", poolArr[2]);
+        vm.serializeAddress(obj1, "pool3", poolArr[3]);
+        vm.serializeAddress(obj1, "pool4", poolArr[4]);
+        string memory finalJson = vm.serializeAddress(obj1, "pool5", poolArr[5]);
 
-        uint256 totalLockAmount = LOCK_AMOUNT;
-        for (uint256 i = 0; i < 6; i++) {
-            if (i >= 3) {
-                (
-                    ,
-                    ,
-                    uint16 observationIndex,
-                    uint16 observationCardinality,
-                    uint16 observationCardinalityNext,
-                    ,
-                    bool unlocked
-                ) = IUniswapV3Pool(poolArr[i-3]).slot0();
-
-                console.log("observationIndex", observationIndex);
-                console.log("observationCardinality", observationCardinality);
-                console.log("observationCardinalityNext", observationCardinalityNext);
-            }
-
-            buffCat.lockAssets(allAssets[i], totalLockAmount, 30, LockType.FLEXIBLE, address(0));
-            console.log('Locked asset:', allAssets[i]);
-        }
-        console.log('Assets Locked.');
-
-        vm.stopBroadcast();
-
-        console.log('--- Setup Script Completed Successfully ---');
+        string memory path = string.concat(vm.projectRoot(), "/broadcast/deploy-addresses.json");
+        vm.writeJson(finalJson, path);
     }
 
     function _swapExactInputSingle(
