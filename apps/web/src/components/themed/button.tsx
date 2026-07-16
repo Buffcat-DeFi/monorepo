@@ -14,7 +14,7 @@ const styles: {
   primary: `bg-custom-primary-color text-custom-secondary-text
   hover:bg-custom-primary-color hover:text-custom-secondary-text
   border-none hover:border-none`,
-  secondary: `bg-custom-bg-alt hover:bg-custom-bg-alt hover:text-custom-primary-text`,
+  secondary: `bg-custom-bg-alt hover:bg-custom-bg-alt text-custom-secondary-text hover:text-custom-secondary-text`,
 };
 
 export default function ThemedButton({

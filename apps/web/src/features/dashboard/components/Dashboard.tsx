@@ -126,7 +126,7 @@ export default function Dashboard() {
       >
         Yield Without
         <br />
-        <span className="crypto-blue-gradient">Impermanent Loss</span>
+        <span className="crypto-orange-gradient">Impermanent Loss</span>
       </motion.h1>
       <section
         className="mx-auto mt-6 mb-12 w-full md:w-130 rounded-2xl p-4

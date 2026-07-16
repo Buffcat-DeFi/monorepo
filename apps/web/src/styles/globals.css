@@ -5,7 +5,7 @@
 
 @theme {
   --color-custom-bg: #fdfffc;
-  --color-custom-bg-alt: #00d4ff;
+  --color-custom-bg-alt: #F97316;
 
   --color-custom-primary-color: #000000;
   --color-custom-secondary-color: #fdfffc;
@@ -25,12 +25,14 @@
   box-shadow: 8px 8px 0px #000000;
 }
 
-.crypto-blue-gradient {
+.crypto-orange-gradient {
   background: linear-gradient(
     135deg,
-    var(--color-crypto-blue),
-    var(--color-deep-blue)
+    #ffb347 0%,
+    #ff8a2a 45%,
+    #ff6b1a 100%
   );
+
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
