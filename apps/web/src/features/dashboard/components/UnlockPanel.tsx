@@ -20,7 +20,7 @@ import {
   selectedLockAtom,
 } from '@/store/global';
 import { placeholders } from '@/constants/placeholders';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import ThemedButton from '@/components/themed/button';
 import { useTransactionDialog } from '../hooks/transactionDialogHook';

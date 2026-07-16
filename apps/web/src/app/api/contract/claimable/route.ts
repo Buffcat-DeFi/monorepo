@@ -35,23 +35,23 @@ export async function GET(
   const { chain } = parsedRequest.data;
   const cacheKey = getCacheKey('claimable', chain);
 
-  const cached = await getCachedData(cacheKey);
-  if (cached) {
-    return NextResponse.json<ClaimableResponse>(cached, { status: 200 });
-  }
+  // const cached = await getCachedData(cacheKey);
+  // if (cached) {
+  //   return NextResponse.json<ClaimableResponse>(cached, { status: 200 });
+  // }
 
-  const lockKey = `lock:${cacheKey}`;
-  const lock = await redis.set(lockKey, '1', { nx: true, ex: 10 });
+  // const lockKey = `lock:${cacheKey}`;
+  // const lock = await redis.set(lockKey, '1', { nx: true, ex: 10 });
 
-  if (!lock) {
-    await sleep(100);
-    const cached = await getCachedData(cacheKey);
-    if (cached) {
-      return NextResponse.json<ClaimableResponse>(cached, { status: 200 });
-    } else {
-      return jsonError('Please retry shortly', 429);
-    }
-  }
+  // if (!lock) {
+  //   await sleep(100);
+  //   const cached = await getCachedData(cacheKey);
+  //   if (cached) {
+  //     return NextResponse.json<ClaimableResponse>(cached, { status: 200 });
+  //   } else {
+  //     return jsonError('Please retry shortly', 429);
+  //   }
+  // }
 
   try {
     const rpcUrl = getEvmRpcUrl(chain);
@@ -70,12 +70,12 @@ export async function GET(
       data: poolTokens,
     };
 
-    await redis.set(cacheKey, response, { ex: 3600 });
+    // await redis.set(cacheKey, response, { ex: 3600 });
     return NextResponse.json<ClaimableResponse>(response, { status: 200 });
   } catch (error) {
     console.error(error);
     return jsonError('Failed to fetch claimable pool tokens.', 500);
   } finally {
-    if (lock) await redis.del(lockKey);
+    // if (lock) await redis.del(lockKey);
   }
 }

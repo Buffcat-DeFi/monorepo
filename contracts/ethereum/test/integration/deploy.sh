@@ -1,6 +1,7 @@
+#!/usr/bin/env bash
 set -euo pipefail
 
-# Load environment variables from .env if it exists
+# Load environment variables
 if [ -f ".env.development" ]; then
   echo "Sourcing .env.development..."
   set -a
@@ -8,21 +9,45 @@ if [ -f ".env.development" ]; then
   set +a
 fi
 
-# Ensure required env vars are present
+# Required environment variables
 : "${OWNER_PRIVATE_KEY_HEX:?OWNER_PRIVATE_KEY_HEX must be set}"
 : "${USER_PRIVATE_KEY_HEX:?USER_PRIVATE_KEY_HEX must be set}"
 : "${FOUNDER_PRIVATE_KEY_HEX:?FOUNDER_PRIVATE_KEY_HEX must be set}"
 : "${DEVELOPER_PRIVATE_KEY_HEX:?DEVELOPER_PRIVATE_KEY_HEX must be set}"
 
-echo "Exported environment variables."
-
 RPC_URL="${RPC_URL:-http://127.0.0.1:8545}"
 
-echo "Deploying Unified Setup Script..."
-forge script unified/setup.s.sol:UnifiedSetupScript \
-  --rpc-url "$RPC_URL" \
-  --broadcast \
-  --private-key "$OWNER_PRIVATE_KEY_HEX" \
-  -vvvv
+echo "========================================"
+echo "STEP 1 - Deploy & Initialize"
+echo "========================================"
 
-echo "Script completed."
+forge script unified/DeployAndInitialize.s.sol:DeployAndInitializeScript \
+    --rpc-url "$RPC_URL" \
+    --broadcast \
+    --skip-simulation \
+    --private-key "$OWNER_PRIVATE_KEY_HEX" \
+
+echo
+echo "========================================"
+echo "STEP 2 - Advance blockchain time"
+echo "========================================"
+
+cast rpc --rpc-url "$RPC_URL" evm_increaseTime 600
+cast rpc --rpc-url "$RPC_URL" evm_mine
+
+echo
+echo "========================================"
+echo "STEP 3 - Finalize TWAP & Lock Assets"
+echo "========================================"
+
+forge script unified/FinalizeTWAPAndLock.s.sol:FinalizeTWAPAndLockScript \
+    --rpc-url "$RPC_URL" \
+    --broadcast \
+    --skip-simulation \
+    --private-key "$USER_PRIVATE_KEY_HEX" \
+    --via-ir
+
+echo
+echo "========================================"
+echo "Setup completed successfully."
+echo "========================================"

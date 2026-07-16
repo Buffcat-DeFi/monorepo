@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { selectedBlockchainAtom } from '@/store/global';
-import { useAtomValue } from 'jotai';
+import { selectedBlockchainAtom, selectedLockAtom } from '@/store/global';
+import { useAtomValue, useSetAtom } from 'jotai';
 import Image from 'next/image';
 import { X } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -96,14 +96,18 @@ const TokenSelectorClaimableItem = ({
 };
 
 const TokenSelectorLockItem = ({
+  index,
   lock,
   chain,
   onSelect,
 }: {
+  index: string;
   lock: Lock;
   chain: Blockchain;
   onSelect: (t: Lock) => void;
 }) => {
+  const setSelectedLock = useSetAtom(selectedLockAtom);
+
   const {
     data: metadata,
     isLoading: metadataLoading,
@@ -160,6 +164,7 @@ const TokenSelectorLockItem = ({
 
   const handleSelect = () => {
     onSelect(lock);
+    setSelectedLock(index);
   };
 
   return (
@@ -282,6 +287,7 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
                   locks.map((lock, index) => (
                     <TokenSelectorLockItem
                       key={index.toString()}
+                      index={index.toString()}
                       lock={lock}
                       chain={selectedBlockchain}
                       onSelect={(lock) => onSelectUnlockToken && onSelectUnlockToken(lock)}

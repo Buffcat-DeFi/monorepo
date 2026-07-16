@@ -1,6 +1,6 @@
 export const envVariables = {
   buffcatContract: {
-    eth: '0xE778207E835Da1C86633201ef98318B7c94d93CD',
+    eth: '0xE3096C9c7892fb4FE5e03589772daD3eA41C84f5',
     base: '',
     sol: '',
   },
