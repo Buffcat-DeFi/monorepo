@@ -348,72 +348,10 @@ export default function LockPanel() {
           </div>
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-6">
-          <div className="h-24 rounded-2xl grid grid-cols-3 px-18">
-            <div className="flex flex-col items-center">
-              <div className="flex-shrink-0 flex items-center">
-                {lockToken?.logoURI && lockToken.logoURI !== '' ? (
-                  <ImageWithFallback
-                    height={48}
-                    width={48}
-                    src={lockToken.logoURI}
-                    alt={lockToken.name}
-                    fallbackSrc={placeholders.tokenImage}
-                    key={lockToken.address}
-                  />
-                ) : (
-                  <CircleQuestionMark
-                    size={48}
-                    className="w-[48px] h-[48px] text-gray-400 flex-shrink-0"
-                  />
-                )}
-              </div>
-              <span className="flex flex-col items-start">
-                <span className="flex flex-row">
-                  <span className="text-sm font-bold text-left text-custom-primary-text">
-                    {lockToken ? lockToken.symbol : placeholders.tokenSymbol}
-                  </span>
-                </span>
-              </span>
-            </div>
-            <div className="flex flex-col items-center">
-              1:1
-              <ArrowRightLeft className="h-8 w-8" />
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="flex-shrink-0 flex items-center">
-                {lockToken?.logoURI && lockToken.logoURI !== '' ? (
-                  <ImageWithFallback
-                    height={48}
-                    width={48}
-                    src={lockToken.logoURI}
-                    alt={lockToken.name}
-                    fallbackSrc={placeholders.tokenImage}
-                    key={lockToken.address}
-                  />
-                ) : (
-                  <CircleQuestionMark
-                    size={48}
-                    className="w-[48px] h-[48px] text-gray-400 flex-shrink-0"
-                  />
-                )}
-              </div>
-              <span className="flex flex-col items-start">
-                <span className="flex flex-row">
-                  <span className="text-sm font-bold text-left text-custom-primary-text">
-                    {lockToken ? 'li' + lockToken.symbol : 'li' + placeholders.tokenSymbol}
-                  </span>
-                </span>
-              </span>
-            </div>
-          </div>
           <div className="text-muted-foreground text-sm px-6 pb-4">
-            Lock your {lockToken ? lockToken.symbol : placeholders.tokenSymbol} or any token and
-            receive li
-            {lockToken ? lockToken.symbol : placeholders.tokenSymbol}/liquid locked tokens that
-            represent your locked position. Use li
-            {lockToken ? lockToken.symbol : placeholders.tokenSymbol} in other DeFi protocols while
-            earning rewards. Burn your liquid locked tokens to unlock your original tokens. No
-            lock-up period required.
+            Lock any token for a set period of time either fixed or flexible. With a fixed lock
+            you can only unlock your tokens after set time period ends and with flexible you can unlock
+            anytime. Adding a referral gives you additional 0.5% boost when claiming rewards.
           </div>
         </CollapsibleContent>
       </Collapsible>

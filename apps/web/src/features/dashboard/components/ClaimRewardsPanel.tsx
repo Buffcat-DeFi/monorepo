@@ -329,9 +329,12 @@ export default function ClaimRewardsPanel() {
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-6">
           <div className="text-muted-foreground text-sm px-6 pb-4">
-            Lock your token or any token and receive li tokens/liquid locked tokens that represent
-            your locked position. Use li tokens in other DeFi protocols while earning rewards. Burn
-            your liquid locked tokens to unlock your original tokens. No lock-up period required.
+            You can claim tokens accumulated in buffcat's reward pool with an interval
+            of a day since lock/last claim. You can get boosted rewards depending on
+            lock duration, how many unique tokens you have locked and if you added a
+            referral when locking. Boosts are only applied if your lock has more than
+            3% of locked amount left. Lastly, rewards are limited by the daily claim
+            limit of non stable and stable token reward pools.
           </div>
         </CollapsibleContent>
       </Collapsible>
