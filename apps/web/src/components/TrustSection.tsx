@@ -54,7 +54,7 @@ export default function TrustSection() {
             className="mb-5 inline-flex flex-wrap items-center gap-2 rounded-full px-5 py-2.5 backdrop-blur-sm
             border-2 border-custom-primary-color custom-box-shadow-lite bg-custom-bg"
           >
-            <div className="h-2.5 w-2.5 rounded-full bg-[#f5424b] shadow-[0_0_12px_#36c4ff]" />
+            <div className="h-2.5 w-2.5 rounded-full bg-[#f5424b] shadow-[0_0_12px_#f5424b]" />
 
             <span className="text-[11px] sm:text-sm font-extrabold tracking-wide text-custom-primary-text">
               FULLY TRANSPARENT PROTOCOL

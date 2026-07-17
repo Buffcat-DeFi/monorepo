@@ -53,7 +53,7 @@ export function Footer() {
           <div className="grid gap-8 md:gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:gap-14">
             <div>
               <div className="mb-5 inline-flex max-w-full items-center gap-3 rounded-full border-2 border-white/10 bg-white/5 px-4 py-2 backdrop-blur-sm">
-                <div className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#ffffff] shadow-[0_0_12px_#36c4ff]" />
+                <div className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#ffffff] shadow-[0_0_12px_#ffffff]" />
 
                 <span className="text-[10px] font-extrabold tracking-[0.18em] text-custom-tertiary-text sm:text-xs sm:tracking-[0.2em]">
                   ON-CHAIN TRANSPARENCY
