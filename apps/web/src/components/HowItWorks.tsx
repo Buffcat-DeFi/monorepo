@@ -49,7 +49,7 @@ const stats = [
   {
     label: "Unlock Time",
     value: "ANYTIME",
-    valueClass: "text-[#00bfff]",
+    valueClass: "crypto-orange-gradient bg-clip-text text-transparent",
   },
 ];
 
@@ -90,7 +90,7 @@ export const HowItWorks = () => {
           >
             How Twoside
             <br />
-            <span className="bg-gradient-to-r from-[#44d7ff] to-[#4c7dff] bg-clip-text text-transparent">
+            <span className="crypto-orange-gradient bg-clip-text text-transparent">
               Unlocks Liquidity.
             </span>
           </h2>
@@ -248,7 +248,7 @@ export const HowItWorks = () => {
 
                   <h3 className="text-[30px] font-extrabold leading-none tracking-[-2px] sm:text-[40px] lg:text-[54px]">
                     Designed For
-                    <span className="block bg-gradient-to-r from-[#44d7ff] to-[#4c7dff] bg-clip-text text-transparent">
+                    <span className="block crypto-orange-gradient bg-clip-text text-transparent">
                       Flexible Liquidity.
                     </span>
                   </h3>

@@ -317,7 +317,7 @@ export const UseCases = () => {
           <h2 className="mb-5 text-[42px] font-extrabold leading-[0.95] tracking-[-2px] text-custom-primary-text sm:text-[58px] md:text-[72px] lg:text-[92px]">
             Unlock Infinite
             <br />
-            <span className="bg-gradient-to-r from-[#44d7ff] to-[#4c7dff] bg-clip-text text-transparent">
+            <span className="crypto-orange-gradient bg-clip-text text-transparent">
               Possibilities.
             </span>
           </h2>

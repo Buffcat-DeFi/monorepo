@@ -54,7 +54,7 @@ export default function TrustSection() {
             className="mb-5 inline-flex flex-wrap items-center gap-2 rounded-full px-5 py-2.5 backdrop-blur-sm
             border-2 border-custom-primary-color custom-box-shadow-lite bg-custom-bg"
           >
-            <div className="h-2.5 w-2.5 rounded-full bg-[#36c4ff] shadow-[0_0_12px_#36c4ff]" />
+            <div className="h-2.5 w-2.5 rounded-full bg-[#f5424b] shadow-[0_0_12px_#36c4ff]" />
 
             <span className="text-[11px] sm:text-sm font-extrabold tracking-wide text-custom-primary-text">
               FULLY TRANSPARENT PROTOCOL
@@ -68,7 +68,7 @@ export default function TrustSection() {
           >
             Built In Public.
             <br />
-            <span className="bg-gradient-to-r from-[#44d7ff] to-[#4c7dff] bg-clip-text text-transparent">
+            <span className="crypto-orange-gradient bg-clip-text text-transparent">
               Verified By Anyone.
             </span>
           </h1>
