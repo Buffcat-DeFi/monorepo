@@ -27,6 +27,7 @@ import { Blockchain } from '@/types/global';
 import React from 'react';
 import { Loading } from '@/components/Loading';
 import { CircleQuestionMark } from 'lucide-react';
+import TrustSection from '@/components/TrustSection';
 
 const LockDropdownItem = React.forwardRef<
   React.ElementRef<typeof SelectItem>,
@@ -222,11 +223,12 @@ export default function Dashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
       >
-        Buffcat transforms any coin into tradeable derivatives. Lock tokens, mint liquid locked
-        tokens at 1:1, and unlock new DeFi opportunities without selling your holdings.
+        Buffcat lets you lock your tokens and earn secondary income in form of daily
+        rewards.
       </motion.p>
       <HowItWorks />
       <UseCases />
+      <TrustSection />
     </div>
   );
 }

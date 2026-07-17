@@ -7,11 +7,13 @@
   --color-custom-bg: #fdfffc;
   --color-custom-bg-alt: #F97316;
 
+
   --color-custom-primary-color: #000000;
   --color-custom-secondary-color: #fdfffc;
 
   --color-custom-primary-text: #000000;
   --color-custom-secondary-text: #fdfffc;
+  --color-custom-tertiary-text: #fdfffc;
   --color-custom-muted-text: hsl(220, 10%, 60%);
 
   /* Custom Buffcat colors */
@@ -23,6 +25,10 @@
 
 .custom-box-shadow {
   box-shadow: 8px 8px 0px #000000;
+}
+
+.custom-box-shadow-lite {
+  box-shadow: 4px 4px 0px #000000;
 }
 
 .crypto-orange-gradient {
