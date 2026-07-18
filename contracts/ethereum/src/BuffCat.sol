@@ -66,7 +66,7 @@ contract BuffCatUpgradeable is
   FeedRegistryInterface internal registry; // Chainlink Feedv Registry on mainet
   IUniswapV3Factory public factory; // Uniswap V3 factory on mainnet
   uint32 public TWAP_PERIOD = 300; // 5 minutes
-  mapping(address => TokenPool) tokenPools;
+  mapping(address => TokenPool) public tokenPools;
   address public developerWallet;
   address public founderWallet;
 
