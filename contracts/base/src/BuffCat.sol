@@ -1102,10 +1102,13 @@ contract BuffCatUpgradeable is
      * @dev Only callable by authorized addresses
      * @param _token The address of the token
      */
-    function addStableCoin(address _token) external onlyAuthorized {
-        if (_token == address(0)) revert InvalidAddress();
-        isStableCoin[_token] = true;
-        emit StableCoinAdded(_token, block.timestamp);
+    function addStableCoin(address[] calldata _tokens) external onlyAuthorized {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            address token = _tokens[i];
+            if (token == address(0)) revert InvalidAddress();
+            isStableCoin[token] = true;
+            emit StableCoinAdded(token, block.timestamp);
+        }
     }
 
     /*
@@ -1114,10 +1117,13 @@ contract BuffCatUpgradeable is
      * @dev Only callable by authorized addresses
      * @param _token The address of the token
      */
-    function removeStableCoin(address token) external onlyAuthorized {
-        if (token == address(0)) revert InvalidAddress();
-        isStableCoin[token] = false;
-        emit StableCoinRemoved(token, block.timestamp);
+    function removeStableCoin(address[] calldata _tokens) external onlyAuthorized {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            address token = _tokens[i];
+            if (token == address(0)) revert InvalidAddress();
+            isStableCoin[token] = false;
+            emit StableCoinRemoved(token, block.timestamp);
+        }
     }
 
     /*

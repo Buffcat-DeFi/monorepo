@@ -184,9 +184,11 @@ contract DeployAndInitializeScript is Script {
         buffCat.whitelistTokens(allAssets);
         console.log('Whitelisted all assets');
 
-        buffCat.addStableCoin(address(usdc));
+        address[] memory stableCoins = new address[](2);
+        stableCoins[0] = address(usdc);
+        stableCoins[1] = address(usdt);
+        buffCat.addStableCoin(stableCoins);
         console.log('Added USDC as stablecoin');
-        buffCat.addStableCoin(address(usdt));
         console.log('Added USDT as stablecoin');
         console.log('Tokens whitelisted and stablecoins added.');
 
