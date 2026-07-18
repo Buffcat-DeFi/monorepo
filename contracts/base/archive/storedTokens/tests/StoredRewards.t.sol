@@ -120,7 +120,9 @@ contract BuffCatTest is Test {
         // Whitelist stablecoins
         // buffCat.addStableCoin(address(token3));
         // buffCat.addStableCoin(address(token4));
-        buffCat.addStableCoin(address(token7));
+        address[] memory stableCoins = new address[](1);
+        stableCoins[0] = address(address(token7));
+        buffCat.addStableCoin(stableCoins);
 
         address[] memory tokensWhitelist = new address[](7);
         tokensWhitelist[0] = address(token1);

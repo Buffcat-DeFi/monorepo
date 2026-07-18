@@ -54,19 +54,17 @@ contract TestingScript is Script {
 
     console.log('Registering stablecoins...');
 
-    buffCat.addStableCoin(address(token7));
+    address[] memory stableCoins = new address[](5);
+    stableCoins[0] = address(usdc);
+    stableCoins[1] = address(usdt);
+    stableCoins[2] = address(token7);
+    stableCoins[3] = address(token8);
+    stableCoins[4] = address(token9);
+    buffCat.addStableCoin(stableCoins);
     console.log('Added Token7 as Stablecoin :', token7);
-
-    buffCat.addStableCoin(address(token8));
     console.log('Added Token8 as Stablecoin :', token8);
-
-    buffCat.addStableCoin(address(token9));
     console.log('Added Token9 as Stablecoin :', token9);
-
-    buffCat.addStableCoin(address(usdc));
     console.log('Added USDC as Stablecoin   :', usdc);
-
-    buffCat.addStableCoin(address(usdt));
     console.log('Added USDT as Stablecoin   :', usdt);
 
     console.log('-------------------------------------------------');

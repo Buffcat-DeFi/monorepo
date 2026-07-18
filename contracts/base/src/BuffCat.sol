@@ -99,6 +99,7 @@ contract BuffCatUpgradeable is
 
     uint256 public lastClaimLimitUpdateTimestamp;
     mapping(address => bool) public whitelistedTokens; // Tokens that are whitelisted for locking
+    address[] public tokensWhitelist; // List of all whitelisted tokens
     mapping(address => bool) public isStableCoin;
     mapping(address => uint256) public claimableTokens;
     address[] public poolTokens; // List of all tokens in the pool
@@ -1132,13 +1133,12 @@ contract BuffCatUpgradeable is
      * @dev Only callable by authorized addresses
      * @param _tokens Array of token addresses to whitelist
      */
-    function whitelistTokens(
-        address[] calldata _tokens
-    ) external onlyAuthorized {
+     function whitelistTokens(address[] calldata _tokens) external onlyAuthorized {
         for (uint256 i = 0; i < _tokens.length; i++) {
             address token = _tokens[i];
             if (token == address(0)) revert InvalidAddress();
             whitelistedTokens[token] = true;
+            tokensWhitelist.push(token);
             emit TokenWhitelisted(token, block.timestamp);
         }
     }
@@ -1266,5 +1266,13 @@ contract BuffCatUpgradeable is
     function unpause() external onlyOwner returns (bool result) {
         _unpause();
         return true;
+    }
+
+    function getPoolTokens() external returns (address[] memory) {
+      return poolTokens;
+    }
+
+    function getWhitelistedTokens() external returns (address[] memory) {
+      return tokensWhitelist;
     }
 }

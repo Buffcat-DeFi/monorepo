@@ -32,9 +32,9 @@ interface IBuffCat {
     uint256 daysOfUnclaimed
   ) external;
 
-  function addStableCoin(address _token) external;
+  function addStableCoin(address[] calldata _tokens) external;
 
-  function removeStableCoin(address token) external;
+  function removeStableCoin(address[] calldata _tokens) external;
 
   function whitelistTokens(address[] calldata _tokens) external;
 
