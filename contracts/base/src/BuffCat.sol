@@ -101,6 +101,7 @@ contract BuffCatUpgradeable is
     mapping(address => bool) public whitelistedTokens; // Tokens that are whitelisted for locking
     address[] public tokensWhitelist; // List of all whitelisted tokens
     mapping(address => bool) public isStableCoin;
+    address[] public stableCoins; // List of all stable coins
     mapping(address => uint256) public claimableTokens;
     address[] public poolTokens; // List of all tokens in the pool
     mapping(address => uint256) public lastPoolUpdateForToken;
@@ -1108,6 +1109,7 @@ contract BuffCatUpgradeable is
             address token = _tokens[i];
             if (token == address(0)) revert InvalidAddress();
             isStableCoin[token] = true;
+            stableCoins.push(token);
             emit StableCoinAdded(token, block.timestamp);
         }
     }
@@ -1274,5 +1276,9 @@ contract BuffCatUpgradeable is
 
     function getWhitelistedTokens() external returns (address[] memory) {
       return tokensWhitelist;
+    }
+
+    function getStableCoins() external returns (address[] memory) {
+        return stableCoins;
     }
 }
