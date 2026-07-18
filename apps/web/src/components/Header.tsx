@@ -1,7 +1,7 @@
 import React from "react";
 import { typography } from "@/styles/typography";
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { Menu, Settings } from "lucide-react";
 import Image from "next/image";
 import {
   Select,
@@ -78,6 +78,13 @@ export const Header: React.FC = () => {
           </Link>
         </div>
         <div className="items-center gap-2 hidden lg:flex">
+          <Link
+            href="/config"
+            className="flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-xl border border-custom-primary-color/30
+              hover:border-custom-primary-color hover:bg-black/5 transition-all mr-1"
+          >
+            <Settings className="w-3.5 h-3.5" /> Config
+          </Link>
           <BlockchainSelector />
           <UserWallet />
         </div>
@@ -91,6 +98,12 @@ export const Header: React.FC = () => {
                 <SheetTitle className="text-left mb-6">Menu</SheetTitle>
               </SheetHeader>
               <div className="flex flex-col gap-2">
+                <Link
+                  href="/config"
+                  className="flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-xl border border-custom-primary-color/30 hover:bg-black/5 transition-all"
+                >
+                  <Settings className="w-4 h-4" /> Config
+                </Link>
                 <BlockchainSelector />
                 <UserWallet />
               </div>

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.28;
 
 // Chainlink Importss
-import "../lib/chainlink-brownie-contracts/contracts/src/v0.8/shared/interfaces/AggregatorV2V3Interface.sol";
+import '../lib/chainlink-brownie-contracts/contracts/src/v0.8/shared/interfaces/AggregatorV2V3Interface.sol';
 
 // OpenZeppelin (Standard) Imports
 import '../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol';
@@ -886,16 +886,15 @@ contract BuffCatUpgradeable is
    */
   function getPrice(address token) internal returns (uint256, uint8, uint8) {
     address feed = dataFeeds[token];
-    (, int256 price, , , ) = AggregatorV2V3Interface(feed)
-        .latestRoundData();
+    (, int256 price, , , ) = AggregatorV2V3Interface(feed).latestRoundData();
 
     // Use cached decimals if available, otherwise fetch and cache them
     uint8 feedDecimals = feedDecimalsCache[token];
     uint8 tokenDecimals = tokenDecimalsCache[token];
 
     if (feedDecimals == 0) {
-        feedDecimals = AggregatorV2V3Interface(feed).decimals();
-        feedDecimalsCache[token] = feedDecimals;
+      feedDecimals = AggregatorV2V3Interface(feed).decimals();
+      feedDecimalsCache[token] = feedDecimals;
     }
 
     if (tokenDecimals == 0) {
@@ -926,9 +925,8 @@ contract BuffCatUpgradeable is
     uint8 pairTokenDecimals = tokenDecimalsCache[pairToken];
 
     if (pairTokenFeedDecimals == 0) {
-        pairTokenFeedDecimals = AggregatorV2V3Interface(pairTokenFeed)
-            .decimals();
-        feedDecimalsCache[pairToken] = pairTokenFeedDecimals;
+      pairTokenFeedDecimals = AggregatorV2V3Interface(pairTokenFeed).decimals();
+      feedDecimalsCache[pairToken] = pairTokenFeedDecimals;
     }
 
     if (pairTokenDecimals == 0) {
@@ -936,8 +934,7 @@ contract BuffCatUpgradeable is
       tokenDecimalsCache[pairToken] = pairTokenDecimals;
     }
 
-    (, int256 pairTokenPrice, , , ) = AggregatorV2V3Interface(pairTokenFeed)
-        .latestRoundData();
+    (, int256 pairTokenPrice, , , ) = AggregatorV2V3Interface(pairTokenFeed).latestRoundData();
 
     uint256 tokenPrice = (quoteAmount * uint256(pairTokenPrice) * 1e8) /
       (10 ** (pairTokenFeedDecimals + pairTokenDecimals));
@@ -1052,30 +1049,24 @@ contract BuffCatUpgradeable is
   }
 
   function addDataFeeds(
-      address[] calldata _tokens,
-      address[] calldata _dataFeeds
+    address[] calldata _tokens,
+    address[] calldata _dataFeeds
   ) external onlyAuthorized {
-      if (_tokens.length != _dataFeeds.length) revert InvalidInput();
-      for (uint256 i = 0; i < _dataFeeds.length; i++) {
-          if (_tokens[i] == address(0)) revert InvalidInput();
-          if (_dataFeeds[i] == address(0)) revert InvalidInput();
-          dataFeeds[_tokens[i]] = _dataFeeds[i];
-          emit DataFeedAdded(_tokens[i], _dataFeeds[i], block.timestamp);
-      }
+    if (_tokens.length != _dataFeeds.length) revert InvalidInput();
+    for (uint256 i = 0; i < _dataFeeds.length; i++) {
+      if (_tokens[i] == address(0)) revert InvalidInput();
+      if (_dataFeeds[i] == address(0)) revert InvalidInput();
+      dataFeeds[_tokens[i]] = _dataFeeds[i];
+      emit DataFeedAdded(_tokens[i], _dataFeeds[i], block.timestamp);
+    }
   }
 
-  function removeDataFeeds(
-      address[] calldata _tokens
-  ) external onlyAuthorized {
-      for (uint256 i = 0; i < _tokens.length; i++) {
-          if (_tokens[i] == address(0)) revert InvalidInput();
-          emit DataFeedRemoved(
-              _tokens[i],
-              dataFeeds[_tokens[i]],
-              block.timestamp
-          );
-          dataFeeds[_tokens[i]] = address(0);
-      }
+  function removeDataFeeds(address[] calldata _tokens) external onlyAuthorized {
+    for (uint256 i = 0; i < _tokens.length; i++) {
+      if (_tokens[i] == address(0)) revert InvalidInput();
+      emit DataFeedRemoved(_tokens[i], dataFeeds[_tokens[i]], block.timestamp);
+      dataFeeds[_tokens[i]] = address(0);
+    }
   }
 
   /*
@@ -1132,15 +1123,15 @@ contract BuffCatUpgradeable is
     return true;
   }
 
-  function getPoolTokens() external returns (address[] memory) {
+  function getPoolTokens() external view returns (address[] memory) {
     return poolTokens;
   }
 
-  function getWhitelistedTokens() external returns (address[] memory) {
+  function getWhitelistedTokens() external view returns (address[] memory) {
     return tokensWhitelist;
   }
 
-  function getStableCoins() external returns (address[] memory) {
+  function getStableCoins() external view returns (address[] memory) {
     return stableCoins;
   }
 }

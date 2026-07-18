@@ -107,3 +107,28 @@ export const poolResponseSchema = z.object({
 export type PoolResponse = z.infer<typeof poolResponseSchema>;
 
 export type TokenMetadataResponse = CoingeckoApiResponse;
+
+// --- Config types ---
+
+export const whitelistResponseSchema = z.object({
+  data: z.array(z.string()),
+});
+export type WhitelistResponse = z.infer<typeof whitelistResponseSchema>;
+
+export const stableCoinsResponseSchema = z.object({
+  data: z.array(z.string()),
+});
+export type StableCoinsResponse = z.infer<typeof stableCoinsResponseSchema>;
+
+export const tokenPoolResponseSchema = z.object({
+  data: z.object({
+    pool: z.string(),
+    pairedToken: z.string(),
+  }),
+});
+export type TokenPoolResponse = z.infer<typeof tokenPoolResponseSchema>;
+
+export const dataFeedResponseSchema = z.object({
+  data: z.string(),
+});
+export type DataFeedResponse = z.infer<typeof dataFeedResponseSchema>;

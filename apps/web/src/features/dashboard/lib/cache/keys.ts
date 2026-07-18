@@ -8,7 +8,11 @@ export type CacheKey =
   | 'pool'
   | 'token_metadata'
   | 'erc_token_metadata'
-  | 'token_price';
+  | 'token_price'
+  | 'whitelist'
+  | 'stable_coins'
+  | 'token_pool'
+  | 'data_feed';
 
 export function getCacheKey(
   cacheKey: CacheKey,
