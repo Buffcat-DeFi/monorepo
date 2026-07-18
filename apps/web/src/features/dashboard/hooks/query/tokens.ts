@@ -10,7 +10,6 @@ import { fetchERCTokenMetadata, fetchTokenMetadata } from '../../services/query/
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { cacheAllTokens, getCachedAllTokens } from '../../lib/cache/tokens';
 import { getTokensList } from '../../services/query/tokens';
-import { ethers } from 'ethers';
 
 export function useAllTokensList(blockchain: Blockchain) {
   return useQuery<CoinGeckoToken[] | undefined>({

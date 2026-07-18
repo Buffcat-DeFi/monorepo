@@ -4,7 +4,6 @@ import {
   ChevronRight,
   CircleCheck,
   Lock,
-  ArrowRightLeft,
   Settings,
   Clock,
   Minus,
@@ -32,13 +31,10 @@ import { toast } from 'sonner';
 import { useTransactionDialog } from '../hooks/transactionDialogHook';
 import { useWriteContract } from 'wagmi';
 import erc20Abi from '../lib/evm/erc20.json';
-import buffcatAbi from '../lib/evm/buffcat.json';
 import { envVariables } from '@/lib/envVariables';
 import { CoinGeckoToken, LockType } from '@/types/global';
-import TokenInfo from './TokenInfo';
-import { useDialog } from '@/components/Dialog';
-import { useClaimable, useLocks, useTokenDerivative } from '../hooks/query/contract';
-import { isValidFloat } from '../lib/utils';
+import { useClaimable, useLocks } from '../hooks/query/contract';
+import { getEvmAbi, isValidFloat } from '../lib/utils';
 import { Slider } from '@/components/ui/slider';
 import { isAddress } from 'viem';
 
@@ -54,6 +50,9 @@ export default function LockPanel() {
     const result = parsed - parsed * 0.005;
     return Number(result.toFixed(6)).toString();
   }, [amount]);
+  const buffcatAbi = useMemo(() => {
+    return getEvmAbi(selectedBlockchain.id);
+  }, [selectedBlockchain]);
   const { writeContractAsync } = useWriteContract();
   const { refresh: refreshClaimable } = useClaimable(selectedBlockchain);
   const { refresh: refreshLocks } = useLocks(selectedBlockchain, currentUser.address);
@@ -221,7 +220,7 @@ export default function LockPanel() {
       async () => {
         const sig = await writeContractAsync({
           address: buffcatContract as `0x${string}`,
-          abi: buffcatAbi.abi,
+          abi: buffcatAbi,
           functionName: 'lockAssets',
           args: [
             tokenAddress,
@@ -349,8 +348,8 @@ export default function LockPanel() {
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-6">
           <div className="text-muted-foreground text-sm px-6 pb-4">
-            Lock any token for a set period of time either fixed or flexible. With a fixed lock
-            you can only unlock your tokens after set time period ends and with flexible you can unlock
+            Lock any token for a set period of time either fixed or flexible. With a fixed lock you
+            can only unlock your tokens after set time period ends and with flexible you can unlock
             anytime. Adding a referral gives you additional 0.5% boost when claiming rewards.
           </div>
         </CollapsibleContent>

@@ -3,7 +3,6 @@ import {
   ChevronDown,
   ChevronRight,
   Unlock,
-  ArrowRightLeft,
   Settings,
   CircleQuestionMark,
   TriangleAlert,
@@ -20,15 +19,14 @@ import {
   selectedLockAtom,
 } from '@/store/global';
 import { placeholders } from '@/constants/placeholders';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import ThemedButton from '@/components/themed/button';
 import { useTransactionDialog } from '../hooks/transactionDialogHook';
 import { toast } from 'sonner';
 import { envVariables } from '@/lib/envVariables';
 import { useWriteContract } from 'wagmi';
-import buffcatAbi from '../lib/evm/buffcat.json';
-import { isValidFloat } from '../lib/utils';
+import { getEvmAbi, isValidFloat } from '../lib/utils';
 import { useERCMetadata, useTokenMetadata } from '../hooks/query/tokens';
 import { Lock } from '@/types/api';
 import { useClaimable, useLocks } from '../hooks/query/contract';
@@ -46,6 +44,9 @@ export default function UnlockPanel() {
     const result = parsed - parsed * 0.005;
     return Number(result.toFixed(6)).toString();
   }, [amount]);
+  const buffcatAbi = useMemo(() => {
+    return getEvmAbi(selectedBlockchain.id);
+  }, [selectedBlockchain]);
   const lockId = useAtomValue(selectedLockAtom);
   const { writeContractAsync } = useWriteContract();
   const { refresh: refreshClaimable } = useClaimable(selectedBlockchain);
@@ -154,7 +155,7 @@ export default function UnlockPanel() {
       async () => {
         const sig = await writeContractAsync({
           address: buffcatContract as `0x${string}`,
-          abi: buffcatAbi.abi,
+          abi: buffcatAbi,
           functionName: 'unlockAssets',
           args: [BigInt(lockId), BigInt(Math.floor(unlockAmount))],
           chainId: selectedBlockchain.chainId,
@@ -278,9 +279,9 @@ export default function UnlockPanel() {
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-6">
           <div className="text-muted-foreground text-sm px-6 pb-4">
-            You can unlock your tokens anytime if the lock is flexible
-            otherwise you have to wait untill the set time period ends before you can unlock.
-            This will affect your next rewards claim.
+            You can unlock your tokens anytime if the lock is flexible otherwise you have to wait
+            untill the set time period ends before you can unlock. This will affect your next
+            rewards claim.
           </div>
         </CollapsibleContent>
       </Collapsible>

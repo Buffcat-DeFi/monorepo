@@ -29,9 +29,9 @@ import { useWriteContract } from 'wagmi';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { envVariables } from '@/lib/envVariables';
-import buffcatAbi from '../lib/evm/buffcat.json';
 import { useTokenMetadata, useERCMetadata } from '../hooks/query/tokens';
 import { Blockchain } from '@/types/global';
+import { getEvmAbi } from '../lib/utils';
 
 const ClaimTokenAvatar = ({
   tokenAddress,
@@ -174,6 +174,9 @@ export default function ClaimRewardsPanel() {
     } else return null;
   }, [lockId, userLocksValue]);
   const setTokenSelectorState = useSetAtom(tokenSelectorAtom);
+  const buffcatAbi = useMemo(() => {
+    return getEvmAbi(selectedBlockchain.id);
+  }, [selectedBlockchain]);
 
   const handleTokenSelectorTrigger = () => {
     setTokenSelectorState((prev) => ({
@@ -264,7 +267,7 @@ export default function ClaimRewardsPanel() {
         try {
           const sig = await writeContractAsync({
             address: buffcatContract as `0x${string}`,
-            abi: buffcatAbi.abi,
+            abi: buffcatAbi,
             functionName: 'claimRewards',
             args: [tokenAddresses, BigInt(lockId), BigInt(claimDays)],
             chainId: selectedBlockchain.chainId,
@@ -329,12 +332,11 @@ export default function ClaimRewardsPanel() {
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-6">
           <div className="text-muted-foreground text-sm px-6 pb-4">
-            You can claim tokens accumulated in buffcat's reward pool with an interval
-            of a day since lock/last claim. You can get boosted rewards depending on
-            lock duration, how many unique tokens you have locked and if you added a
-            referral when locking. Boosts are only applied if your lock has more than
-            3% of locked amount left. Lastly, rewards are limited by the daily claim
-            limit of non stable and stable token reward pools.
+            You can claim tokens accumulated in buffcat's reward pool with an interval of a day
+            since lock/last claim. You can get boosted rewards depending on lock duration, how many
+            unique tokens you have locked and if you added a referral when locking. Boosts are only
+            applied if your lock has more than 3% of locked amount left. Lastly, rewards are limited
+            by the daily claim limit of non stable and stable token reward pools.
           </div>
         </CollapsibleContent>
       </Collapsible>

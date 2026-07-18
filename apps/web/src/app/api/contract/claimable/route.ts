@@ -10,7 +10,7 @@ import { getCacheKey } from '@/features/dashboard/lib/cache/keys';
 import { redis } from '@/lib/redis';
 import { jsonError, sleep, getEvmRpcUrl } from '@/lib/utils';
 import { envVariables } from '@/lib/envVariables';
-import buffcatAbi from '@/features/dashboard/lib/evm/buffcat.json';
+import { getEvmAbi } from '@/features/dashboard/lib/utils';
 
 async function getCachedData(cacheKey: string): Promise<ClaimableResponse | null> {
   try {
@@ -54,6 +54,7 @@ export async function GET(
   // }
 
   try {
+    const buffcatAbi = getEvmAbi(chain);
     const rpcUrl = getEvmRpcUrl(chain);
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const contractAddress = envVariables.buffcatContract[chain];
@@ -62,7 +63,7 @@ export async function GET(
       return jsonError('Contract address not set for this chain.', 500);
     }
 
-    const contract = new ethers.Contract(contractAddress, buffcatAbi.abi, provider);
+    const contract = new ethers.Contract(contractAddress, buffcatAbi, provider);
 
     const poolTokens: string[] = await contract.getPoolTokens.staticCall();
 
