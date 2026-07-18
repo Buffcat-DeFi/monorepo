@@ -86,14 +86,6 @@
 
 body {
   font-family: var(--font-custom-font), sans-serif;
-  opacity: 0.8;
-  background-image:
-    radial-gradient(#000000 0.5px, transparent 0.5px),
-    radial-gradient(#000000 0.5px, #fdfffc 0.5px);
-  background-size: 20px 20px;
-  background-position:
-    0 0,
-    10px 10px;
 }
 
 @theme inline {
@@ -167,6 +159,7 @@ body {
   --sidebar-ring: oklch(0.705 0.015 286.067);
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
+  --dot-color: rgba(0, 0, 0, 0.08);
 }
 
 .dark {
@@ -201,6 +194,7 @@ body {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.552 0.016 285.938);
+  --dot-color: rgba(255, 255, 255, 0.08);
 }
 
 @layer base {
@@ -209,6 +203,13 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(var(--dot-color) 1px, transparent 1px),
+      radial-gradient(var(--dot-color) 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-position:
+      0 0,
+      10px 10px;
   }
 }
 
@@ -243,5 +244,6 @@ body {
     --ring: 195 100% 50%;
 
     --radius: 0.5rem;
+    --dot-color: rgba(0, 0, 0, 0.08);
   }
 }
