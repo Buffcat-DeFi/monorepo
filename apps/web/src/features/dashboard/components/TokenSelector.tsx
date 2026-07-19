@@ -8,11 +8,12 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { typography } from '@/styles/typography';
 import { TokenSelectorAtom } from '@/types/state';
-import { useAllTokensList, useTokenMetadata, useERCMetadata } from '../../../hooks/query/tokens';
+import { useTokenMetadata, useERCMetadata } from '../../../hooks/query/tokens';
 import { useClaimable } from '../hooks/query/contract';
+import { useWhitelist } from '../../../hooks/query/contract';
 import { placeholders } from '@/constants/placeholders';
 import { Loading } from '@/components/Loading';
-import { CoinGeckoToken, Blockchain } from '@/types/global';
+import { Blockchain } from '@/types/global';
 import { userLocks } from '@/store/global';
 import { ethers } from 'ethers';
 import { CircleQuestionMark } from 'lucide-react';
@@ -20,13 +21,15 @@ import { Lock } from '@/types/api';
 
 interface TokenSelectorProps extends TokenSelectorAtom {}
 
-const TokenSelectorClaimableItem = ({
+const TokenSelectorAddressItem = ({
   tokenAddress,
   chain,
+  searchTerm = '',
   onSelect,
 }: {
   tokenAddress: string;
   chain: Blockchain;
+  searchTerm?: string;
   onSelect: (t: string) => void;
 }) => {
   const {
@@ -57,12 +60,17 @@ const TokenSelectorClaimableItem = ({
       ? metadata.data.attributes.name
       : ercMetadata?.name || symbol;
 
-  const decimals =
-    !isMetadataUnavailable && metadata?.data?.attributes?.decimals
-      ? metadata.data.attributes.decimals
-      : ercMetadata?.decimals || 18;
-
   const logoUrl = metadata?.data?.attributes?.image_url;
+
+  // Filter out if it does not match searchTerm
+  if (
+    searchTerm.trim() !== '' &&
+    !name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    !symbol.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    !tokenAddress.toLowerCase().includes(searchTerm.toLowerCase())
+  ) {
+    return null;
+  }
 
   const logo =
     !isMetadataUnavailable && logoUrl ? (
@@ -194,7 +202,6 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
-  const { isFetching, data: tokensList } = useAllTokensList(selectedBlockchain);
   const locks = useAtomValue(userLocks);
   const { data: claimableResponse, isLoading: isClaimableLoading } = useClaimable(
     selectedBlockchain,
@@ -202,35 +209,11 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
   );
   const claimableTokens = claimableResponse?.data || [];
 
-  const limitedList = useMemo(() => {
-    if (tokensList) {
-      return tokensList.slice(0, 101);
-    }
-    return [];
-  }, [tokensList]);
-
-  const filteredList = useMemo(() => {
-    if (tokensList && searchTerm.trim() != '') {
-      const newFilteredTokens = tokensList.filter((token: CoinGeckoToken) => {
-        // Filter by search term only
-        if (token.name && token.symbol) {
-          return (
-            token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            token.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-          );
-        }
-      });
-      return newFilteredTokens.slice(0, 10);
-    }
-    return [];
-  }, [tokensList, searchTerm]);
-
-  const displayList = useMemo(() => {
-    if (filteredList && filteredList?.length > 0) {
-      return filteredList;
-    }
-    return limitedList;
-  }, [limitedList, filteredList]);
+  const { data: whitelistResponse, isLoading: isWhitelistLoading } = useWhitelist(
+    selectedBlockchain,
+    { enabled: mode === 'all' },
+  );
+  const whitelistTokens = whitelistResponse?.data || [];
 
   if (!isOpen) return null;
 
@@ -263,7 +246,7 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
         <Separator />
 
         {/* Search input - fixed height */}
-        {mode !== 'locks' && mode !== 'claimable' && (
+        {mode !== 'locks' && (
           <div className="p-4 flex-shrink-0">
             <Input
               type="text"
@@ -305,53 +288,32 @@ export const TokenSelector: React.FC<TokenSelectorProps> = ({
                   </div>
                 ) : (
                   claimableTokens.map((tokenAddress) => (
-                    <TokenSelectorClaimableItem
+                    <TokenSelectorAddressItem
                       key={tokenAddress}
                       tokenAddress={tokenAddress}
                       chain={selectedBlockchain}
+                      searchTerm={searchTerm}
                       onSelect={(token) => onSelectRewardToken && onSelectRewardToken(token)}
                     />
                   ))
                 )
-              ) : isFetching ? (
+              ) : isWhitelistLoading ? (
                 <div className="flex justify-center py-8">
                   <Loading type="dots" size="dxl" />
                 </div>
-              ) : !tokensList ? (
+              ) : whitelistTokens.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="mb-2">{selectedBlockchain.name} Tokens Not Available</p>
-                </div>
-              ) : displayList.length === 0 ? (
-                <div className="text-center py-8">
-                  <div>No Token Found</div>
+                  <div>No Whitelisted Tokens Found</div>
                 </div>
               ) : (
-                displayList.map((token) => (
-                  <button
-                    key={token.address}
-                    className="w-full flex items-center px-3 py-3 rounded-lg cursor-pointer
-                    hover:bg-custom-primary-color hover:text-custom-secondary-text"
-                    onClick={() => onSelectLockToken && onSelectLockToken(token)}
-                  >
-                    {token.logoURI && token.logoURI !== '' ? (
-                      <Image
-                        height={32}
-                        width={32}
-                        src={token.logoURI || placeholders.tokenImage}
-                        alt={token.name}
-                        className="w-8 h-8 mr-3 rounded-full flex-shrink-0"
-                      />
-                    ) : (
-                      <CircleQuestionMark
-                        size={32}
-                        className="w-8 h-8 mr-3 text-gray-400 flex-shrink-0"
-                      />
-                    )}
-                    <div className="text-left min-w-0 flex-1">
-                      <div className="font-medium truncate">{token.name}</div>
-                      <div className="text-sm opacity-70">{token.symbol}</div>
-                    </div>
-                  </button>
+                whitelistTokens.map((tokenAddress) => (
+                  <TokenSelectorAddressItem
+                    key={tokenAddress}
+                    tokenAddress={tokenAddress}
+                    chain={selectedBlockchain}
+                    searchTerm={searchTerm}
+                    onSelect={(token) => onSelectLockToken && onSelectLockToken(token)}
+                  />
                 ))
               )}
             </div>

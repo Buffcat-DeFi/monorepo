@@ -20,7 +20,7 @@ export const tokenSelectorAtom = atom<TokenSelectorAtom>({
   isOpen: false,
   mode: 'all',
   onClose: () => {},
-  onSelectLockToken: (token: CoinGeckoToken) => {},
+  onSelectLockToken: (token: string) => {},
   onSelectUnlockToken: (lock: Lock) => {},
   onSelectRewardToken: (token: string) => {},
 });

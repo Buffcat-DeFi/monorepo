@@ -32,8 +32,9 @@ import { useTransactionDialog } from '../../../hooks/transactionDialogHook';
 import { useWriteContract } from 'wagmi';
 import erc20Abi from '../../../lib/evm/erc20.json';
 import { envVariables } from '@/lib/envVariables';
-import { CoinGeckoToken, LockType } from '@/types/global';
+import { LockType } from '@/types/global';
 import { useClaimable, useLocks } from '../hooks/query/contract';
+import { useTokenMetadata, useERCMetadata } from '../../../hooks/query/tokens';
 import { getEvmAbi } from '@/lib/utils';
 import { isValidFloat } from '@/features/dashboard/lib/utils';
 import { Slider } from '@/components/ui/slider';
@@ -63,9 +64,44 @@ export default function LockPanel() {
   const [lockType, setLockType] = useState<LockType>(LockType.FLEXIBLE);
   const [referrerWallet, setReferrerWallet] = useState<string>('');
 
-  const lockToken = useMemo(() => {
-    return selectedTokens.lockToken[selectedBlockchain.id];
-  }, [selectedTokens.lockToken[selectedBlockchain.id]]);
+  const lockTokenAddress = selectedTokens.lockToken[selectedBlockchain.id];
+
+  const {
+    data: metadata,
+    isLoading: metadataLoading,
+    isError: metadataError,
+  } = useTokenMetadata(selectedBlockchain, lockTokenAddress || '');
+
+  const isMetadataUnavailable = metadataLoading || metadataError || !metadata?.data;
+
+  const {
+    data: ercMetadata,
+  } = useERCMetadata(selectedBlockchain, lockTokenAddress || '', {
+    enabled: !!lockTokenAddress && !!isMetadataUnavailable,
+  });
+
+  const symbol =
+    lockTokenAddress
+      ? !isMetadataUnavailable && metadata?.data?.attributes?.symbol
+        ? metadata.data.attributes.symbol
+        : ercMetadata?.symbol || `${lockTokenAddress.slice(0, 6)}...${lockTokenAddress.slice(-4)}`
+      : '';
+
+  const name =
+    lockTokenAddress
+      ? !isMetadataUnavailable && metadata?.data?.attributes?.name
+        ? metadata.data.attributes.name
+        : ercMetadata?.name || symbol
+      : '';
+
+  const decimals =
+    lockTokenAddress
+      ? !isMetadataUnavailable && metadata?.data?.attributes?.decimals
+        ? metadata.data.attributes.decimals
+        : ercMetadata?.decimals || 18
+      : 18;
+
+  const logoUrl = metadata?.data?.attributes?.image_url;
 
   // Calculate unlock date
   const unlockDate = useMemo(() => {
@@ -108,7 +144,7 @@ export default function LockPanel() {
     }));
   };
 
-  const handleSelectToken = (token: CoinGeckoToken) => {
+  const handleSelectToken = (token: string) => {
     setSelectedTokens((prev) => ({
       ...prev,
       lockToken: {
@@ -126,7 +162,7 @@ export default function LockPanel() {
       toast.error('Connect a wallet first.');
       return;
     }
-    const tokenAddress = selectedTokens.lockToken[selectedBlockchain.id]?.address;
+    const tokenAddress = selectedTokens.lockToken[selectedBlockchain.id];
     if (!tokenAddress) {
       toast.error('Select a token and try again.');
       return;
@@ -140,7 +176,6 @@ export default function LockPanel() {
       toast.error('Invalid Amount Input');
       return;
     }
-    const decimals = selectedTokens.lockToken[selectedBlockchain.id]?.decimals;
     let approvalAmount = parsedAmount;
     if (!decimals) {
       toast.error('Token decimals not found, toggle to use raw values instead.');
@@ -170,8 +205,7 @@ export default function LockPanel() {
       },
       {
         title: 'Approve Tokens?',
-        description: `Do you want to approve ${amount}
-        ${selectedTokens.lockToken[selectedBlockchain.id]?.symbol.toString()}?`,
+        description: `Do you want to approve ${amount} ${symbol || ''}?`,
         successMessage: 'Your tokens have been approved successfully.',
         loadingTitle: 'Processing Transaction',
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
@@ -184,7 +218,7 @@ export default function LockPanel() {
       toast.error('Connect a wallet first.');
       return;
     }
-    const tokenAddress = selectedTokens.lockToken[selectedBlockchain.id]?.address;
+    const tokenAddress = selectedTokens.lockToken[selectedBlockchain.id];
     if (!tokenAddress) {
       toast.error('Select a token and try again.');
       return;
@@ -202,7 +236,6 @@ export default function LockPanel() {
       toast.error('Invalid Referrer Wallet Address.');
       return;
     }
-    const decimals = selectedTokens.lockToken[selectedBlockchain.id]?.decimals;
     let lockAmount = parsedAmount;
     if (!decimals) {
       toast.error('Token decimals not found, toggle to use raw values instead.');
@@ -240,8 +273,7 @@ export default function LockPanel() {
       },
       {
         title: 'Lock Tokens?',
-        description: `Do you want to lock ${amount}
-        ${selectedTokens.lockToken[selectedBlockchain.id]?.symbol.toString()}?`,
+        description: `Do you want to lock ${amount} ${symbol || ''}?`,
         successMessage: 'Your tokens have been locked successfully.',
         loadingTitle: 'Processing Transaction',
         loadingDescription: `Please wait while your transaction is confirmed on ${selectedBlockchain.name}...`,
@@ -259,17 +291,17 @@ export default function LockPanel() {
             variant="ghost"
             className="me-6 my-2 !py-6 !ps-0 hover:bg-custom-primary-color/20 cursor-pointer flex items-center"
           >
-            {lockToken ? (
+            {lockTokenAddress ? (
               <>
                 <div className="mr-2 flex-shrink-0 flex items-center">
-                  {lockToken.logoURI && lockToken.logoURI !== '' ? (
+                  {!isMetadataUnavailable && logoUrl ? (
                     <ImageWithFallback
                       height={38}
                       width={38}
-                      src={lockToken.logoURI}
-                      alt={lockToken.name}
+                      src={logoUrl}
+                      alt={name}
                       fallbackSrc={placeholders.tokenImage}
-                      key={lockToken.address}
+                      key={lockTokenAddress}
                     />
                   ) : (
                     <CircleQuestionMark
@@ -281,7 +313,7 @@ export default function LockPanel() {
                 <span className="flex flex-col items-start">
                   <span className="flex flex-row">
                     <span className="text-xl font-bold text-left text-custom-primary-text">
-                      {lockToken ? lockToken.symbol : placeholders.tokenSymbol}
+                      {symbol || placeholders.tokenSymbol}
                     </span>
                     <span className="flex items-center">
                       <ChevronRight className="text-custom-primary-text" />
@@ -326,7 +358,7 @@ export default function LockPanel() {
             />
           </div>
         </div>
-        <div className="text-sm text-custom-muted-text">{lockToken ? lockToken.name : 'N/A'}</div>
+        <div className="text-sm text-custom-muted-text">{lockTokenAddress ? name : 'N/A'}</div>
       </div>
       <Collapsible className="w-full md:w-112 mt-2 rounded-2xl border border-custom-primary-color/30">
         <CollapsibleTrigger
@@ -490,7 +522,7 @@ export default function LockPanel() {
             <div className="text-custom-muted-text">Locked Value</div>
             <div>
               <span>
-                {calculatedValue} {lockToken ? lockToken.symbol : '--'}
+                {calculatedValue} {lockTokenAddress ? symbol : '--'}
               </span>
             </div>
           </div>
