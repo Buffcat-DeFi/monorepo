@@ -1,12 +1,14 @@
 'use client';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { AlertCircle, CircleQuestionMark, ExternalLink, Link2, Loader2 } from 'lucide-react';
+import { AlertCircle, CircleQuestionMark, ExternalLink, Link2, Loader2, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import ImageWithFallback from '@/components/ImageWithFallback';
 import { placeholders } from '@/constants/placeholders';
 import { Blockchain } from '@/types/global';
 import { useTokenMetadata, useERCMetadata } from '@/hooks/query/tokens';
 import { useTokenPool } from '../hooks/query/contract';
+import { useMemo } from 'react';
 
 interface PoolDetailModalProps {
   tokenAddress: string;
@@ -24,19 +26,27 @@ export default function PoolDetailModal({
   const {
     data: pool,
     isLoading,
+    isFetching: isPoolFetching,
     isError,
+    refresh: poolRefresh,
   } = useTokenPool(chain, tokenAddress, { enabled: isOpen && !!tokenAddress });
 
   // ── Main token metadata ────────────────────────────────────────────────────
   const {
     data: metadata,
     isLoading: isMetaLoading,
+    isFetching: isMetaFetching,
     isError: isMetaError,
+    refresh: metaRefresh,
   } = useTokenMetadata(chain, tokenAddress, {
     enabled: isOpen && !!tokenAddress,
   });
   const isMetaUnavailable = isMetaLoading || isMetaError || !metadata?.data;
-  const { data: ercMeta } = useERCMetadata(chain, tokenAddress, {
+  const {
+    data: ercMeta,
+    isFetching: isErcMetaFetching,
+    refresh: ercMetaRefresh,
+  } = useERCMetadata(chain, tokenAddress, {
     enabled: isOpen && isMetaUnavailable && !!tokenAddress,
   });
 
@@ -59,12 +69,18 @@ export default function PoolDetailModal({
   const {
     data: pairedMetadata,
     isLoading: isPairedMetaLoading,
+    isFetching: isPairedMetaFetching,
     isError: isPairedMetaError,
+    refresh: pairedMetaRefresh,
   } = useTokenMetadata(chain, pairedTokenAddress, {
     enabled: isOpen && !!pairedTokenAddress && !isZeroAddress,
   });
   const isPairedMetaUnavailable = isPairedMetaLoading || isPairedMetaError || !pairedMetadata?.data;
-  const { data: pairedErcMeta } = useERCMetadata(chain, pairedTokenAddress, {
+  const {
+    data: pairedErcMeta,
+    isFetching: isPairedErcMetaFetching,
+    refresh: pairedErcMetaRefresh,
+  } = useERCMetadata(chain, pairedTokenAddress, {
     enabled: isOpen && isPairedMetaUnavailable && !!pairedTokenAddress && !isZeroAddress,
   });
 
@@ -85,6 +101,26 @@ export default function PoolDetailModal({
       ? `https://app.uniswap.org/explore/pools/base/${pool?.data?.pool}`
       : `https://app.uniswap.org/explore/pools/ethereum/${pool?.data?.pool}`;
 
+  const isAnyFetching =
+    isPoolFetching ||
+    isMetaFetching ||
+    isErcMetaFetching ||
+    isPairedMetaFetching ||
+    isPairedErcMetaFetching;
+
+  const handleRefresh = async () => {
+    try {
+      await Promise.all([
+        poolRefresh(),
+        metaRefresh(),
+        ercMetaRefresh(),
+        ...(pairedTokenAddress && !isZeroAddress ? [pairedMetaRefresh(), pairedErcMetaRefresh()] : []),
+      ]);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md border-2 border-custom-primary-color custom-box-shadow rounded-2xl bg-custom-bg">
@@ -93,6 +129,16 @@ export default function PoolDetailModal({
             <Link2 className="w-4 h-4" /> Uniswap Pool Details
           </DialogTitle>
         </DialogHeader>
+
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleRefresh}
+          disabled={isAnyFetching}
+          className="absolute right-14 top-4 border-custom-primary-color rounded-xl cursor-pointer w-8 h-8 flex items-center justify-center p-0 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${isAnyFetching ? 'animate-spin' : ''}`} />
+        </Button>
 
         {isLoading && (
           <div className="flex items-center justify-center py-8">
