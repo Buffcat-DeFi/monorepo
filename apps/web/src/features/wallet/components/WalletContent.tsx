@@ -83,23 +83,18 @@ const WalletContent: React.FC = () => {
   }
 
   return (
-    <div className="flex items-center">
-      <div className="rounded-lg py-2 px-4 flex items-center">
-        <Badge
-          variant="outline"
-          className="flex items-center space-x-1 text-custom-primary-text w-32 p-2 rounded-lg"
-        >
-          <span>{formatWalletAddress(evmAddress!)}</span>
-        </Badge>
+    <div className="w-full lg:w-auto flex items-center justify-between lg:justify-start gap-3">
+      <div className="flex-1 lg:flex-none border border-custom-primary-color/30 rounded-xl px-4 py-2 flex items-center justify-center font-mono text-sm text-custom-primary-text h-11 whitespace-nowrap bg-transparent">
+        {formatWalletAddress(evmAddress!)}
       </div>
       <Button
         size="lg"
-        className="bg-black hover:bg-black text-primary-foreground
+        className="flex-1 lg:flex-none bg-black hover:bg-black text-primary-foreground
                 border-primary border-2 transition-all hover:scale-103
-                font-bold text-lg px-8 cursor-pointer"
+                font-bold text-base px-6 cursor-pointer h-11 flex items-center justify-center gap-2"
         onClick={handleDisconnect}
       >
-        <LogOut className="h-4 w-4 mr-2" />
+        <LogOut className="h-4 w-4" />
         Disconnect
       </Button>
     </div>
