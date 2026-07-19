@@ -41,7 +41,7 @@ export default function WhitelistPanel() {
 
   const handleDownload = () => {
     if (!data?.data) return;
-    const csv = 'address\n' + data.data.join('\n');
+    const csv = 'Token Address\n' + data.data.join('\n');
     downloadCsv(`whitelist_${chain.id}.csv`, csv);
   };
 

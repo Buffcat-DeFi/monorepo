@@ -51,12 +51,6 @@ export default function TokenPoolsPanel() {
       .filter((addr): addr is string => !!addr && addr.startsWith('0x') && addr.length === 42);
   }, [removeCsvData]);
 
-  const handleDownload = () => {
-    if (!whitelistData?.data) return;
-    const csv = 'token,pool,pairedToken\n' + whitelistData.data.map((a) => `${a},,`).join('\n');
-    downloadCsv(`token_pools_${chain.id}.csv`, csv);
-  };
-
   const handleAdd = async () => {
     if (!addRows.length) return toast.error('No valid rows in CSV.');
     await withConfirmation(
@@ -142,16 +136,6 @@ export default function TokenPoolsPanel() {
                   <Download className="w-3 h-3 mr-1" /> Template CSV
                 </a>
               </Button>
-              {whitelistData?.data && whitelistData.data.length > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDownload}
-                  className="border-custom-primary-color rounded-xl cursor-pointer"
-                >
-                  <Download className="w-3 h-3 mr-1" /> CSV
-                </Button>
-              )}
             </div>
           </div>
         </CardHeader>
