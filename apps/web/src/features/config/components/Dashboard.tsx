@@ -59,7 +59,7 @@ export default function ConfigDashboard() {
       </TabsList>
 
       <AnimatePresence mode="wait">
-        <TabsContent value="whitelist" className="mt-0">
+        <TabsContent key="whitelist" value="whitelist" className="mt-0">
           <motion.div
             key="whitelist"
             initial={{ opacity: 0, y: 10 }}
@@ -71,7 +71,7 @@ export default function ConfigDashboard() {
           </motion.div>
         </TabsContent>
 
-        <TabsContent value="stable" className="mt-0">
+        <TabsContent key="stable" value="stable" className="mt-0">
           <motion.div
             key="stable"
             initial={{ opacity: 0, y: 10 }}
@@ -83,7 +83,7 @@ export default function ConfigDashboard() {
           </motion.div>
         </TabsContent>
 
-        <TabsContent value="pools" className="mt-0">
+        <TabsContent key="pools" value="pools" className="mt-0">
           <motion.div
             key="pools"
             initial={{ opacity: 0, y: 10 }}
@@ -96,7 +96,7 @@ export default function ConfigDashboard() {
         </TabsContent>
 
         {chain?.id === 'base' && (
-          <TabsContent value="feeds" className="mt-0">
+          <TabsContent key="feeds" value="feeds" className="mt-0">
             <motion.div
               key="feeds"
               initial={{ opacity: 0, y: 10 }}

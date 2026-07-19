@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { Upload, Eye } from 'lucide-react';
 import Papa from 'papaparse';
 import { toast } from 'sonner';
+import { useTransactionDialog } from '@/hooks/transactionDialogHook';
 import {
   Table,
   TableBody,
@@ -38,6 +39,7 @@ export function CsvUploadPanel({
   expectedHeaders,
 }: CsvUploadPanelProps) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const { withConfirmation } = useTransactionDialog();
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,7 +53,19 @@ export function CsvUploadPanel({
         if (expectedHeaders) {
           const missing = expectedHeaders.filter((h) => !headers.includes(h));
           if (missing.length > 0) {
-            toast.error(`Invalid CSV structure. Missing headers: ${missing.join(', ')}`);
+            withConfirmation(
+              async () => {
+                throw new Error("Invalid CSV format");
+              },
+              {
+                title: "Invalid CSV Format",
+                description: `The uploaded CSV file is missing required headers: ${missing.join(', ')}. Please use the template file or correct the structure.`,
+                successMessage: "",
+                loadingTitle: "Validating CSV structure",
+                loadingDescription: "Checking header fields...",
+              }
+            ).catch(() => {});
+
             // Clear input
             if (fileRef.current) fileRef.current.value = '';
             onParsed([]);
