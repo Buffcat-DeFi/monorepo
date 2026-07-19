@@ -27,8 +27,8 @@ export default function DataFeedsPanel() {
   } = useWhitelist(chain);
   const { writeContractAsync } = useWriteContract();
   const { withConfirmation } = useTransactionDialog();
-  const buffcatAbi = useMemo(() => getEvmAbi(chain.id), [chain.id]);
-  const contractAddress = getContractAddress(chain.id);
+  const buffcatAbi = getEvmAbi('base');
+  const contractAddress = getContractAddress('base');
 
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
   const [addCsvData, setAddCsvData] = useState<Record<string, string>[]>([]);
