@@ -134,12 +134,12 @@ function PoolDetailModal({
   const symbol =
     !isMetaUnavailable && metadata?.data?.attributes?.symbol
       ? metadata.data.attributes.symbol
-      : (ercMeta?.symbol ?? `${tokenAddress.slice(0, 6)}…${tokenAddress.slice(-4)}`);
+      : ercMeta?.symbol || tokenAddress;
 
   const name =
     !isMetaUnavailable && metadata?.data?.attributes?.name
       ? metadata.data.attributes.name
-      : (ercMeta?.name ?? symbol);
+      : ercMeta?.name || symbol;
 
   const logoUrl = metadata?.data?.attributes?.image_url;
 
@@ -161,15 +161,12 @@ function PoolDetailModal({
   const pairedSymbol =
     !isPairedMetaUnavailable && pairedMetadata?.data?.attributes?.symbol
       ? pairedMetadata.data.attributes.symbol
-      : (pairedErcMeta?.symbol ??
-        (pairedTokenAddress
-          ? `${pairedTokenAddress.slice(0, 6)}…${pairedTokenAddress.slice(-4)}`
-          : ''));
+      : pairedErcMeta?.symbol || pairedTokenAddress;
 
   const pairedName =
     !isPairedMetaUnavailable && pairedMetadata?.data?.attributes?.name
       ? pairedMetadata.data.attributes.name
-      : (pairedErcMeta?.name ?? pairedSymbol);
+      : pairedErcMeta?.name || pairedSymbol;
 
   const pairedLogoUrl = pairedMetadata?.data?.attributes?.image_url;
 
@@ -302,6 +299,31 @@ function FeedDetailModal({
     isLoading,
     isError,
   } = useDataFeed(chain, tokenAddress, { enabled: isOpen && !!tokenAddress });
+
+  const {
+    data: metadata,
+    isLoading: isMetaLoading,
+    isError: isMetaError,
+  } = useTokenMetadata(chain, tokenAddress, {
+    enabled: isOpen && !!tokenAddress,
+  });
+  const isMetaUnavailable = isMetaLoading || isMetaError || !metadata?.data;
+  const { data: ercMeta } = useERCMetadata(chain, tokenAddress, {
+    enabled: isOpen && isMetaUnavailable && !!tokenAddress,
+  });
+
+  const symbol =
+    !isMetaUnavailable && metadata?.data?.attributes?.symbol
+      ? metadata.data.attributes.symbol
+      : ercMeta?.symbol || tokenAddress;
+
+  const name =
+    !isMetaUnavailable && metadata?.data?.attributes?.name
+      ? metadata.data.attributes.name
+      : ercMeta?.name || symbol;
+
+  const logoUrl = metadata?.data?.attributes?.image_url;
+
   const chainlinkUrl = `https://data.chain.link/feeds/${feed?.data}`;
 
   return (
@@ -327,6 +349,31 @@ function FeedDetailModal({
         )}
         {feed && (
           <div className="space-y-4">
+            <div className="flex items-center gap-3 pb-3 border-b border-custom-primary-color/20">
+              {isMetaLoading ? (
+                <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
+              ) : logoUrl ? (
+                <ImageWithFallback
+                  src={logoUrl}
+                  alt={symbol}
+                  width={40}
+                  height={40}
+                  fallbackSrc={placeholders.tokenImage}
+                  className="rounded-full border border-custom-primary-color/20"
+                />
+              ) : (
+                <CircleQuestionMark className="w-10 h-10 text-gray-400 flex-shrink-0" />
+              )}
+              <div className="flex flex-col min-w-0">
+                <span className="font-bold text-base text-custom-primary-text truncate">
+                  {isMetaLoading ? '...' : name} ({isMetaLoading ? '...' : symbol})
+                </span>
+                <span className="text-xs text-custom-muted-text font-mono truncate">
+                  {tokenAddress}
+                </span>
+              </div>
+            </div>
+
             <div className="rounded-xl border border-custom-primary-color/30 p-4">
               <p className="text-xs text-custom-muted-text uppercase tracking-widest font-bold mb-1">
                 Feed Address
