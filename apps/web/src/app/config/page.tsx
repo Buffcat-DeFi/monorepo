@@ -20,9 +20,16 @@ export default function ConfigPage() {
             CONTRACT CONFIGURATION
           </span>
         </div>
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-center">
+        <motion.h1
+          id="title"
+          className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6
+                leading-tight text-center mx-auto mt-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
           Buffcat <span className="crypto-orange-gradient">Config</span>
-        </h1>
+        </motion.h1>
         <p className="mt-4 text-base text-custom-muted-text max-w-xl mx-auto">
           Manage token whitelists, stable coins, Uniswap pool mappings, and Chainlink data feeds
           on-chain.
