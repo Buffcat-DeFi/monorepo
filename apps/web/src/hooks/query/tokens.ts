@@ -5,10 +5,10 @@ import {
   clearCachedTokenMetadata,
   getCachedERCTokenMetadata,
   clearCachedERCTokenMetadata,
-} from '../../lib/cache/tokens';
+} from '../../cache/tokens';
 import { fetchERCTokenMetadata, fetchTokenMetadata } from '../../services/query/tokens';
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
-import { cacheAllTokens, getCachedAllTokens } from '../../lib/cache/tokens';
+import { cacheAllTokens, getCachedAllTokens } from '../../cache/tokens';
 import { getTokensList } from '../../services/query/tokens';
 
 export function useAllTokensList(blockchain: Blockchain) {

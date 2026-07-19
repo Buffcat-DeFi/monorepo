@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { tokenRequestSchema, type ErrorResponse, type TokenMetadataResponse } from '@/types/api';
-import { getCacheKey } from '@/features/dashboard/lib/cache/keys';
-import { redis } from '@/lib/redis';
+import { getCacheKey } from '@/cache/keys';
+import { redis } from '@/cache/redis';
 import { jsonError, sleep } from '@/lib/utils';
 
 async function getCachedData(cacheKey: string): Promise<TokenMetadataResponse | null> {

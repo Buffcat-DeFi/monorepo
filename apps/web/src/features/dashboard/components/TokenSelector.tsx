@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { typography } from '@/styles/typography';
 import { TokenSelectorAtom } from '@/types/state';
-import { useAllTokensList, useTokenMetadata, useERCMetadata } from '../hooks/query/tokens';
+import { useAllTokensList, useTokenMetadata, useERCMetadata } from '../../../hooks/query/tokens';
 import { useClaimable } from '../hooks/query/contract';
 import { placeholders } from '@/constants/placeholders';
 import { Loading } from '@/components/Loading';

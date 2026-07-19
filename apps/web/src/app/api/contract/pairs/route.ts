@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 import { type ErrorResponse, type TokenPoolResponse, tokenRequestSchema } from '@/types/api';
 import { jsonError, getEvmRpcUrl } from '@/lib/utils';
 import { envVariables } from '@/lib/envVariables';
-import { getEvmAbi } from '@/features/dashboard/lib/utils';
+import { getEvmAbi } from '@/lib/utils';
 
 const TOKEN_POOLS_ABI = [
   'function tokenPools(address) view returns (address pool, address pairedToken)',

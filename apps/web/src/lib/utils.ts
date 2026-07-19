@@ -1,4 +1,7 @@
 import { ErrorResponse } from '@/types/api';
+import { SupportedBlockchain } from '@/types/global';
+import ethAbi from './eth/buffcat.json';
+import baseAbi from './base/buffcat.json';
 import { ClassValue, clsx } from 'clsx';
 import { NextResponse } from 'next/server';
 import { twMerge } from 'tailwind-merge';
@@ -38,4 +41,9 @@ export function jsonError(message: string, status: number) {
       status,
     },
   );
+}
+
+export function getEvmAbi(chain: SupportedBlockchain) {
+  if (chain === 'eth') return ethAbi.abi;
+  else return baseAbi.abi;
 }

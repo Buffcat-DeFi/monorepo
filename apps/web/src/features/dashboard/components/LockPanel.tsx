@@ -28,13 +28,14 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import ThemedButton from '@/components/themed/button';
 import { toast } from 'sonner';
-import { useTransactionDialog } from '../hooks/transactionDialogHook';
+import { useTransactionDialog } from '../../../hooks/transactionDialogHook';
 import { useWriteContract } from 'wagmi';
-import erc20Abi from '../lib/evm/erc20.json';
+import erc20Abi from '../../../lib/evm/erc20.json';
 import { envVariables } from '@/lib/envVariables';
 import { CoinGeckoToken, LockType } from '@/types/global';
 import { useClaimable, useLocks } from '../hooks/query/contract';
-import { getEvmAbi, isValidFloat } from '../lib/utils';
+import { getEvmAbi } from '@/lib/utils';
+import { isValidFloat } from '@/features/dashboard/lib/utils';
 import { Slider } from '@/components/ui/slider';
 import { isAddress } from 'viem';
 

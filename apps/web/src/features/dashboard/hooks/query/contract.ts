@@ -12,7 +12,7 @@ import {
   clearCachedLocks,
   getCachedPool,
   clearCachedPool,
-} from '../../lib/cache/contract';
+} from '../../../../cache/dashboard';
 import { fetchBoost, fetchClaimable, fetchLocks, fetchPool } from '../../services/query/contract';
 
 interface UseTokenBalanceParams {

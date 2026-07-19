@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useLocks } from '@/features/dashboard/hooks/query/contract';
-import { useTokenMetadata, useERCMetadata } from '@/features/dashboard/hooks/query/tokens';
+import { useTokenMetadata, useERCMetadata } from '@/hooks/query/tokens';
 import { ethers } from 'ethers';
 import { Blockchain } from '@/types/global';
 import React from 'react';
@@ -223,8 +223,7 @@ export default function Dashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
       >
-        Buffcat lets you lock your tokens and earn secondary income in form of daily
-        rewards.
+        Buffcat lets you lock your tokens and earn secondary income in form of daily rewards.
       </motion.p>
       <HowItWorks />
       <UseCases />

@@ -7,11 +7,11 @@ import {
   type LocksResponse,
   type Lock,
 } from '@/types/api';
-import { getCacheKey } from '@/features/dashboard/lib/cache/keys';
-import { redis } from '@/lib/redis';
+import { getCacheKey } from '@/cache/keys';
+import { redis } from '@/cache/redis';
 import { jsonError, sleep, getEvmRpcUrl } from '@/lib/utils';
 import { envVariables } from '@/lib/envVariables';
-import { getEvmAbi } from '@/features/dashboard/lib/utils';
+import { getEvmAbi } from '@/lib/utils';
 
 async function getCachedData(cacheKey: string): Promise<LocksResponse | null> {
   try {

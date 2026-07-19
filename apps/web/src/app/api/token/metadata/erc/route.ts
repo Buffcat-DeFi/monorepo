@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { tokenRequestSchema, type ErrorResponse, type ERC20MetadataResponse } from '@/types/api';
-import { getCacheKey } from '@/features/dashboard/lib/cache/keys';
-import { redis } from '@/lib/redis';
+import { getCacheKey } from '@/cache/keys';
+import { redis } from '@/cache/redis';
 import { getEvmRpcUrl, jsonError, sleep } from '@/lib/utils';
 import { ethers } from 'ethers';
 

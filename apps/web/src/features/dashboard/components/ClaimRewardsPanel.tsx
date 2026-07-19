@@ -24,14 +24,14 @@ import { placeholders } from '@/constants/placeholders';
 import { useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import ThemedButton from '@/components/themed/button';
-import { useTransactionDialog } from '../hooks/transactionDialogHook';
+import { useTransactionDialog } from '../../../hooks/transactionDialogHook';
 import { useWriteContract } from 'wagmi';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { envVariables } from '@/lib/envVariables';
-import { useTokenMetadata, useERCMetadata } from '../hooks/query/tokens';
+import { useTokenMetadata, useERCMetadata } from '../../../hooks/query/tokens';
 import { Blockchain } from '@/types/global';
-import { getEvmAbi } from '../lib/utils';
+import { getEvmAbi } from '@/lib/utils';
 
 const ClaimTokenAvatar = ({
   tokenAddress,

@@ -22,12 +22,13 @@ import { placeholders } from '@/constants/placeholders';
 import { useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import ThemedButton from '@/components/themed/button';
-import { useTransactionDialog } from '../hooks/transactionDialogHook';
+import { useTransactionDialog } from '../../../hooks/transactionDialogHook';
 import { toast } from 'sonner';
 import { envVariables } from '@/lib/envVariables';
 import { useWriteContract } from 'wagmi';
-import { getEvmAbi, isValidFloat } from '../lib/utils';
-import { useERCMetadata, useTokenMetadata } from '../hooks/query/tokens';
+import { getEvmAbi } from '@/lib/utils';
+import { isValidFloat } from '@/features/dashboard/lib/utils';
+import { useERCMetadata, useTokenMetadata } from '../../../hooks/query/tokens';
 import { Lock } from '@/types/api';
 import { useClaimable, useLocks } from '../hooks/query/contract';
 

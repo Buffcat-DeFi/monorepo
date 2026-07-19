@@ -15,13 +15,13 @@ import {
   clearCachedTokenPool,
   getCachedDataFeed,
   clearCachedDataFeed,
-} from '../../lib/cache/config';
+} from '../../../../cache/config';
 import {
   fetchWhitelist,
   fetchStableCoins,
   fetchTokenPool,
   fetchDataFeed,
-} from '../../services/query/config';
+} from '../../services/query/contract';
 
 export function useWhitelist(
   chain: Blockchain,
