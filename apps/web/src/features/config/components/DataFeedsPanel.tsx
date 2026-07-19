@@ -19,7 +19,12 @@ import { CsvUploadPanel, CsvPreviewTable } from './UploadInterface';
 
 export default function DataFeedsPanel() {
   const chain = useAtomValue(selectedBlockchainAtom);
-  const { data: whitelistData, isLoading: wlLoading, refresh: wlRefresh } = useWhitelist(chain);
+  const {
+    data: whitelistData,
+    isLoading: wlLoading,
+    isFetching: wlFetching,
+    refresh: wlRefresh,
+  } = useWhitelist(chain);
   const { writeContractAsync } = useWriteContract();
   const { withConfirmation } = useTransactionDialog();
   const buffcatAbi = useMemo(() => getEvmAbi(chain.id), [chain.id]);
@@ -38,8 +43,12 @@ export default function DataFeedsPanel() {
       })
       .filter(
         (r): r is { token: string; feed: string } =>
-          !!r.token && r.token.startsWith('0x') && r.token.length === 42 &&
-          !!r.feed && r.feed.startsWith('0x') && r.feed.length === 42
+          !!r.token &&
+          r.token.startsWith('0x') &&
+          r.token.length === 42 &&
+          !!r.feed &&
+          r.feed.startsWith('0x') &&
+          r.feed.length === 42,
       );
   }, [addCsvData]);
 
@@ -117,11 +126,11 @@ export default function DataFeedsPanel() {
                 variant="outline"
                 size="sm"
                 onClick={wlRefresh}
-                disabled={wlLoading}
+                disabled={wlFetching}
                 className="border-custom-primary-color rounded-xl cursor-pointer"
               >
-                <RefreshCw className={`w-3 h-3 mr-1 ${wlLoading ? 'animate-spin' : ''}`} />
-                {wlLoading ? 'Fetching...' : 'Load Whitelist'}
+                <RefreshCw className={`w-3 h-3 mr-1 ${wlFetching ? 'animate-spin' : ''}`} />
+                {wlFetching ? 'Reloading...' : 'Reload Whitelist'}
               </Button>
               <Button
                 variant="outline"
@@ -129,7 +138,10 @@ export default function DataFeedsPanel() {
                 asChild
                 className="border-custom-primary-color rounded-xl cursor-pointer"
               >
-                <a href="/templates/token_data_feeds_template.csv" download="token_data_feeds_template.csv">
+                <a
+                  href="/templates/token_data_feeds_template.csv"
+                  download="token_data_feeds_template.csv"
+                >
                   <Download className="w-3 h-3 mr-1" /> Template CSV
                 </a>
               </Button>
@@ -194,7 +206,9 @@ export default function DataFeedsPanel() {
               <Plus className="w-4 h-4 text-green-600" />
               <span className="font-bold text-sm">Add Data Feeds</span>
             </div>
-            <p className="text-xs text-custom-muted-text">CSV: Token Address, Chainlink Data Feed</p>
+            <p className="text-xs text-custom-muted-text">
+              CSV: Token Address, Chainlink Data Feed
+            </p>
           </CardHeader>
           <CardContent className="space-y-3">
             <CsvUploadPanel
@@ -202,12 +216,7 @@ export default function DataFeedsPanel() {
               hint="Format: Token Address,Chainlink Data Feed"
               onParsed={setAddCsvData}
               expectedHeaders={['Token Address', 'Chainlink Data Feed']}
-              preview={
-                <CsvPreviewTable
-                  data={addCsvData}
-                  variant="green"
-                />
-              }
+              preview={<CsvPreviewTable data={addCsvData} variant="green" />}
             />
             <Button
               onClick={handleAdd}
@@ -234,12 +243,7 @@ export default function DataFeedsPanel() {
               hint="Format: Token Address (one per line)"
               onParsed={setRemoveCsvData}
               expectedHeaders={['Token Address']}
-              preview={
-                <CsvPreviewTable
-                  data={removeCsvData}
-                  variant="red"
-                />
-              }
+              preview={<CsvPreviewTable data={removeCsvData} variant="red" />}
             />
             <Button
               onClick={handleRemove}

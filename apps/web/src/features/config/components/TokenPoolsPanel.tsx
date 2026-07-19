@@ -19,7 +19,7 @@ import { CsvUploadPanel, CsvPreviewTable } from './UploadInterface';
 
 export default function TokenPoolsPanel() {
   const chain = useAtomValue(selectedBlockchainAtom);
-  const { data: whitelistData, isLoading: wlLoading, refresh: wlRefresh } = useWhitelist(chain);
+  const { data: whitelistData, isLoading: wlLoading, isFetching: wlFetching, refresh: wlRefresh } = useWhitelist(chain);
   const { writeContractAsync } = useWriteContract();
   const { withConfirmation } = useTransactionDialog();
   const buffcatAbi = useMemo(() => getEvmAbi(chain.id), [chain.id]);
@@ -39,9 +39,15 @@ export default function TokenPoolsPanel() {
       })
       .filter(
         (r): r is { token: string; pool: string; pairedToken: string } =>
-          !!r.token && r.token.startsWith('0x') && r.token.length === 42 &&
-          !!r.pool && r.pool.startsWith('0x') && r.pool.length === 42 &&
-          !!r.pairedToken && r.pairedToken.startsWith('0x') && r.pairedToken.length === 42
+          !!r.token &&
+          r.token.startsWith('0x') &&
+          r.token.length === 42 &&
+          !!r.pool &&
+          r.pool.startsWith('0x') &&
+          r.pool.length === 42 &&
+          !!r.pairedToken &&
+          r.pairedToken.startsWith('0x') &&
+          r.pairedToken.length === 42,
       );
   }, [addCsvData]);
 
@@ -120,11 +126,11 @@ export default function TokenPoolsPanel() {
                 variant="outline"
                 size="sm"
                 onClick={wlRefresh}
-                disabled={wlLoading}
+                disabled={wlFetching}
                 className="border-custom-primary-color rounded-xl cursor-pointer"
               >
-                <RefreshCw className={`w-3 h-3 mr-1 ${wlLoading ? 'animate-spin' : ''}`} />
-                {wlLoading ? 'Fetching...' : 'Load Whitelist'}
+                <RefreshCw className={`w-3 h-3 mr-1 ${wlFetching ? 'animate-spin' : ''}`} />
+                {wlFetching ? 'Reloading...' : 'Reload Whitelist'}
               </Button>
               <Button
                 variant="outline"
@@ -132,7 +138,10 @@ export default function TokenPoolsPanel() {
                 asChild
                 className="border-custom-primary-color rounded-xl cursor-pointer"
               >
-                <a href="/templates/token_uniswap_pools_template.csv" download="token_uniswap_pools_template.csv">
+                <a
+                  href="/templates/token_uniswap_pools_template.csv"
+                  download="token_uniswap_pools_template.csv"
+                >
                   <Download className="w-3 h-3 mr-1" /> Template CSV
                 </a>
               </Button>
@@ -196,7 +205,9 @@ export default function TokenPoolsPanel() {
               <Plus className="w-4 h-4 text-green-600" />
               <span className="font-bold text-sm">Add Token Pools</span>
             </div>
-            <p className="text-xs text-custom-muted-text">CSV: Token Address, Uniswap V3 Pool, Paired Token</p>
+            <p className="text-xs text-custom-muted-text">
+              CSV: Token Address, Uniswap V3 Pool, Paired Token
+            </p>
           </CardHeader>
           <CardContent className="space-y-3">
             <CsvUploadPanel
@@ -204,12 +215,7 @@ export default function TokenPoolsPanel() {
               hint="Format: Token Address,Uniswap V3 Pool,Paired Token"
               onParsed={setAddCsvData}
               expectedHeaders={['Token Address', 'Uniswap V3 Pool', 'Paired Token']}
-              preview={
-                <CsvPreviewTable
-                  data={addCsvData}
-                  variant="green"
-                />
-              }
+              preview={<CsvPreviewTable data={addCsvData} variant="green" />}
             />
             <Button
               onClick={handleAdd}
@@ -236,12 +242,7 @@ export default function TokenPoolsPanel() {
               hint="Format: Token Address (one per line)"
               onParsed={setRemoveCsvData}
               expectedHeaders={['Token Address']}
-              preview={
-                <CsvPreviewTable
-                  data={removeCsvData}
-                  variant="red"
-                />
-              }
+              preview={<CsvPreviewTable data={removeCsvData} variant="red" />}
             />
             <Button
               onClick={handleRemove}

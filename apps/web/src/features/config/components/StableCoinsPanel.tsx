@@ -18,7 +18,7 @@ import { CsvUploadPanel, CsvPreviewTable } from './UploadInterface';
 
 export default function StableCoinsPanel() {
   const chain = useAtomValue(selectedBlockchainAtom);
-  const { data, isLoading, isError, refresh } = useStableCoins(chain);
+  const { data, isLoading, isFetching, isError, refresh } = useStableCoins(chain);
   const { writeContractAsync } = useWriteContract();
   const { withConfirmation } = useTransactionDialog();
   const buffcatAbi = useMemo(() => getEvmAbi(chain.id), [chain.id]);
@@ -109,11 +109,11 @@ export default function StableCoinsPanel() {
                 variant="outline"
                 size="sm"
                 onClick={refresh}
-                disabled={isLoading}
+                disabled={isFetching}
                 className="border-custom-primary-color rounded-xl cursor-pointer"
               >
-                <RefreshCw className={`w-3 h-3 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
-                {isLoading ? 'Fetching...' : 'Fetch'}
+                <RefreshCw className={`w-3 h-3 mr-1 ${isFetching ? 'animate-spin' : ''}`} />
+                {isFetching ? 'Reloading...' : 'Reload'}
               </Button>
               <Button
                 variant="outline"
@@ -194,12 +194,7 @@ export default function StableCoinsPanel() {
               hint="Format: Token Address (one per line)"
               onParsed={setAddCsvData}
               expectedHeaders={['Token Address']}
-              preview={
-                <CsvPreviewTable
-                  data={addCsvData}
-                  variant="green"
-                />
-              }
+              preview={<CsvPreviewTable data={addCsvData} variant="green" />}
             />
             <Button
               onClick={handleAdd}
@@ -226,12 +221,7 @@ export default function StableCoinsPanel() {
               hint="Format: Token Address (one per line)"
               onParsed={setRemoveCsvData}
               expectedHeaders={['Token Address']}
-              preview={
-                <CsvPreviewTable
-                  data={removeCsvData}
-                  variant="red"
-                />
-              }
+              preview={<CsvPreviewTable data={removeCsvData} variant="red" />}
             />
             <Button
               onClick={handleRemove}
