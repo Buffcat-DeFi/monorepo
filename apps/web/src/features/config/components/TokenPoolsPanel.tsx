@@ -12,10 +12,10 @@ import { toast } from 'sonner';
 import { getEvmAbi } from '@/lib/utils';
 import { useTransactionDialog } from '@/hooks/transactionDialogHook';
 import { useWhitelist } from '../hooks/query/contract';
-import { downloadCsv, parseAddressCsv, parsePoolsCsv, getContractAddress } from '../lib/utils';
+import { downloadCsv, getContractAddress } from '../lib/utils';
 import TokenRow from './TokenRow';
 import PoolDetailModal from './PoolDetailModal';
-import { CsvUploadPanel, AddressPreview, PairPreview } from './UploadInterface';
+import { CsvUploadPanel, CsvPreviewTable } from './UploadInterface';
 
 export default function TokenPoolsPanel() {
   const chain = useAtomValue(selectedBlockchainAtom);
@@ -26,10 +26,30 @@ export default function TokenPoolsPanel() {
   const contractAddress = getContractAddress(chain.id);
 
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
-  const [addCsvText, setAddCsvText] = useState('');
-  const [removeCsvText, setRemoveCsvText] = useState('');
-  const addRows = parsePoolsCsv(addCsvText);
-  const removeAddresses = parseAddressCsv(removeCsvText);
+  const [addCsvData, setAddCsvData] = useState<Record<string, string>[]>([]);
+  const [removeCsvData, setRemoveCsvData] = useState<Record<string, string>[]>([]);
+
+  const addRows = useMemo(() => {
+    return addCsvData
+      .map((row) => {
+        const token = (row.token || row.Token || Object.values(row)[0])?.trim();
+        const pool = (row.pool || row.Pool || Object.values(row)[1])?.trim();
+        const pairedToken = (row.pairedToken || row.pairedtoken || row.PairedToken || Object.values(row)[2])?.trim();
+        return { token, pool, pairedToken };
+      })
+      .filter(
+        (r): r is { token: string; pool: string; pairedToken: string } =>
+          !!r.token && r.token.startsWith('0x') && r.token.length === 42 &&
+          !!r.pool && r.pool.startsWith('0x') && r.pool.length === 42 &&
+          !!r.pairedToken && r.pairedToken.startsWith('0x') && r.pairedToken.length === 42
+      );
+  }, [addCsvData]);
+
+  const removeAddresses = useMemo(() => {
+    return removeCsvData
+      .map((row) => Object.values(row)[0]?.trim())
+      .filter((addr): addr is string => !!addr && addr.startsWith('0x') && addr.length === 42);
+  }, [removeCsvData]);
 
   const handleDownload = () => {
     if (!whitelistData?.data) return;
@@ -188,16 +208,12 @@ export default function TokenPoolsPanel() {
             <CsvUploadPanel
               label="Upload CSV to Add Pools"
               hint="Format: token,pool,pairedToken"
-              onParsed={setAddCsvText}
+              onParsed={setAddCsvData}
               preview={
-                <PairPreview
-                  rows={addRows}
+                <CsvPreviewTable
+                  data={addCsvData}
                   variant="green"
-                  renderRow={(r, i) => (
-                    <p key={i} className="text-xs font-mono text-green-800 truncate">
-                      {r.token.slice(0, 10)}… → {r.pool.slice(0, 10)}…
-                    </p>
-                  )}
+                  label={`${addRows.length} row(s) parsed`}
                 />
               }
             />
@@ -224,10 +240,10 @@ export default function TokenPoolsPanel() {
             <CsvUploadPanel
               label="Upload CSV to Remove Pools"
               hint="Format: token address (one per line)"
-              onParsed={setRemoveCsvText}
+              onParsed={setRemoveCsvData}
               preview={
-                <AddressPreview
-                  addresses={removeAddresses}
+                <CsvPreviewTable
+                  data={removeCsvData}
                   variant="red"
                   label={`${removeAddresses.length} parsed`}
                 />

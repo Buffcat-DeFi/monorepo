@@ -12,10 +12,10 @@ import { toast } from 'sonner';
 import { getEvmAbi } from '@/lib/utils';
 import { useTransactionDialog } from '@/hooks/transactionDialogHook';
 import { useWhitelist } from '../hooks/query/contract';
-import { parseAddressCsv, parseFeedsCsv, getContractAddress } from '../lib/utils';
+import { getContractAddress } from '../lib/utils';
 import TokenRow from './TokenRow';
 import FeedDetailModal from './FeedDetailModal';
-import { CsvUploadPanel, AddressPreview, PairPreview } from './UploadInterface';
+import { CsvUploadPanel, CsvPreviewTable } from './UploadInterface';
 
 export default function DataFeedsPanel() {
   const chain = useAtomValue(selectedBlockchainAtom);
@@ -26,10 +26,28 @@ export default function DataFeedsPanel() {
   const contractAddress = getContractAddress(chain.id);
 
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
-  const [addCsvText, setAddCsvText] = useState('');
-  const [removeCsvText, setRemoveCsvText] = useState('');
-  const addRows = parseFeedsCsv(addCsvText);
-  const removeAddresses = parseAddressCsv(removeCsvText);
+  const [addCsvData, setAddCsvData] = useState<Record<string, string>[]>([]);
+  const [removeCsvData, setRemoveCsvData] = useState<Record<string, string>[]>([]);
+
+  const addRows = useMemo(() => {
+    return addCsvData
+      .map((row) => {
+        const token = (row.token || row.Token || Object.values(row)[0])?.trim();
+        const feed = (row.feed || row.Feed || Object.values(row)[1])?.trim();
+        return { token, feed };
+      })
+      .filter(
+        (r): r is { token: string; feed: string } =>
+          !!r.token && r.token.startsWith('0x') && r.token.length === 42 &&
+          !!r.feed && r.feed.startsWith('0x') && r.feed.length === 42
+      );
+  }, [addCsvData]);
+
+  const removeAddresses = useMemo(() => {
+    return removeCsvData
+      .map((row) => Object.values(row)[0]?.trim())
+      .filter((addr): addr is string => !!addr && addr.startsWith('0x') && addr.length === 42);
+  }, [removeCsvData]);
 
   const handleAdd = async () => {
     if (!addRows.length) return toast.error('No valid rows in CSV.');
@@ -170,16 +188,12 @@ export default function DataFeedsPanel() {
             <CsvUploadPanel
               label="Upload CSV to Add Feeds"
               hint="Format: token,dataFeed"
-              onParsed={setAddCsvText}
+              onParsed={setAddCsvData}
               preview={
-                <PairPreview
-                  rows={addRows}
+                <CsvPreviewTable
+                  data={addCsvData}
                   variant="green"
-                  renderRow={(r, i) => (
-                    <p key={i} className="text-xs font-mono text-green-800 truncate">
-                      {r.token.slice(0, 10)}… → {r.feed.slice(0, 10)}…
-                    </p>
-                  )}
+                  label={`${addRows.length} row(s) parsed`}
                 />
               }
             />
@@ -206,10 +220,10 @@ export default function DataFeedsPanel() {
             <CsvUploadPanel
               label="Upload CSV to Remove Feeds"
               hint="Format: token address (one per line)"
-              onParsed={setRemoveCsvText}
+              onParsed={setRemoveCsvData}
               preview={
-                <AddressPreview
-                  addresses={removeAddresses}
+                <CsvPreviewTable
+                  data={removeCsvData}
                   variant="red"
                   label={`${removeAddresses.length} parsed`}
                 />

@@ -12,9 +12,9 @@ import { toast } from 'sonner';
 import { getEvmAbi } from '@/lib/utils';
 import { useTransactionDialog } from '@/hooks/transactionDialogHook';
 import { useStableCoins } from '../hooks/query/contract';
-import { downloadCsv, parseAddressCsv, getContractAddress } from '../lib/utils';
+import { downloadCsv, getContractAddress } from '../lib/utils';
 import TokenRow from './TokenRow';
-import { CsvUploadPanel, AddressPreview } from './UploadInterface';
+import { CsvUploadPanel, CsvPreviewTable } from './UploadInterface';
 
 export default function StableCoinsPanel() {
   const chain = useAtomValue(selectedBlockchainAtom);
@@ -24,10 +24,20 @@ export default function StableCoinsPanel() {
   const buffcatAbi = useMemo(() => getEvmAbi(chain.id), [chain.id]);
   const contractAddress = getContractAddress(chain.id);
 
-  const [addCsvText, setAddCsvText] = useState('');
-  const [removeCsvText, setRemoveCsvText] = useState('');
-  const addAddresses = parseAddressCsv(addCsvText);
-  const removeAddresses = parseAddressCsv(removeCsvText);
+  const [addCsvData, setAddCsvData] = useState<Record<string, string>[]>([]);
+  const [removeCsvData, setRemoveCsvData] = useState<Record<string, string>[]>([]);
+
+  const addAddresses = useMemo(() => {
+    return addCsvData
+      .map((row) => Object.values(row)[0]?.trim())
+      .filter((addr): addr is string => !!addr && addr.startsWith('0x') && addr.length === 42);
+  }, [addCsvData]);
+
+  const removeAddresses = useMemo(() => {
+    return removeCsvData
+      .map((row) => Object.values(row)[0]?.trim())
+      .filter((addr): addr is string => !!addr && addr.startsWith('0x') && addr.length === 42);
+  }, [removeCsvData]);
 
   const handleDownload = () => {
     if (!data?.data) return;
@@ -172,10 +182,10 @@ export default function StableCoinsPanel() {
             <CsvUploadPanel
               label="Upload CSV to Add"
               hint="Format: address (one per line)"
-              onParsed={setAddCsvText}
+              onParsed={setAddCsvData}
               preview={
-                <AddressPreview
-                  addresses={addAddresses}
+                <CsvPreviewTable
+                  data={addCsvData}
                   variant="green"
                   label={`${addAddresses.length} parsed`}
                 />
@@ -204,10 +214,10 @@ export default function StableCoinsPanel() {
             <CsvUploadPanel
               label="Upload CSV to Remove"
               hint="Format: address (one per line)"
-              onParsed={setRemoveCsvText}
+              onParsed={setRemoveCsvData}
               preview={
-                <AddressPreview
-                  addresses={removeAddresses}
+                <CsvPreviewTable
+                  data={removeCsvData}
                   variant="red"
                   label={`${removeAddresses.length} parsed`}
                 />
