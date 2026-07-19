@@ -27,9 +27,16 @@ interface CsvUploadPanelProps {
   hint: string;
   onParsed: (data: Record<string, string>[]) => void;
   preview: React.ReactNode;
+  expectedHeaders?: string[];
 }
 
-export function CsvUploadPanel({ label, hint, onParsed, preview }: CsvUploadPanelProps) {
+export function CsvUploadPanel({
+  label,
+  hint,
+  onParsed,
+  preview,
+  expectedHeaders,
+}: CsvUploadPanelProps) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,10 +47,22 @@ export function CsvUploadPanel({ label, hint, onParsed, preview }: CsvUploadPane
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
+        const headers = results.meta.fields || [];
+        if (expectedHeaders) {
+          const missing = expectedHeaders.filter((h) => !headers.includes(h));
+          if (missing.length > 0) {
+            toast.error(`Invalid CSV structure. Missing headers: ${missing.join(', ')}`);
+            // Clear input
+            if (fileRef.current) fileRef.current.value = '';
+            onParsed([]);
+            return;
+          }
+        }
         onParsed(results.data);
       },
       error: (error) => {
         toast.error(`CSV Parsing Error: ${error.message}`);
+        onParsed([]);
       },
     });
   };
@@ -79,10 +98,7 @@ interface CsvPreviewTableProps {
   label?: string; // keeping label optional for backwards compatibility
 }
 
-export function CsvPreviewTable({
-  data,
-  variant,
-}: CsvPreviewTableProps) {
+export function CsvPreviewTable({ data, variant }: CsvPreviewTableProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   if (data.length === 0) return null;
@@ -93,11 +109,13 @@ export function CsvPreviewTable({
   const colors =
     variant === 'green'
       ? {
-          badge: 'border-green-500/30 bg-green-50/50 hover:bg-green-100/50 text-green-700 dark:bg-green-950/10 dark:text-green-400 dark:hover:bg-green-950/20',
+          badge:
+            'border-green-500/30 bg-green-50/50 hover:bg-green-100/50 text-green-700 dark:bg-green-950/10 dark:text-green-400 dark:hover:bg-green-950/20',
           text: 'text-green-700 dark:text-green-400',
         }
       : {
-          badge: 'border-red-500/30 bg-red-50/50 hover:bg-red-100/50 text-red-700 dark:bg-red-950/10 dark:text-red-400 dark:hover:bg-red-950/20',
+          badge:
+            'border-red-500/30 bg-red-50/50 hover:bg-red-100/50 text-red-700 dark:bg-red-950/10 dark:text-red-400 dark:hover:bg-red-950/20',
           text: 'text-red-700 dark:text-red-400',
         };
 

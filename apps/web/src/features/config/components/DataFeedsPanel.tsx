@@ -6,7 +6,7 @@ import { selectedBlockchainAtom } from '@/store/global';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, Plus, Trash2, BarChart3 } from 'lucide-react';
+import { RefreshCw, Download, Plus, Trash2, BarChart3 } from 'lucide-react';
 import { useWriteContract } from 'wagmi';
 import { toast } from 'sonner';
 import { getEvmAbi } from '@/lib/utils';
@@ -32,8 +32,8 @@ export default function DataFeedsPanel() {
   const addRows = useMemo(() => {
     return addCsvData
       .map((row) => {
-        const token = (row.token || row.Token || Object.values(row)[0])?.trim();
-        const feed = (row.feed || row.Feed || Object.values(row)[1])?.trim();
+        const token = row['Token Address']?.trim();
+        const feed = row['Chainlink Data Feed']?.trim();
         return { token, feed };
       })
       .filter(
@@ -45,7 +45,7 @@ export default function DataFeedsPanel() {
 
   const removeAddresses = useMemo(() => {
     return removeCsvData
-      .map((row) => Object.values(row)[0]?.trim())
+      .map((row) => row['Token Address']?.trim())
       .filter((addr): addr is string => !!addr && addr.startsWith('0x') && addr.length === 42);
   }, [removeCsvData]);
 
@@ -112,16 +112,28 @@ export default function DataFeedsPanel() {
                 BASE ONLY
               </Badge>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={wlRefresh}
-              disabled={wlLoading}
-              className="border-custom-primary-color rounded-xl cursor-pointer"
-            >
-              <RefreshCw className={`w-3 h-3 mr-1 ${wlLoading ? 'animate-spin' : ''}`} />
-              {wlLoading ? 'Fetching...' : 'Load Whitelist'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={wlRefresh}
+                disabled={wlLoading}
+                className="border-custom-primary-color rounded-xl cursor-pointer"
+              >
+                <RefreshCw className={`w-3 h-3 mr-1 ${wlLoading ? 'animate-spin' : ''}`} />
+                {wlLoading ? 'Fetching...' : 'Load Whitelist'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="border-custom-primary-color rounded-xl cursor-pointer"
+              >
+                <a href="/templates/token_data_feeds_template.csv" download="token_data_feeds_template.csv">
+                  <Download className="w-3 h-3 mr-1" /> Template CSV
+                </a>
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="pt-0">
@@ -182,18 +194,18 @@ export default function DataFeedsPanel() {
               <Plus className="w-4 h-4 text-green-600" />
               <span className="font-bold text-sm">Add Data Feeds</span>
             </div>
-            <p className="text-xs text-custom-muted-text">CSV: token, dataFeed</p>
+            <p className="text-xs text-custom-muted-text">CSV: Token Address, Chainlink Data Feed</p>
           </CardHeader>
           <CardContent className="space-y-3">
             <CsvUploadPanel
               label="Upload CSV to Add Feeds"
-              hint="Format: token,dataFeed"
+              hint="Format: Token Address,Chainlink Data Feed"
               onParsed={setAddCsvData}
+              expectedHeaders={['Token Address', 'Chainlink Data Feed']}
               preview={
                 <CsvPreviewTable
                   data={addCsvData}
                   variant="green"
-                  label={`${addRows.length} row(s) parsed`}
                 />
               }
             />
@@ -214,18 +226,18 @@ export default function DataFeedsPanel() {
               <Trash2 className="w-4 h-4 text-red-500" />
               <span className="font-bold text-sm">Remove Data Feeds</span>
             </div>
-            <p className="text-xs text-custom-muted-text">CSV: token addresses to remove</p>
+            <p className="text-xs text-custom-muted-text">CSV: Token Address</p>
           </CardHeader>
           <CardContent className="space-y-3">
             <CsvUploadPanel
               label="Upload CSV to Remove Feeds"
-              hint="Format: token address (one per line)"
+              hint="Format: Token Address (one per line)"
               onParsed={setRemoveCsvData}
+              expectedHeaders={['Token Address']}
               preview={
                 <CsvPreviewTable
                   data={removeCsvData}
                   variant="red"
-                  label={`${removeAddresses.length} parsed`}
                 />
               }
             />

@@ -32,9 +32,9 @@ export default function TokenPoolsPanel() {
   const addRows = useMemo(() => {
     return addCsvData
       .map((row) => {
-        const token = (row.token || row.Token || Object.values(row)[0])?.trim();
-        const pool = (row.pool || row.Pool || Object.values(row)[1])?.trim();
-        const pairedToken = (row.pairedToken || row.pairedtoken || row.PairedToken || Object.values(row)[2])?.trim();
+        const token = row['Token Address']?.trim();
+        const pool = row['Uniswap V3 Pool']?.trim();
+        const pairedToken = row['Paired Token']?.trim();
         return { token, pool, pairedToken };
       })
       .filter(
@@ -47,7 +47,7 @@ export default function TokenPoolsPanel() {
 
   const removeAddresses = useMemo(() => {
     return removeCsvData
-      .map((row) => Object.values(row)[0]?.trim())
+      .map((row) => row['Token Address']?.trim())
       .filter((addr): addr is string => !!addr && addr.startsWith('0x') && addr.length === 42);
   }, [removeCsvData]);
 
@@ -132,6 +132,16 @@ export default function TokenPoolsPanel() {
                 <RefreshCw className={`w-3 h-3 mr-1 ${wlLoading ? 'animate-spin' : ''}`} />
                 {wlLoading ? 'Fetching...' : 'Load Whitelist'}
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="border-custom-primary-color rounded-xl cursor-pointer"
+              >
+                <a href="/templates/token_uniswap_pools_template.csv" download="token_uniswap_pools_template.csv">
+                  <Download className="w-3 h-3 mr-1" /> Template CSV
+                </a>
+              </Button>
               {whitelistData?.data && whitelistData.data.length > 0 && (
                 <Button
                   variant="outline"
@@ -139,7 +149,7 @@ export default function TokenPoolsPanel() {
                   onClick={handleDownload}
                   className="border-custom-primary-color rounded-xl cursor-pointer"
                 >
-                  <Download className="w-3 h-3 mr-1" /> Template CSV
+                  <Download className="w-3 h-3 mr-1" /> CSV
                 </Button>
               )}
             </div>
@@ -202,18 +212,18 @@ export default function TokenPoolsPanel() {
               <Plus className="w-4 h-4 text-green-600" />
               <span className="font-bold text-sm">Add Token Pools</span>
             </div>
-            <p className="text-xs text-custom-muted-text">CSV: token, pool, pairedToken</p>
+            <p className="text-xs text-custom-muted-text">CSV: Token Address, Uniswap V3 Pool, Paired Token</p>
           </CardHeader>
           <CardContent className="space-y-3">
             <CsvUploadPanel
               label="Upload CSV to Add Pools"
-              hint="Format: token,pool,pairedToken"
+              hint="Format: Token Address,Uniswap V3 Pool,Paired Token"
               onParsed={setAddCsvData}
+              expectedHeaders={['Token Address', 'Uniswap V3 Pool', 'Paired Token']}
               preview={
                 <CsvPreviewTable
                   data={addCsvData}
                   variant="green"
-                  label={`${addRows.length} row(s) parsed`}
                 />
               }
             />
@@ -234,18 +244,18 @@ export default function TokenPoolsPanel() {
               <Trash2 className="w-4 h-4 text-red-500" />
               <span className="font-bold text-sm">Remove Token Pools</span>
             </div>
-            <p className="text-xs text-custom-muted-text">CSV: token addresses to remove</p>
+            <p className="text-xs text-custom-muted-text">CSV: Token Address</p>
           </CardHeader>
           <CardContent className="space-y-3">
             <CsvUploadPanel
               label="Upload CSV to Remove Pools"
-              hint="Format: token address (one per line)"
+              hint="Format: Token Address (one per line)"
               onParsed={setRemoveCsvData}
+              expectedHeaders={['Token Address']}
               preview={
                 <CsvPreviewTable
                   data={removeCsvData}
                   variant="red"
-                  label={`${removeAddresses.length} parsed`}
                 />
               }
             />

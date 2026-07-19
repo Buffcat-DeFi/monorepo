@@ -29,13 +29,13 @@ export default function WhitelistPanel() {
 
   const addAddresses = useMemo(() => {
     return addCsvData
-      .map((row) => Object.values(row)[0]?.trim())
+      .map((row) => row['Token Address']?.trim())
       .filter((addr): addr is string => !!addr && addr.startsWith('0x') && addr.length === 42);
   }, [addCsvData]);
 
   const removeAddresses = useMemo(() => {
     return removeCsvData
-      .map((row) => Object.values(row)[0]?.trim())
+      .map((row) => row['Token Address']?.trim())
       .filter((addr): addr is string => !!addr && addr.startsWith('0x') && addr.length === 42);
   }, [removeCsvData]);
 
@@ -115,6 +115,16 @@ export default function WhitelistPanel() {
                 <RefreshCw className={`w-3 h-3 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
                 {isLoading ? 'Fetching...' : 'Fetch'}
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="border-custom-primary-color rounded-xl cursor-pointer"
+              >
+                <a href="/templates/whitelist_template.csv" download="whitelist_template.csv">
+                  <Download className="w-3 h-3 mr-1" /> Template CSV
+                </a>
+              </Button>
               {data?.data && data.data.length > 0 && (
                 <Button
                   variant="outline"
@@ -176,18 +186,18 @@ export default function WhitelistPanel() {
               <Plus className="w-4 h-4 text-green-600" />
               <span className="font-bold text-sm">Add Tokens</span>
             </div>
-            <p className="text-xs text-custom-muted-text">CSV: one address per line</p>
+            <p className="text-xs text-custom-muted-text">CSV: Token Address</p>
           </CardHeader>
           <CardContent className="space-y-3">
             <CsvUploadPanel
               label="Upload CSV to Whitelist"
-              hint="Format: address (one per line)"
+              hint="Format: Token Address (one per line)"
               onParsed={setAddCsvData}
+              expectedHeaders={['Token Address']}
               preview={
                 <CsvPreviewTable
                   data={addCsvData}
                   variant="green"
-                  label={`${addAddresses.length} address(es) parsed`}
                 />
               }
             />
@@ -208,18 +218,18 @@ export default function WhitelistPanel() {
               <Trash2 className="w-4 h-4 text-red-500" />
               <span className="font-bold text-sm">Remove Tokens</span>
             </div>
-            <p className="text-xs text-custom-muted-text">CSV: one address per line</p>
+            <p className="text-xs text-custom-muted-text">CSV: Token Address</p>
           </CardHeader>
           <CardContent className="space-y-3">
             <CsvUploadPanel
               label="Upload CSV to Blacklist"
-              hint="Format: address (one per line)"
+              hint="Format: Token Address (one per line)"
               onParsed={setRemoveCsvData}
+              expectedHeaders={['Token Address']}
               preview={
                 <CsvPreviewTable
                   data={removeCsvData}
                   variant="red"
-                  label={`${removeAddresses.length} address(es) parsed`}
                 />
               }
             />
