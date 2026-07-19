@@ -1,14 +1,7 @@
 import { Blockchain } from '@/types/global';
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
+import { StableCoinsResponse, TokenPoolResponse, DataFeedResponse } from '@/types/api';
 import {
-  WhitelistResponse,
-  StableCoinsResponse,
-  TokenPoolResponse,
-  DataFeedResponse,
-} from '@/types/api';
-import {
-  getCachedWhitelist,
-  clearCachedWhitelist,
   getCachedStableCoins,
   clearCachedStableCoins,
   getCachedTokenPool,
@@ -16,41 +9,7 @@ import {
   getCachedDataFeed,
   clearCachedDataFeed,
 } from '../../../../cache/config';
-import {
-  fetchWhitelist,
-  fetchStableCoins,
-  fetchTokenPool,
-  fetchDataFeed,
-} from '../../services/query/contract';
-
-export function useWhitelist(
-  chain: Blockchain,
-  options?: Omit<UseQueryOptions<WhitelistResponse, Error>, 'queryKey' | 'queryFn'>,
-) {
-  const enabled = !!chain;
-
-  const query = useQuery<WhitelistResponse, Error>({
-    queryKey: ['whitelist', chain?.id],
-    enabled,
-    staleTime: Infinity,
-    gcTime: 5 * 60_000,
-    queryFn: async () => {
-      const cachedData = getCachedWhitelist(chain.id);
-      if (cachedData.isCached && cachedData.value !== null) {
-        return cachedData.value;
-      }
-      return fetchWhitelist(chain.id);
-    },
-    ...options,
-  });
-
-  const refresh = async () => {
-    clearCachedWhitelist(chain.id);
-    return query.refetch();
-  };
-
-  return { ...query, refresh };
-}
+import { fetchStableCoins, fetchTokenPool, fetchDataFeed } from '../../services/query/contract';
 
 export function useStableCoins(
   chain: Blockchain,

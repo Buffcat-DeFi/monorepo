@@ -11,7 +11,7 @@ import { useWriteContract } from 'wagmi';
 import { toast } from 'sonner';
 import { getEvmAbi } from '@/lib/utils';
 import { useTransactionDialog } from '@/hooks/transactionDialogHook';
-import { useWhitelist } from '../hooks/query/contract';
+import { useWhitelist } from '@/hooks/query/contract';
 import { downloadCsv, getContractAddress } from '../lib/utils';
 import TokenRow from './TokenRow';
 import PoolDetailModal from './PoolDetailModal';
@@ -19,7 +19,12 @@ import { CsvUploadPanel, CsvPreviewTable } from './UploadInterface';
 
 export default function TokenPoolsPanel() {
   const chain = useAtomValue(selectedBlockchainAtom);
-  const { data: whitelistData, isLoading: wlLoading, isFetching: wlFetching, refresh: wlRefresh } = useWhitelist(chain);
+  const {
+    data: whitelistData,
+    isLoading: wlLoading,
+    isFetching: wlFetching,
+    refresh: wlRefresh,
+  } = useWhitelist(chain);
   const { writeContractAsync } = useWriteContract();
   const { withConfirmation } = useTransactionDialog();
   const buffcatAbi = useMemo(() => getEvmAbi(chain.id), [chain.id]);

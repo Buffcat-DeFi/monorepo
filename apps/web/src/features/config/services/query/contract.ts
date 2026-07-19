@@ -12,16 +12,6 @@ import {
   cacheDataFeed,
 } from '../../../../cache/config';
 
-export async function fetchWhitelist(chain: SupportedBlockchain): Promise<WhitelistResponse> {
-  const response = await fetch(`/api/contract/whitelist?chain=${chain}`);
-  const payload = await response.json();
-  if (response.ok) {
-    cacheWhitelist(chain, payload);
-    return payload;
-  }
-  throw new Error(payload.message || 'Failed to fetch whitelist');
-}
-
 export async function fetchStableCoins(chain: SupportedBlockchain): Promise<StableCoinsResponse> {
   const response = await fetch(`/api/contract/stable?chain=${chain}`);
   const payload = await response.json();

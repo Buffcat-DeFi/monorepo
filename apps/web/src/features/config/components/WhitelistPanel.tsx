@@ -11,7 +11,7 @@ import { useWriteContract } from 'wagmi';
 import { toast } from 'sonner';
 import { getEvmAbi } from '@/lib/utils';
 import { useTransactionDialog } from '@/hooks/transactionDialogHook';
-import { useWhitelist } from '../hooks/query/contract';
+import { useWhitelist } from '@/hooks/query/contract';
 import { downloadCsv, getContractAddress } from '../lib/utils';
 import TokenRow from './TokenRow';
 import { CsvUploadPanel, CsvPreviewTable } from './UploadInterface';
