@@ -571,6 +571,7 @@ contract BuffCatUpgradeable is
     uint256 daysOfUnclaimed
   ) external nonReentrant whenNotPaused {
     LockInfo storage lock = userLocks[msg.sender][_lockId];
+    if (!whitelistedTokens[lock.lockedToken]) revert InvalidToken();
     if (lock.amount == 0) revert InvalidUserLockId();
     if (_tokens.length == 0) revert InvalidAddress();
 
