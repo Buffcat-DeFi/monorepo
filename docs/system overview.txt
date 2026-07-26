@@ -1,0 +1,32 @@
+Buffcat System - 
+
+1. Reward Pools - There are two pools in Buffcat, one for non-stable tokens and one for stable tokens. Tokens marked as stable go into stable pool and vice versa. 80% of fees collected from lock, unlock or rewards claim is put into respective pools.
+
+2. Daily Claim Limits - Every day the contracts sets a limited amount of each pool to be claimed by users. 10% of non stable reward pool & 0.00003% of stable reward pool.
+
+3. Locking - You can only lock whitelisted tokens. The minimum lock value is 500 not 500 tokens literal 500 units. You can set the lock duration from a day to upto 3000 days. Locks can flexible or fixed. You can the address of an existing buffcat user as a referral which will give you a boost multiplier when claiming rewards.
+
+4. Unlocking -  You can unlock your tokens anytime if the lock is flexible otherwise you have to wait untill the set time period ends before you can unlock. This will affect your next rewards claim.
+
+5. Claiming Rewards - You can claim tokens accumulated in buffcat's reward pool with an interval of a day since lock/last claim. You can get boosted rewards depending on lock duration, how many unique tokens you have locked and if you added a referral when locking. Lastly, rewards are limited by the daily claim limit of non stable and stable token reward pools.
+
+Lock Duration Boosts -
+30+ Days → 0.3% Boost
+60+ Days → 0.5% Boost
+120+ Days → 0.7% Boost
+
+Token Diversity Boosts -
+2+ Unique Tokens Locked → 0.3% Boost
+3+ Unique Tokens Locked → 0.5% Boost
+6+ Unique Tokens Locked → 0.7% Boost
+
+Active Referral → +0.5% Boost
+
+Max Multiplier Boost - +1.9% (0.7 + 0.7 + 0.5)
+
+Boosts are only applied if your lock has more than 3% of locked amount left and the lock has completed half of it's set duration. Plus rewards are calculated based on the current lock amount which deducts unlocked amount.
+
+6. Fees - We will take 5% fees from all locks, unlocks and reward claims and distribute 20% to the team and rest 80% will be put in the pools
+
+7. Whitelist - We can maintain a strict list of whitelisted tokens to avoid scam coins. Any token whitelisted before can be blacklisted anytime. On sudden blacklist you can only unlock your tokens but not claim rewards from them or lock them again.
+

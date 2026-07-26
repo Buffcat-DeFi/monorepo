@@ -22,16 +22,16 @@ const footerLinks = [
     href: "mailto:twosidefinance@gmail.com",
     icon: Mail,
   },
-  {
-    label: "Audit Report",
-    href: "/files/audit.pdf",
-    icon: FileCheck2,
-  },
-  {
-    label: "Litepaper",
-    href: "/files/litepaper.pdf",
-    icon: FileText,
-  },
+  // {
+  //   label: "Audit Report",
+  //   href: "/files/audit.pdf",
+  //   icon: FileCheck2,
+  // },
+  // {
+  //   label: "Litepaper",
+  //   href: "/files/litepaper.pdf",
+  //   icon: FileText,
+  // },
 ];
 
 export function Footer() {
@@ -61,13 +61,12 @@ export function Footer() {
               </div>
 
               <h2 className="mb-4 text-[34px] font-extrabold leading-[0.95] tracking-[-1px] text-custom-tertiary-text sm:text-[44px] sm:tracking-[-2px] md:text-[56px] lg:text-[72px] lg:tracking-[-4px]">
-                TWOSIDE
+                BUFFCAT
               </h2>
 
               <p className="max-w-[900px] text-sm font-medium leading-7 text-custom-tertiary-text/70 sm:text-base sm:leading-8 md:max-w-[760px] lg:text-[20px] lg:leading-9">
-                Twoside transforms any coin into tradeable derivatives. Lock
-                tokens, mint liquid locked tokens at 1:1, and unlock new DeFi
-                opportunities without selling your holdings.
+                Buffcat enables users to earn secondary income from their tokens.
+                By locking tokens into the protocol, users can claim rewards accumulated in Buffcat's reward pool.
               </p>
             </div>
 
@@ -126,7 +125,7 @@ export function Footer() {
 
                   <div>
                     <div className="text-sm font-extrabold tracking-wide text-custom-tertiary-text">
-                      TWOSIDE
+                      BUFFCAT
                     </div>
 
                     <div className="text-[11px] text-custom-tertiary-text/50 sm:text-xs">
@@ -136,7 +135,7 @@ export function Footer() {
                 </div>
 
                 <div className="text-[11px] font-medium tracking-wide text-custom-tertiary-text/50 sm:text-sm">
-                  © 2025 Twoside. All rights reserved.
+                  © 2026 Buffcat. All rights reserved.
                 </div>
               </div>
             </div>

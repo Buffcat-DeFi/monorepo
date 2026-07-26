@@ -310,21 +310,21 @@ export const UseCases = () => {
           >
             <div className="h-2.5 w-2.5 rounded-full bg-[#00bfff] shadow-[0_0_12px_#00bfff]" />
             <span className="text-[11px] font-extrabold tracking-[0.18em] text-custom-primary-text sm:text-xs">
-              INFINITE DEFI COMPOSABILITY
+              PASSIVE YIELD ENGINE
             </span>
           </div>
 
           <h2 className="mb-5 text-[42px] font-extrabold leading-[0.95] tracking-[-2px] text-custom-primary-text sm:text-[58px] md:text-[72px] lg:text-[92px]">
-            Unlock Infinite
+            Unlock Secondary
             <br />
             <span className="crypto-orange-gradient bg-clip-text text-transparent">
-              Possibilities.
+              Income.
             </span>
           </h2>
 
           <p className="mx-auto max-w-[760px] text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8 md:text-xl">
-            Twoside transforms locked positions into productive on-chain assets,
-            enabling lending, farming, hedging, and liquidity generation.
+            Buffcat turns your idle tokens into daily reward streams. Deposit assets, stack multiplier boosts,
+            and claim yield on-chain without selling your portfolio.
           </p>
         </motion.div>
 

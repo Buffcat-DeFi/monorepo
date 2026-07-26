@@ -11,6 +11,8 @@ import {
 } from '@/store/global';
 import { motion } from 'motion/react';
 import { HowItWorks } from '@/components/HowItWorks';
+import { FeesSection } from '@/components/FeesSection';
+import { WhitelistSection } from '@/components/WhitelistSection';
 import { UseCases } from '@/components/UseCases';
 import ClaimRewardsPanel from './ClaimRewardsPanel';
 import {
@@ -125,9 +127,9 @@ export default function Dashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
       >
-        Yield Without
+        Earn Secondary Income
         <br />
-        <span className="crypto-orange-gradient">Impermanent Loss</span>
+        <span className="crypto-orange-gradient">From Your Tokens</span>
       </motion.h1>
       <section
         className="mx-auto mt-6 mb-12 w-full md:w-130 rounded-2xl p-4
@@ -216,18 +218,11 @@ export default function Dashboard() {
           </div>
         </Tabs>
       </section>
-      <motion.p
-        className="text-lg md:text-md text-muted-foreground mb-8
-                    lg:mx-0 text-center w-full mx-auto md:px-40 lg:px-80"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-      >
-        Buffcat lets you lock your tokens and earn secondary income in form of daily rewards.
-      </motion.p>
       <HowItWorks />
-      <UseCases />
-      <TrustSection />
+      <FeesSection />
+      <WhitelistSection />
+      {/*<UseCases />*/}
+      {/*<TrustSection />*/}
     </div>
   );
 }

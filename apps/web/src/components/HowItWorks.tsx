@@ -6,9 +6,9 @@ import { Card } from "@/components/ui/card";
 const steps = [
   {
     number: "01",
-    title: "Lock Assets",
+    title: "Lock Duration",
     description:
-      "Deposit supported tokens into transparent, auditable smart contracts secured fully on-chain.",
+      "Earn passive yield boosts simply by committing your assets for longer periods.",
     icon: Lock,
     accent: "bg-[#4c8dff]",
     glow: "bg-[#4c8dff]/10",
@@ -16,9 +16,9 @@ const steps = [
   },
   {
     number: "02",
-    title: "Mint liTOKENS",
+    title: "Token Diversity",
     description:
-      "Receive liquid derivatives at a 1:1 ratio that can move freely across DeFi ecosystems.",
+      "Spread your portfolio across multiple valid tokens to stack higher reward multipliers.",
     icon: Coins,
     accent: "bg-[#ffcc33]",
     glow: "bg-[#ffcc33]/10",
@@ -26,9 +26,9 @@ const steps = [
   },
   {
     number: "03",
-    title: "Trade Or Redeem",
+    title: "Referral Boost",
     description:
-      "Use derivatives in liquidity pools, lending markets, or redeem anytime for underlying assets.",
+      "Activate a referral or invite friends to gain a temporary one-time boost across your active vaults.",
     icon: TrendingUp,
     accent: "bg-[#e71d36]",
     glow: "bg-[#e71d36]/10",
@@ -38,8 +38,8 @@ const steps = [
 
 const stats = [
   {
-    label: "Mint Ratio",
-    value: "1 TOKEN = 1 liTOKEN",
+    label: "Max Multiplier Boost",
+    value: "+1.9% (0.7 + 0.7 + 0.5)",
   },
   {
     label: "Protocol Fee",
@@ -47,8 +47,8 @@ const stats = [
     valueClass: "text-[#e71d36]",
   },
   {
-    label: "Unlock Time",
-    value: "ANYTIME",
+    label: "Redemption Interval",
+    value: "1 Day",
     valueClass: "crypto-orange-gradient bg-clip-text text-transparent",
   },
 ];
@@ -86,18 +86,18 @@ export const HowItWorks = () => {
           <h2
             className="mb-5 text-[40px] font-extrabold leading-[0.95] tracking-[-2px]
         text-custom-primary-text sm:text-[56px] sm:tracking-[-3px]
-        md:text-[72px] lg:text-[92px] lg:tracking-[-5px]"
+        md:text-[72px] lg:text-[92px] lg:tracking-[-5px] whitespace-nowrap"
           >
-            How Twoside
+            How Buffcat
             <br />
             <span className="crypto-orange-gradient bg-clip-text text-transparent">
-              Unlocks Liquidity.
+              Distributes Rewards.
             </span>
           </h2>
 
           <p className="mx-auto max-w-[720px] text-sm leading-7 text-muted-foreground sm:text-base sm:leading-8 md:text-lg lg:text-xl lg:leading-9">
-            Convert locked positions into composable liquid derivatives without
-            giving up exposure to your original assets.
+            Maximize your yield with stackable multiplier boosts.
+            Lock longer, diversify your positions, and invite friends to unlock higher rewards.
           </p>
         </motion.div>
 
@@ -184,7 +184,7 @@ export const HowItWorks = () => {
                         />
 
                         <div className="text-[10px] font-extrabold tracking-[0.18em] text-custom-muted-text sm:text-xs sm:tracking-[0.2em]">
-                          STEP {step.number}
+                          BOOST {step.number}
                         </div>
                       </div>
 
@@ -242,21 +242,20 @@ export const HowItWorks = () => {
                     <ShieldCheck className="h-4 w-4 text-[#19d67c]" />
 
                     <span className="text-[10px] font-extrabold tracking-[0.18em] text-custom-tertiary-text/70 sm:text-[11px]">
-                      PROTOCOL GUARANTEES
+                      MAXIMIZE YOUR BOOST
                     </span>
                   </div>
 
                   <h3 className="text-[30px] font-extrabold leading-none tracking-[-2px] sm:text-[40px] lg:text-[54px]">
                     Designed For
                     <span className="block crypto-orange-gradient bg-clip-text text-transparent">
-                      Flexible Liquidity.
+                      Stackable Yields.
                     </span>
                   </h3>
                 </div>
 
                 <p className="max-w-[520px] text-sm leading-7 text-custom-tertiary-text/60 sm:text-base sm:leading-8">
-                  liTOKENS maintain 1:1 backing while enabling broader capital
-                  efficiency across DeFi markets and liquidity layers.
+                  Combine long lockups, asset diversity, and referral codes to maximize your yield multipliers on every single deposit.
                 </p>
               </div>
 
