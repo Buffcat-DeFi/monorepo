@@ -4,14 +4,12 @@ pragma solidity ^0.8.28;
 import {Test, console} from '../../../lib/forge-std/src/Test.sol';
 import {BuffCatUpgradeable, LockType, LockInfo} from '../../../src/BuffCat.sol';
 import {MockERC20} from './MockERC20.sol';
-import {FeedRegistryInterface} from '../../../lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/FeedRegistryInterface.sol';
 import {Denominations} from '../../../lib/chainlink-brownie-contracts/contracts/src/v0.8/Denominations.sol';
 import {AggregatorV2V3Interface} from '../../../lib/chainlink-brownie-contracts/contracts/src/v0.8/shared/interfaces/AggregatorV2V3Interface.sol';
 import {ERC1967Proxy} from '../../../lib/openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol';
 import '../../../lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol';
 import '../../../lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 import '../../../lib/openzeppelin-contracts-upgradeable/contracts/utils/PausableUpgradeable.sol';
-import {MockFeedRegistry} from './MockFeedRegistry.sol';
 import {IUniswapV3Factory} from '../../../lib/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
 import {IUniswapV3Pool} from '../../../lib/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import {FixedPoint96} from '../../../lib/v3-core/contracts/libraries/FixedPoint96.sol';
@@ -22,10 +20,10 @@ import '@uniswap/v3-core/contracts/libraries/TickMath.sol';
 import '../../../lib/v3-periphery/contracts/libraries/LiquidityAmounts.sol';
 import '../../../lib/v3-core/contracts/interfaces/callback/IUniswapV3MintCallback.sol';
 import '../../../lib/openzeppelin-contracts/contracts/utils/math/Math.sol';
+import {MockAggregator} from "./MockAggregator.sol";
 
 contract TestSetUp is Test, IUniswapV3MintCallback {
   BuffCatUpgradeable public buffCat;
-  MockFeedRegistry public registry;
   IUniswapV3Factory public factory;
   address constant UNISWAP_V3_FACTORY = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
   address public pool;
@@ -54,12 +52,20 @@ contract TestSetUp is Test, IUniswapV3MintCallback {
 
   uint256 public USD_SCALER = 1e6;
 
+  MockAggregator public token1Feed;
+  MockAggregator public token2Feed;
+  MockAggregator public token3Feed;
+  MockAggregator public token4Feed;
+  MockAggregator public token5Feed;
+  MockAggregator public token6Feed;
+  MockAggregator public token7Feed;
+  MockAggregator public usdcFeed;
+  MockAggregator public usdtFeed;
+
   function setUp() public {
     // Fork mainnet for testing
     // vm.createSelectFork("https://eth-mainnet.g.alchemy.com/v2/reRHZn-g99QDHwJ1yuBt41gN4yyQ_S_S");
     vm.deal(address(this), 10 ether); // Give 10 ether to this contract
-    // Deploy mock registry
-    registry = new MockFeedRegistry();
     // deploy Uniswap V3 factory
     vm.createSelectFork(vm.envString('MAINNET_RPC_URL'));
     factory = IUniswapV3Factory(UNISWAP_V3_FACTORY);
@@ -104,7 +110,6 @@ contract TestSetUp is Test, IUniswapV3MintCallback {
       BuffCatUpgradeable.initialize.selector,
       developerWallet,
       founderWallet,
-      registry,
       factory
     );
 
@@ -123,16 +128,41 @@ contract TestSetUp is Test, IUniswapV3MintCallback {
     uint256 length = 1;
     buffCat.addTokenPools(tokens, pools, pairedTokens, length);
 
-    // Set up mock prices
-    registry.setPrice(address(token1), Denominations.USD, int256(2000 * 10 ** 8)); // $2000
-    registry.setPrice(address(token2), Denominations.USD, int256(60000 * 10 ** 8)); // $60000
-    registry.setPrice(address(token3), Denominations.USD, int256(1 * 10 ** 8)); // $1
-    registry.setPrice(address(token4), Denominations.USD, int256(1 * 10 ** 8)); // $1
-    registry.setPrice(address(token5), Denominations.USD, int256(1 * 10 ** 8)); // $1
-    registry.setPrice(address(token6), Denominations.USD, int256(1 * 10 ** 8)); // $1
-    registry.setPrice(address(token7), Denominations.USD, int256(2000 * 10 ** 8));
-    registry.setPrice(address(usdc), Denominations.USD, int256(17 * 10 ** 8)); // $17
-    registry.setPrice(address(usdt), Denominations.USD, int256(1 * 10 ** 8)); // $1
+    // Deploy and set up individual data feeds (same price scaled to 8 decimals)
+    token1Feed = new MockAggregator(8, int256(2000 * 10 ** 8)); // $2000
+    token2Feed = new MockAggregator(8, int256(60000 * 10 ** 8)); // $60000
+    token3Feed = new MockAggregator(8, int256(1 * 10 ** 8)); // $1
+    token4Feed = new MockAggregator(8, int256(1 * 10 ** 8)); // $1
+    token5Feed = new MockAggregator(8, int256(1 * 10 ** 8)); // $1
+    token6Feed = new MockAggregator(8, int256(1 * 10 ** 8)); // $1
+    token7Feed = new MockAggregator(8, int256(2000 * 10 ** 8));
+    usdcFeed = new MockAggregator(8, int256(17 * 10 ** 8)); // $17
+    usdtFeed = new MockAggregator(8, int256(1 * 10 ** 8)); // $1
+
+    // Add all data feeds to BuffCat
+    address[] memory dataFeeds = new address[](9);
+    dataFeeds[0] = address(token1Feed);
+    dataFeeds[1] = address(token2Feed);
+    dataFeeds[2] = address(token3Feed);
+    dataFeeds[3] = address(token4Feed);
+    dataFeeds[4] = address(token5Feed);
+    dataFeeds[5] = address(token6Feed);
+    dataFeeds[6] = address(token7Feed);
+    dataFeeds[7] = address(usdcFeed);
+    dataFeeds[8] = address(usdtFeed);
+
+    address[] memory dataFeedTokens = new address[](9);
+    dataFeedTokens[0] = address(token1);
+    dataFeedTokens[1] = address(token2);
+    dataFeedTokens[2] = address(token3);
+    dataFeedTokens[3] = address(token4);
+    dataFeedTokens[4] = address(token5);
+    dataFeedTokens[5] = address(token6);
+    dataFeedTokens[6] = address(token7);
+    dataFeedTokens[7] = address(usdc);
+    dataFeedTokens[8] = address(usdt);
+
+    buffCat.addDataFeeds(dataFeedTokens, dataFeeds);
 
     // Whitelist stablecoins
     // buffCat.addStableCoin(address(token3));

@@ -2,8 +2,7 @@
 pragma solidity ^0.8.28;
 
 // Chainlink Importss
-import {FeedRegistryInterface} from '../lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/FeedRegistryInterface.sol';
-import {Denominations} from '../lib/chainlink-brownie-contracts/contracts/src/v0.8/Denominations.sol';
+import '../lib/chainlink-brownie-contracts/contracts/src/v0.8/shared/interfaces/AggregatorV2V3Interface.sol';
 
 // OpenZeppelin (Standard) Imports
 import '../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol';
@@ -63,10 +62,10 @@ contract BuffCatUpgradeable is
 {
   using SafeERC20 for IERC20;
 
-  FeedRegistryInterface internal registry; // Chainlink Feedv Registry on mainet
+  mapping(address => address) public dataFeeds;
   IUniswapV3Factory public factory; // Uniswap V3 factory on mainnet
   uint32 public TWAP_PERIOD = 300; // 5 minutes
-  mapping(address => TokenPool) public tokenPools;
+  mapping(address => TokenPool) tokenPools;
   address public developerWallet;
   address public founderWallet;
 
@@ -127,6 +126,8 @@ contract BuffCatUpgradeable is
   event TokenBlacklisted(address token, uint256 timestamp);
   event TokenAndPoolAdded(address token, address pool, address pairToken, uint256 timestamp);
   event TokenAndPoolRemoved(address token, address pool, address pairToken, uint256 timestamp);
+  event DataFeedAdded(address token, address dataFeed, uint256 timestamp);
+  event DataFeedRemoved(address token, address dataFeed, uint256 timestamp);
 
   // Events for user actions
   event LockCreated(
@@ -191,7 +192,6 @@ contract BuffCatUpgradeable is
   function initialize(
     address _developerWallet,
     address _founderWallet,
-    address _registry,
     address _factory
   ) public initializer {
     // Initialize OpenZeppelin contracts
@@ -202,7 +202,6 @@ contract BuffCatUpgradeable is
     developerWallet = _developerWallet;
     founderWallet = _founderWallet;
 
-    registry = FeedRegistryInterface(_registry);
     factory = IUniswapV3Factory(_factory);
     TWAP_PERIOD = 300; // 5 minutes
 
@@ -887,25 +886,27 @@ contract BuffCatUpgradeable is
    * @return Current price of the token
    */
   function getPrice(address token) internal returns (uint256, uint8, uint8) {
-    (, int256 price, , , ) = registry.latestRoundData(token, Denominations.USD);
+    address feed = dataFeeds[token];
 
-    // Use cached decimals if available, otherwise fetch and cache them
-    uint8 feedDecimals = feedDecimalsCache[token];
-    uint8 tokenDecimals = tokenDecimalsCache[token];
-
-    if (feedDecimals == 0) {
-      feedDecimals = registry.decimals(token, Denominations.USD);
-      feedDecimalsCache[token] = feedDecimals;
-    }
-
-    if (tokenDecimals == 0) {
-      tokenDecimals = IERC20Metadata(token).decimals();
-      tokenDecimalsCache[token] = tokenDecimals;
-    }
-
-    if (price <= 0) {
+    if (feed == address(0)) {
       return getTwapPrice(token);
     } else {
+      (, int256 price, , , ) = AggregatorV2V3Interface(feed).latestRoundData();
+
+      // Use cached decimals if available, otherwise fetch and cache them
+      uint8 feedDecimals = feedDecimalsCache[token];
+      uint8 tokenDecimals = tokenDecimalsCache[token];
+
+      if (feedDecimals == 0) {
+        feedDecimals = AggregatorV2V3Interface(feed).decimals();
+        feedDecimalsCache[token] = feedDecimals;
+      }
+
+      if (tokenDecimals == 0) {
+        tokenDecimals = IERC20Metadata(token).decimals();
+        tokenDecimalsCache[token] = tokenDecimals;
+      }
+
       // Calculate price per wei with 18 decimals of precision
       return (uint256(price), feedDecimals, tokenDecimals);
     }
@@ -915,6 +916,7 @@ contract BuffCatUpgradeable is
     TokenPool storage tokenPool = tokenPools[token];
     address pool = tokenPool.pool;
     address pairToken = tokenPool.pairedToken;
+    address pairTokenFeed = dataFeeds[pairToken];
 
     uint160 sqrtPriceX96 = getSqrtTwapX96(pool);
 
@@ -925,7 +927,7 @@ contract BuffCatUpgradeable is
     uint8 pairTokenDecimals = tokenDecimalsCache[pairToken];
 
     if (pairTokenFeedDecimals == 0) {
-      pairTokenFeedDecimals = registry.decimals(pairToken, Denominations.USD);
+      pairTokenFeedDecimals = AggregatorV2V3Interface(pairTokenFeed).decimals();
       feedDecimalsCache[pairToken] = pairTokenFeedDecimals;
     }
 
@@ -934,7 +936,7 @@ contract BuffCatUpgradeable is
       tokenDecimalsCache[pairToken] = pairTokenDecimals;
     }
 
-    (, int256 pairTokenPrice, , , ) = registry.latestRoundData(pairToken, Denominations.USD);
+    (, int256 pairTokenPrice, , , ) = AggregatorV2V3Interface(pairTokenFeed).latestRoundData();
 
     uint256 tokenPrice = (quoteAmount * uint256(pairTokenPrice) * 1e8) /
       (10 ** (pairTokenFeedDecimals + pairTokenDecimals));
@@ -1045,6 +1047,27 @@ contract BuffCatUpgradeable is
       emit TokenAndPoolRemoved(_tokens[i], tokenPool.pool, tokenPool.pairedToken, block.timestamp);
       tokenPool.pool = address(0);
       tokenPool.pairedToken = address(0);
+    }
+  }
+
+  function addDataFeeds(
+    address[] calldata _tokens,
+    address[] calldata _dataFeeds
+  ) external onlyAuthorized {
+    if (_tokens.length != _dataFeeds.length) revert InvalidInput();
+    for (uint256 i = 0; i < _dataFeeds.length; i++) {
+      if (_tokens[i] == address(0)) revert InvalidInput();
+      if (_dataFeeds[i] == address(0)) revert InvalidInput();
+      dataFeeds[_tokens[i]] = _dataFeeds[i];
+      emit DataFeedAdded(_tokens[i], _dataFeeds[i], block.timestamp);
+    }
+  }
+
+  function removeDataFeeds(address[] calldata _tokens) external onlyAuthorized {
+    for (uint256 i = 0; i < _tokens.length; i++) {
+      if (_tokens[i] == address(0)) revert InvalidInput();
+      emit DataFeedRemoved(_tokens[i], dataFeeds[_tokens[i]], block.timestamp);
+      dataFeeds[_tokens[i]] = address(0);
     }
   }
 

@@ -887,25 +887,26 @@ contract BuffCatUpgradeable is
    */
   function getPrice(address token) internal returns (uint256, uint8, uint8) {
     address feed = dataFeeds[token];
-    (, int256 price, , , ) = AggregatorV2V3Interface(feed).latestRoundData();
 
-    // Use cached decimals if available, otherwise fetch and cache them
-    uint8 feedDecimals = feedDecimalsCache[token];
-    uint8 tokenDecimals = tokenDecimalsCache[token];
-
-    if (feedDecimals == 0) {
-      feedDecimals = AggregatorV2V3Interface(feed).decimals();
-      feedDecimalsCache[token] = feedDecimals;
-    }
-
-    if (tokenDecimals == 0) {
-      tokenDecimals = IERC20Metadata(token).decimals();
-      tokenDecimalsCache[token] = tokenDecimals;
-    }
-
-    if (price <= 0) {
+    if (feed == address(0)) {
       return getTwapPrice(token);
     } else {
+      (, int256 price, , , ) = AggregatorV2V3Interface(feed).latestRoundData();
+
+      // Use cached decimals if available, otherwise fetch and cache them
+      uint8 feedDecimals = feedDecimalsCache[token];
+      uint8 tokenDecimals = tokenDecimalsCache[token];
+
+      if (feedDecimals == 0) {
+        feedDecimals = AggregatorV2V3Interface(feed).decimals();
+        feedDecimalsCache[token] = feedDecimals;
+      }
+
+      if (tokenDecimals == 0) {
+        tokenDecimals = IERC20Metadata(token).decimals();
+        tokenDecimalsCache[token] = tokenDecimals;
+      }
+
       // Calculate price per wei with 18 decimals of precision
       return (uint256(price), feedDecimals, tokenDecimals);
     }

@@ -10,8 +10,7 @@ contract DeployBuffCatUpgradeableOnMainnet is Script {
         address developerPublicKey = vm.envAddress("DEVELOPER_PUBLIC_KEY");
         address founderPublicKey = vm.envAddress("FOUNDER_PUBLIC_KEY");
 
-        address chainlinkFeedRegistryPublicKey = vm.envAddress("CHAINLINK_FEED_REGISTRY_ADDRESS");
-        address uniswapPublicKey = vm.envAddress("UNISWAP_ADDRESS");
+        address uniswapV3PublicKey = vm.envAddress("UNISWAP_V3_ADDRESS");
 
         uint256 ownerPrivateKey = vm.envUint("OWNER_PRIVATE_KEY");
         address ownerPublicKey = vm.addr(ownerPrivateKey);
@@ -33,8 +32,7 @@ contract DeployBuffCatUpgradeableOnMainnet is Script {
             BuffCatUpgradeable.initialize.selector,
             developerPublicKey,
             founderPublicKey,
-            chainlinkFeedRegistryPublicKey,
-            uniswapPublicKey
+            uniswapV3PublicKey
         );
         ERC1967Proxy proxy = new ERC1967Proxy(address(buffcatImpl), data);
 
