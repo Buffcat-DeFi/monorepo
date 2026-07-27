@@ -1,11 +1,10 @@
 'use client';
-
 import { AnimatePresence, motion } from 'motion/react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Database, Coins, BarChart3, Link2 } from 'lucide-react';
 import { useAtomValue } from 'jotai';
 import { selectedBlockchainAtom } from '@/store/global';
-import { useState, useEffect, useMemo } from 'react';
+import { useState } from 'react';
 import WhitelistPanel from './WhitelistPanel';
 import StableCoinsPanel from './StableCoinsPanel';
 import TokenPoolsPanel from './TokenPoolsPanel';
@@ -22,26 +21,10 @@ export default function ConfigDashboard() {
   const chain = useAtomValue(selectedBlockchainAtom);
   const [activeTab, setActiveTab] = useState('whitelist');
 
-  // Hides the Data Feeds tab if the selected blockchain is not base
-  const visibleTabs = useMemo(() => {
-    if (chain?.id === 'base') {
-      return tabs;
-    }
-    return tabs.filter((t) => t.value !== 'feeds');
-  }, [chain?.id]);
-
-  // If the active tab becomes unavailable (e.g. switching to Ethereum while on Data Feeds),
-  // automatically fallback to the Whitelist tab.
-  useEffect(() => {
-    if (chain?.id !== 'base' && activeTab === 'feeds') {
-      setActiveTab('whitelist');
-    }
-  }, [chain?.id, activeTab]);
-
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList className="w-full bg-transparent flex justify-start items-center border-b-2 border-gray-200 rounded-none pb-1 mb-6 gap-1 overflow-x-auto no-scrollbar">
-        {visibleTabs.map(({ value, label, icon: Icon }) => (
+        {tabs.map(({ value, label, icon: Icon }) => (
           <TabsTrigger
             key={value}
             value={value}
@@ -95,19 +78,17 @@ export default function ConfigDashboard() {
           </motion.div>
         </TabsContent>
 
-        {chain?.id === 'base' && (
-          <TabsContent key="feeds" value="feeds" className="mt-0">
-            <motion.div
-              key="feeds"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              <DataFeedsPanel />
-            </motion.div>
-          </TabsContent>
-        )}
+        <TabsContent key="feeds" value="feeds" className="mt-0">
+          <motion.div
+            key="feeds"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <DataFeedsPanel />
+          </motion.div>
+        </TabsContent>
       </AnimatePresence>
     </Tabs>
   );

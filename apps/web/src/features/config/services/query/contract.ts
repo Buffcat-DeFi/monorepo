@@ -1,12 +1,10 @@
 import { SupportedBlockchain } from '@/types/global';
 import {
-  WhitelistResponse,
   StableCoinsResponse,
   TokenPoolResponse,
   DataFeedResponse,
 } from '@/types/api';
 import {
-  cacheWhitelist,
   cacheStableCoins,
   cacheTokenPool,
   cacheDataFeed,

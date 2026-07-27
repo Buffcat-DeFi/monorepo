@@ -65,7 +65,7 @@ contract BuffCatUpgradeable is
   mapping(address => address) public dataFeeds;
   IUniswapV3Factory public factory; // Uniswap V3 factory on mainnet
   uint32 public TWAP_PERIOD = 300; // 5 minutes
-  mapping(address => TokenPool) tokenPools;
+  mapping(address => TokenPool) public tokenPools;
   address public developerWallet;
   address public founderWallet;
 
@@ -98,8 +98,10 @@ contract BuffCatUpgradeable is
 
   uint256 public lastClaimLimitUpdateTimestamp;
   mapping(address => bool) public whitelistedTokens; // Tokens that are whitelisted for locking
+  mapping(address => uint256) public whitelistIndex; // 0 means "not present"
   address[] public tokensWhitelist; // List of all whitelisted tokens
   mapping(address => bool) public isStableCoin;
+  mapping(address => uint256) public stableCoinIndex; // 0 means "not present"
   address[] public stableCoins; // List of all stable coins
   mapping(address => uint256) public claimableTokens;
   address[] public poolTokens; // List of all tokens in the pool
@@ -169,12 +171,12 @@ contract BuffCatUpgradeable is
   error InvalidInput();
 
   modifier onlyAuthorized() {
-    if (!(msg.sender == owner() || authorizedUpdaters[msg.sender])) revert NotAuthorized();
-    _;
-  }
-
-  modifier onlyFounderWallet() {
-    if (msg.sender != founderWallet) revert NotAuthorized();
+    if (!(
+        msg.sender == owner() ||
+        authorizedUpdaters[msg.sender] ||
+        msg.sender == developerWallet ||
+        msg.sender == founderWallet
+    )) revert NotAuthorized();
     _;
   }
 
@@ -985,6 +987,7 @@ contract BuffCatUpgradeable is
       if (token == address(0)) revert InvalidAddress();
       isStableCoin[token] = true;
       stableCoins.push(token);
+      stableCoinIndex[token] = stableCoins.length;
       emit StableCoinAdded(token, block.timestamp);
     }
   }
@@ -1000,6 +1003,20 @@ contract BuffCatUpgradeable is
       address token = _tokens[i];
       if (token == address(0)) revert InvalidAddress();
       isStableCoin[token] = false;
+
+      uint256 idxPlusOne = stableCoinIndex[token];
+      uint256 idx = idxPlusOne - 1;
+      uint256 lastIdx = stableCoins.length - 1;
+
+      if (idx != lastIdx) {
+        address lastToken = stableCoins[lastIdx];
+        stableCoins[idx] = lastToken;
+        stableCoinIndex[lastToken] = idx + 1;
+      }
+
+      stableCoins.pop();
+      delete stableCoinIndex[token];
+
       emit StableCoinRemoved(token, block.timestamp);
     }
   }
@@ -1016,6 +1033,7 @@ contract BuffCatUpgradeable is
       if (token == address(0)) revert InvalidAddress();
       whitelistedTokens[token] = true;
       tokensWhitelist.push(token);
+      whitelistIndex[token] = tokensWhitelist.length;
       emit TokenWhitelisted(token, block.timestamp);
     }
   }
@@ -1082,6 +1100,20 @@ contract BuffCatUpgradeable is
       address token = _tokens[i];
       if (token == address(0)) revert InvalidAddress();
       whitelistedTokens[token] = false;
+
+      uint256 idxPlusOne = whitelistIndex[token];
+      uint256 idx = idxPlusOne - 1;
+      uint256 lastIdx = tokensWhitelist.length - 1;
+
+      if (idx != lastIdx) {
+        address lastToken = tokensWhitelist[lastIdx];
+        tokensWhitelist[idx] = lastToken;
+        whitelistIndex[lastToken] = idx + 1;
+      }
+
+      tokensWhitelist.pop();
+      delete whitelistIndex[token];
+
       emit TokenBlacklisted(token, block.timestamp);
     }
   }

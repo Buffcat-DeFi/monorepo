@@ -8,7 +8,6 @@ import {stdJson} from 'forge-std/StdJson.sol';
 import {MockERC20} from '../../unit/lib/MockERC20.sol';
 import {MockFeedRegistry} from '../../unit/lib/MockFeedRegistry.sol';
 import {Denominations} from '../../../lib/chainlink-brownie-contracts/contracts/src/v0.8/Denominations.sol';
-import {FeedRegistryInterface} from '../../../lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/FeedRegistryInterface.sol';
 import {IBuffCat} from '../../../src/IBuffCat.sol';
 import {BuffCatUpgradeable, LockType} from '../../../src/BuffCat.sol';
 import {ERC1967Proxy} from '@openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol';
@@ -17,6 +16,7 @@ import {IUniswapV3Factory} from 'v3-core/interfaces/IUniswapV3Factory.sol';
 import {IUniswapV3Pool} from 'v3-core/interfaces/IUniswapV3Pool.sol';
 import {ISwapRouter} from 'v3-periphery/interfaces/ISwapRouter.sol';
 import 'v3-core/libraries/TickMath.sol';
+import {MockAggregator} from '../../unit/lib/MockAggregator.sol';
 
 // ==========================================
 // UNIVERSAL INTERFACES (from gemini-code-1783147559780.txt)
@@ -144,23 +144,6 @@ contract DeployAndInitializeScript is Script {
         tokensWhitelist[7] = address(token8);
         tokensWhitelist[8] = address(token9);
 
-        // 2. Deploy Feed Registry
-        MockFeedRegistry registry = new MockFeedRegistry();
-        console.log('MockFeedRegistry deployed at:', address(registry));
-
-        // 3. Set Prices
-        registry.setPrice(address(token1), Denominations.USD, int256(2000 * 10 ** 8));
-        console.log('Set price for Token1');
-        registry.setPrice(address(token2), Denominations.USD, int256(60000 * 10 ** 8));
-        console.log('Set price for Token2');
-        registry.setPrice(address(token3), Denominations.USD, int256(1 * 10 ** 8));
-        console.log('Set price for Token3');
-        registry.setPrice(address(usdc), Denominations.USD, int256(1 * 10 ** 8));
-        console.log('Set price for USDC');
-        registry.setPrice(address(usdt), Denominations.USD, int256(1 * 10 ** 8));
-        console.log('Set price for USDT');
-        console.log('Prices Set.');
-
         // 4. Deploy BuffCat Upgradeable
         BuffCatUpgradeable buffcatImpl = new BuffCatUpgradeable();
         console.log('BuffCat Implementation deployed at:', address(buffcatImpl));
@@ -168,11 +151,10 @@ contract DeployAndInitializeScript is Script {
             BuffCatUpgradeable.initialize.selector,
             developerPublicKey,
             founderPublicKey,
-            address(registry),
             uniswapFactory
         );
         ERC1967Proxy proxy = new ERC1967Proxy(address(buffcatImpl), data);
-        IBuffCat buffCat = IBuffCat(address(proxy));
+        BuffCatUpgradeable buffCat = BuffCatUpgradeable(address(proxy));
         console.log('BuffCat Proxy deployed at:', address(proxy));
 
         // 5. Whitelist Tokens
@@ -191,6 +173,30 @@ contract DeployAndInitializeScript is Script {
         console.log('Added USDC as stablecoin');
         console.log('Added USDT as stablecoin');
         console.log('Tokens whitelisted and stablecoins added.');
+
+        // Deploy and set up individual data feeds (same price scaled to 8 decimals)
+        MockAggregator token1Feed = new MockAggregator(8, int256(2000 * 10 ** 8)); // $,2000
+        MockAggregator token2Feed = new MockAggregator(8, int256(60000 * 10 ** 8)); // $60,000
+        MockAggregator token3Feed = new MockAggregator(8, int256(1 * 10 ** 8)); // $1
+        MockAggregator usdcFeed = new MockAggregator(8, int256(1 * 10 ** 8)); // $17
+        MockAggregator usdtFeed = new MockAggregator(8, int256(1 * 10 ** 8)); // $1
+
+        // Add all data feeds to BuffCat
+        address[] memory dataFeeds = new address[](5);
+        dataFeeds[0] = address(token1Feed);
+        dataFeeds[1] = address(token2Feed);
+        dataFeeds[2] = address(token3Feed);
+        dataFeeds[3] = address(usdcFeed);
+        dataFeeds[4] = address(usdtFeed);
+
+        address[] memory dataFeedTokens = new address[](5);
+        dataFeedTokens[0] = address(token1);
+        dataFeedTokens[1] = address(token2);
+        dataFeedTokens[2] = address(token3);
+        dataFeedTokens[3] = address(usdc);
+        dataFeedTokens[4] = address(usdt);
+
+        buffCat.addDataFeeds(dataFeedTokens, dataFeeds);
 
         vm.stopBroadcast();
 
@@ -294,7 +300,6 @@ contract DeployAndInitializeScript is Script {
         console.log('Token9:', address(token9));
         console.log('USDC:', address(usdc));
         console.log('USDT:', address(usdt));
-        console.log('MockFeedRegistry:', address(registry));
         console.log('BuffCat Impl:', address(buffcatImpl));
         console.log('BuffCat Proxy:', address(proxy));
         for(uint256 i = 0; i < 6; i++) {
@@ -314,7 +319,6 @@ contract DeployAndInitializeScript is Script {
         vm.serializeAddress(obj1, "token9", address(token9));
         vm.serializeAddress(obj1, "usdc", address(usdc));
         vm.serializeAddress(obj1, "usdt", address(usdt));
-        vm.serializeAddress(obj1, "registry", address(registry));
         vm.serializeAddress(obj1, "buffcatImpl", address(buffcatImpl));
         vm.serializeAddress(obj1, "buffCatProxy", address(proxy));
         vm.serializeAddress(obj1, "pool0", poolArr[0]);

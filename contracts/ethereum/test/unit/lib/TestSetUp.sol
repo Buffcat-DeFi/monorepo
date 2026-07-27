@@ -20,7 +20,7 @@ import '@uniswap/v3-core/contracts/libraries/TickMath.sol';
 import '../../../lib/v3-periphery/contracts/libraries/LiquidityAmounts.sol';
 import '../../../lib/v3-core/contracts/interfaces/callback/IUniswapV3MintCallback.sol';
 import '../../../lib/openzeppelin-contracts/contracts/utils/math/Math.sol';
-import {MockAggregator} from "./MockAggregator.sol";
+import {MockAggregator} from './MockAggregator.sol';
 
 contract TestSetUp is Test, IUniswapV3MintCallback {
   BuffCatUpgradeable public buffCat;
@@ -61,6 +61,8 @@ contract TestSetUp is Test, IUniswapV3MintCallback {
   MockAggregator public token7Feed;
   MockAggregator public usdcFeed;
   MockAggregator public usdtFeed;
+
+  address[] public tokensWhitelist = new address[](11);
 
   function setUp() public {
     // Fork mainnet for testing
@@ -171,7 +173,6 @@ contract TestSetUp is Test, IUniswapV3MintCallback {
     stableCoins[0] = address(token7);
     buffCat.addStableCoin(stableCoins);
 
-    address[] memory tokensWhitelist = new address[](11);
     tokensWhitelist[0] = address(token1);
     tokensWhitelist[1] = address(token2);
     tokensWhitelist[2] = address(token3);

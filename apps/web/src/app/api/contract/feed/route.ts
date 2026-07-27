@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 import { type ErrorResponse, type DataFeedResponse, tokenRequestSchema } from '@/types/api';
 import { jsonError, getEvmRpcUrl } from '@/lib/utils';
 import { envVariables } from '@/lib/envVariables';
-import { getEvmAbi } from '@/lib/utils';
+import buffcatAbi from '@/lib/evm/buffcat.json';
 
 export async function GET(
   request: NextRequest,
@@ -20,7 +20,6 @@ export async function GET(
   const { chain, tokenAddress } = parsedRequest.data;
 
   try {
-    const buffcatAbi = getEvmAbi(chain);
     const rpcUrl = getEvmRpcUrl(chain);
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const contractAddress = envVariables.buffcatContract[chain];
@@ -29,7 +28,7 @@ export async function GET(
       return jsonError('Contract address not set for this chain.', 500);
     }
 
-    const contract = new ethers.Contract(contractAddress, buffcatAbi, provider);
+    const contract = new ethers.Contract(contractAddress, buffcatAbi.abi, provider);
     const feedAddress: string = await contract.dataFeeds(tokenAddress);
 
     const response: DataFeedResponse = { data: feedAddress };

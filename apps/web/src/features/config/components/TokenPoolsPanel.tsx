@@ -1,34 +1,32 @@
 'use client';
-
 import { useState, useMemo } from 'react';
 import { useAtomValue } from 'jotai';
 import { selectedBlockchainAtom } from '@/store/global';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, Download, Plus, Trash2, Loader2, ExternalLink, Link2 } from 'lucide-react';
+import { RefreshCw, Download, Plus, Trash2, ExternalLink, Link2 } from 'lucide-react';
 import { useWriteContract } from 'wagmi';
 import { toast } from 'sonner';
-import { getEvmAbi } from '@/lib/utils';
 import { useTransactionDialog } from '@/hooks/transactionDialogHook';
 import { useWhitelist } from '@/hooks/query/contract';
-import { downloadCsv, getContractAddress } from '../lib/utils';
 import TokenRow from './TokenRow';
 import PoolDetailModal from './PoolDetailModal';
 import { CsvUploadPanel, CsvPreviewTable } from './UploadInterface';
+import buffcatAbi from '@/lib/evm/buffcat.json';
+import { envVariables } from '@/lib/envVariables';
 
 export default function TokenPoolsPanel() {
-  const chain = useAtomValue(selectedBlockchainAtom);
+  const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
   const {
     data: whitelistData,
     isLoading: wlLoading,
     isFetching: wlFetching,
     refresh: wlRefresh,
-  } = useWhitelist(chain);
+  } = useWhitelist(selectedBlockchain);
   const { writeContractAsync } = useWriteContract();
   const { withConfirmation } = useTransactionDialog();
-  const buffcatAbi = useMemo(() => getEvmAbi(chain.id), [chain.id]);
-  const contractAddress = getContractAddress(chain.id);
+  const buffcatContractAddress = envVariables.buffcatContract[selectedBlockchain.id];
 
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
   const [addCsvData, setAddCsvData] = useState<Record<string, string>[]>([]);
@@ -70,11 +68,11 @@ export default function TokenPoolsPanel() {
         const pools = addRows.map((r) => r.pool);
         const pairedTokens = addRows.map((r) => r.pairedToken);
         const sig = await writeContractAsync({
-          address: contractAddress as `0x${string}`,
-          abi: buffcatAbi,
+          address: buffcatContractAddress as `0x${string}`,
+          abi: buffcatAbi.abi,
           functionName: 'addTokenPools',
           args: [tokens, pools, pairedTokens, BigInt(addRows.length)],
-          chainId: chain.chainId,
+          chainId: selectedBlockchain.chainId,
         });
         toast.success('TX Submitted', { description: sig });
       },
@@ -83,7 +81,7 @@ export default function TokenPoolsPanel() {
         description: `Add ${addRows.length} pool mapping(s).`,
         successMessage: 'Token pools added successfully.',
         loadingTitle: 'Processing Transaction',
-        loadingDescription: `Adding ${addRows.length} pool mapping(s) on ${chain.name}...`,
+        loadingDescription: `Adding ${addRows.length} pool mapping(s) on ${selectedBlockchain.name}...`,
       },
     );
   };
@@ -93,11 +91,11 @@ export default function TokenPoolsPanel() {
     await withConfirmation(
       async () => {
         const sig = await writeContractAsync({
-          address: contractAddress as `0x${string}`,
-          abi: buffcatAbi,
+          address: buffcatContractAddress as `0x${string}`,
+          abi: buffcatAbi.abi,
           functionName: 'removeTokenPools',
           args: [removeAddresses],
-          chainId: chain.chainId,
+          chainId: selectedBlockchain.chainId,
         });
         toast.success('TX Submitted', { description: sig });
       },
@@ -106,7 +104,7 @@ export default function TokenPoolsPanel() {
         description: `Remove ${removeAddresses.length} pool mapping(s).`,
         successMessage: 'Token pools removed successfully.',
         loadingTitle: 'Processing Transaction',
-        loadingDescription: `Removing ${removeAddresses.length} pool mapping(s) on ${chain.name}...`,
+        loadingDescription: `Removing ${removeAddresses.length} pool mapping(s) on ${selectedBlockchain.name}...`,
       },
     );
   };
@@ -175,7 +173,7 @@ export default function TokenPoolsPanel() {
                     <TokenRow
                       key={addr}
                       address={addr}
-                      chain={chain}
+                      chain={selectedBlockchain}
                       action={
                         <Button
                           variant="outline"
@@ -197,7 +195,7 @@ export default function TokenPoolsPanel() {
 
       <PoolDetailModal
         tokenAddress={selectedToken ?? ''}
-        chain={chain}
+        chain={selectedBlockchain}
         isOpen={!!selectedToken}
         onClose={() => setSelectedToken(null)}
       />

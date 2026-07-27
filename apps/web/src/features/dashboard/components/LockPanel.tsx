@@ -35,7 +35,7 @@ import { envVariables } from '@/lib/envVariables';
 import { LockType } from '@/types/global';
 import { useClaimable, useLocks } from '../hooks/query/contract';
 import { useTokenMetadata, useERCMetadata } from '../../../hooks/query/tokens';
-import { getEvmAbi } from '@/lib/utils';
+import buffcatAbi from '@/lib/evm/buffcat.json';
 import { isValidFloat } from '@/features/dashboard/lib/utils';
 import { Slider } from '@/components/ui/slider';
 import { isAddress } from 'viem';
@@ -52,9 +52,7 @@ export default function LockPanel() {
     const result = parsed - parsed * 0.005;
     return Number(result.toFixed(6)).toString();
   }, [amount]);
-  const buffcatAbi = useMemo(() => {
-    return getEvmAbi(selectedBlockchain.id);
-  }, [selectedBlockchain]);
+  const buffcatContractAddress = envVariables.buffcatContract[selectedBlockchain.id];
   const { writeContractAsync } = useWriteContract();
   const { refresh: refreshClaimable } = useClaimable(selectedBlockchain);
   const { refresh: refreshLocks } = useLocks(selectedBlockchain, currentUser.address);
@@ -182,21 +180,13 @@ export default function LockPanel() {
       return;
     }
     approvalAmount = parsedAmount * 10 ** decimals;
-    const buffcatContract =
-      selectedBlockchain.id == 'eth'
-        ? envVariables.buffcatContract.eth
-        : envVariables.buffcatContract.base;
-    if (buffcatContract == '') {
-      toast.error(`${selectedBlockchain.name} Buffcat contract address not set.`);
-      return;
-    }
     await withConfirmation(
       async () => {
         const sig = await writeContractAsync({
           address: tokenAddress as `0x${string}`,
           abi: erc20Abi,
           functionName: 'approve',
-          args: [buffcatContract, BigInt(Math.floor(approvalAmount))],
+          args: [buffcatContractAddress, BigInt(Math.floor(approvalAmount))],
           chainId: selectedBlockchain.chainId,
         });
         toast.success('Signature', {
@@ -242,19 +232,11 @@ export default function LockPanel() {
       return;
     }
     lockAmount = parsedAmount * 10 ** decimals;
-    const buffcatContract =
-      selectedBlockchain.id == 'eth'
-        ? envVariables.buffcatContract.eth
-        : envVariables.buffcatContract.base;
-    if (buffcatContract == '') {
-      toast.error(`${selectedBlockchain.name} Buffcat contract address not set.`);
-      return;
-    }
     await withConfirmation(
       async () => {
         const sig = await writeContractAsync({
-          address: buffcatContract as `0x${string}`,
-          abi: buffcatAbi,
+          address: buffcatContractAddress as `0x${string}`,
+          abi: buffcatAbi.abi,
           functionName: 'lockAssets',
           args: [
             tokenAddress,

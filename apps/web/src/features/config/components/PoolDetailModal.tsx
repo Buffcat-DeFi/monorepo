@@ -1,5 +1,4 @@
 'use client';
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertCircle, CircleQuestionMark, ExternalLink, Link2, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,6 @@ import { placeholders } from '@/constants/placeholders';
 import { Blockchain } from '@/types/global';
 import { useTokenMetadata, useERCMetadata } from '@/hooks/query/tokens';
 import { useTokenPool } from '../hooks/query/contract';
-import { useMemo } from 'react';
 
 interface PoolDetailModalProps {
   tokenAddress: string;

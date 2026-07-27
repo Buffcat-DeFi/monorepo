@@ -1,7 +1,11 @@
-export const envVariables = {
+import { SupportedBlockchain } from "@/types/global";
+
+export const envVariables: {
+  buffcatContract: Record<SupportedBlockchain, string>;
+} = {
   buffcatContract: {
-    eth: '0xED1540110760e77Bf380D6C8c0Cf9bd39617b360',
+    eth: '0x3a671867b72ebeb3da6F1113A73b188609B99522',
     base: '',
-    sol: '',
+    solana: '',
   },
 };

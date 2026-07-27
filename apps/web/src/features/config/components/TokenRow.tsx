@@ -1,5 +1,4 @@
 'use client';
-
 import { CircleQuestionMark } from 'lucide-react';
 import ImageWithFallback from '@/components/ImageWithFallback';
 import { placeholders } from '@/constants/placeholders';

@@ -31,7 +31,7 @@ import { toast } from 'sonner';
 import { envVariables } from '@/lib/envVariables';
 import { useTokenMetadata, useERCMetadata } from '../../../hooks/query/tokens';
 import { Blockchain } from '@/types/global';
-import { getEvmAbi } from '@/lib/utils';
+import buffcatAbi from '@/lib/evm/buffcat.json';
 
 const ClaimTokenAvatar = ({
   tokenAddress,
@@ -159,6 +159,7 @@ export default function ClaimRewardsPanel() {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(false);
   const [selectedTokens, setSelectedTokens] = useAtom(selectedTokensAtom);
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
+  const buffcatContractAddress = envVariables.buffcatContract[selectedBlockchain.id];
   const currentUser = useAtomValue(currentUserAtom);
   const { writeContractAsync } = useWriteContract();
   const chosenRewardTokens = useMemo(() => {
@@ -174,9 +175,6 @@ export default function ClaimRewardsPanel() {
     } else return null;
   }, [lockId, userLocksValue]);
   const setTokenSelectorState = useSetAtom(tokenSelectorAtom);
-  const buffcatAbi = useMemo(() => {
-    return getEvmAbi(selectedBlockchain.id);
-  }, [selectedBlockchain]);
 
   const handleTokenSelectorTrigger = () => {
     setTokenSelectorState((prev) => ({
@@ -251,14 +249,6 @@ export default function ClaimRewardsPanel() {
       toast.error('Invalid Lock ID.');
       return;
     }
-    const buffcatContract =
-      selectedBlockchain.id == 'eth'
-        ? envVariables.buffcatContract.eth
-        : envVariables.buffcatContract.base;
-    if (buffcatContract == '') {
-      toast.error(`${selectedBlockchain.name} Buffcat contract address not set.`);
-      return;
-    }
 
     const tokenAddresses = chosenRewardTokens.map((t) => t);
 
@@ -266,8 +256,8 @@ export default function ClaimRewardsPanel() {
       async () => {
         try {
           const sig = await writeContractAsync({
-            address: buffcatContract as `0x${string}`,
-            abi: buffcatAbi,
+            address: buffcatContractAddress as `0x${string}`,
+            abi: buffcatAbi.abi,
             functionName: 'claimRewards',
             args: [tokenAddresses, BigInt(lockId), BigInt(claimDays)],
             chainId: selectedBlockchain.chainId,

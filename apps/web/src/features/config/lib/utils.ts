@@ -1,12 +1,3 @@
-import { envVariables } from '@/lib/envVariables';
-import { SupportedBlockchain } from '@/types/global';
-
-// ─── Contract ────────────────────────────────────────────────────────────────
-
-export function getContractAddress(chainId: SupportedBlockchain) {
-  return envVariables.buffcatContract[chainId === 'eth' ? 'eth' : 'base'];
-}
-
 // ─── CSV Download ─────────────────────────────────────────────────────────────
 
 export function downloadCsv(filename: string, content: string) {

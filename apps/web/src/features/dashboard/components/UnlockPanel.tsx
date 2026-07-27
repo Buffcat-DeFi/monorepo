@@ -26,7 +26,7 @@ import { useTransactionDialog } from '../../../hooks/transactionDialogHook';
 import { toast } from 'sonner';
 import { envVariables } from '@/lib/envVariables';
 import { useWriteContract } from 'wagmi';
-import { getEvmAbi } from '@/lib/utils';
+import buffcatAbi from '@/lib/evm/buffcat.json';
 import { isValidFloat } from '@/features/dashboard/lib/utils';
 import { useERCMetadata, useTokenMetadata } from '../../../hooks/query/tokens';
 import { Lock } from '@/types/api';
@@ -45,9 +45,7 @@ export default function UnlockPanel() {
     const result = parsed - parsed * 0.005;
     return Number(result.toFixed(6)).toString();
   }, [amount]);
-  const buffcatAbi = useMemo(() => {
-    return getEvmAbi(selectedBlockchain.id);
-  }, [selectedBlockchain]);
+  const buffcatContractAddress = envVariables.buffcatContract[selectedBlockchain.id];
   const lockId = useAtomValue(selectedLockAtom);
   const { writeContractAsync } = useWriteContract();
   const { refresh: refreshClaimable } = useClaimable(selectedBlockchain);
@@ -144,19 +142,11 @@ export default function UnlockPanel() {
     if (decimals) {
       unlockAmount = parsedAmount * 10 ** decimals;
     }
-    const buffcatContract =
-      selectedBlockchain.id == 'eth'
-        ? envVariables.buffcatContract.eth
-        : envVariables.buffcatContract.base;
-    if (buffcatContract == '') {
-      toast.error(`${selectedBlockchain.name} Buffcat contract address not set.`);
-      return;
-    }
     await withConfirmation(
       async () => {
         const sig = await writeContractAsync({
-          address: buffcatContract as `0x${string}`,
-          abi: buffcatAbi,
+          address: buffcatContractAddress as `0x${string}`,
+          abi: buffcatAbi.abi,
           functionName: 'unlockAssets',
           args: [BigInt(lockId), BigInt(Math.floor(unlockAmount))],
           chainId: selectedBlockchain.chainId,

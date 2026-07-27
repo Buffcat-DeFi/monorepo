@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 import { type ErrorResponse, type TokenPoolResponse, tokenRequestSchema } from '@/types/api';
 import { jsonError, getEvmRpcUrl } from '@/lib/utils';
 import { envVariables } from '@/lib/envVariables';
-import { getEvmAbi } from '@/lib/utils';
+import buffcatAbi from '@/lib/evm/buffcat.json';
 
 const TOKEN_POOLS_ABI = [
   'function tokenPools(address) view returns (address pool, address pairedToken)',
@@ -24,7 +24,6 @@ export async function GET(
   const { chain, tokenAddress } = parsedRequest.data;
 
   try {
-    const buffcatAbi = getEvmAbi(chain);
     const rpcUrl = getEvmRpcUrl(chain);
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const contractAddress = envVariables.buffcatContract[chain];
@@ -33,7 +32,7 @@ export async function GET(
       return jsonError('Contract address not set for this chain.', 500);
     }
 
-    const contract = new ethers.Contract(contractAddress, buffcatAbi, provider);
+    const contract = new ethers.Contract(contractAddress, buffcatAbi.abi, provider);
     const result = await contract.tokenPools(tokenAddress);
 
     const response: TokenPoolResponse = {

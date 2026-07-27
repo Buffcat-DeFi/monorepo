@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useMemo } from 'react';
 import { useAtomValue } from 'jotai';
 import { selectedBlockchainAtom } from '@/store/global';
@@ -9,20 +8,20 @@ import { Badge } from '@/components/ui/badge';
 import { RefreshCw, Download, Plus, Trash2, AlertCircle, Loader2, Database } from 'lucide-react';
 import { useWriteContract } from 'wagmi';
 import { toast } from 'sonner';
-import { getEvmAbi } from '@/lib/utils';
+import buffcatAbi from '@/lib/evm/buffcat.json';
 import { useTransactionDialog } from '@/hooks/transactionDialogHook';
 import { useWhitelist } from '@/hooks/query/contract';
-import { downloadCsv, getContractAddress } from '../lib/utils';
+import { downloadCsv } from '../lib/utils';
 import TokenRow from './TokenRow';
 import { CsvUploadPanel, CsvPreviewTable } from './UploadInterface';
+import { envVariables } from '@/lib/envVariables';
 
 export default function WhitelistPanel() {
-  const chain = useAtomValue(selectedBlockchainAtom);
-  const { data, isLoading, isFetching, isError, refresh } = useWhitelist(chain);
+  const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
+  const { data, isLoading, isFetching, isError, refresh } = useWhitelist(selectedBlockchain);
   const { writeContractAsync } = useWriteContract();
   const { withConfirmation } = useTransactionDialog();
-  const buffcatAbi = useMemo(() => getEvmAbi(chain.id), [chain.id]);
-  const contractAddress = getContractAddress(chain.id);
+  const buffcatContractAddress = envVariables.buffcatContract[selectedBlockchain.id];
 
   const [addCsvData, setAddCsvData] = useState<Record<string, string>[]>([]);
   const [removeCsvData, setRemoveCsvData] = useState<Record<string, string>[]>([]);
@@ -42,7 +41,7 @@ export default function WhitelistPanel() {
   const handleDownload = () => {
     if (!data?.data) return;
     const csv = 'Token Address\n' + data.data.join('\n');
-    downloadCsv(`whitelist_${chain.id}.csv`, csv);
+    downloadCsv(`whitelist_${selectedBlockchain.id}.csv`, csv);
   };
 
   const handleAdd = async () => {
@@ -50,20 +49,21 @@ export default function WhitelistPanel() {
     await withConfirmation(
       async () => {
         const sig = await writeContractAsync({
-          address: contractAddress as `0x${string}`,
-          abi: buffcatAbi,
+          address: buffcatContractAddress as `0x${string}`,
+          abi: buffcatAbi.abi,
           functionName: 'whitelistTokens',
           args: [addAddresses],
-          chainId: chain.chainId,
+          chainId: selectedBlockchain.chainId,
         });
         toast.success('TX Submitted', { description: sig });
+        await refresh();
       },
       {
         title: 'Whitelist Tokens?',
         description: `Add ${addAddresses.length} token(s) to the whitelist.`,
         successMessage: 'Tokens whitelisted successfully.',
         loadingTitle: 'Processing Transaction',
-        loadingDescription: `Whitelisting ${addAddresses.length} token(s) on ${chain.name}...`,
+        loadingDescription: `Whitelisting ${addAddresses.length} token(s) on ${selectedBlockchain.name}...`,
       },
     );
   };
@@ -73,20 +73,21 @@ export default function WhitelistPanel() {
     await withConfirmation(
       async () => {
         const sig = await writeContractAsync({
-          address: contractAddress as `0x${string}`,
-          abi: buffcatAbi,
+          address: buffcatContractAddress as `0x${string}`,
+          abi: buffcatAbi.abi,
           functionName: 'blacklistTokens',
           args: [removeAddresses],
-          chainId: chain.chainId,
+          chainId: selectedBlockchain.chainId,
         });
         toast.success('TX Submitted', { description: sig });
+        await refresh();
       },
       {
         title: 'Blacklist Tokens?',
         description: `Remove ${removeAddresses.length} token(s) from the whitelist.`,
         successMessage: 'Tokens blacklisted successfully.',
         loadingTitle: 'Processing Transaction',
-        loadingDescription: `Blacklisting ${removeAddresses.length} token(s) on ${chain.name}...`,
+        loadingDescription: `Blacklisting ${removeAddresses.length} token(s) on ${selectedBlockchain.name}...`,
       },
     );
   };
@@ -148,7 +149,7 @@ export default function WhitelistPanel() {
           {isLoading && (
             <div className="flex items-center justify-center py-8 gap-2 text-custom-muted-text">
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="text-sm">Fetching from chain...</span>
+              <span className="text-sm">Fetching from {selectedBlockchain.name}...</span>
             </div>
           )}
           {!isLoading && !isError && !data && (
@@ -169,7 +170,7 @@ export default function WhitelistPanel() {
               ) : (
                 <div className="max-h-64 overflow-y-auto no-scrollbar">
                   {data.data.map((addr) => (
-                    <TokenRow key={addr} address={addr} chain={chain} />
+                    <TokenRow key={addr} address={addr} chain={selectedBlockchain} />
                   ))}
                 </div>
               )}

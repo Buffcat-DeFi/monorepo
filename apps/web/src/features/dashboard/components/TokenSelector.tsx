@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { selectedBlockchainAtom, selectedLockAtom } from '@/store/global';
 import { useAtomValue, useSetAtom } from 'jotai';
 import Image from 'next/image';
@@ -11,7 +11,6 @@ import { TokenSelectorAtom } from '@/types/state';
 import { useTokenMetadata, useERCMetadata } from '../../../hooks/query/tokens';
 import { useClaimable } from '../hooks/query/contract';
 import { useWhitelist } from '../../../hooks/query/contract';
-import { placeholders } from '@/constants/placeholders';
 import { Loading } from '@/components/Loading';
 import { Blockchain } from '@/types/global';
 import { userLocks } from '@/store/global';
