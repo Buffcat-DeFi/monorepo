@@ -104,15 +104,15 @@ The Buffcat protocol is deployed on both **Ethereum** and **Base** networks usin
 
 | Contract           | Address                                      | Explorer                                                                                     |
 | ------------------ | -------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| **Proxy**          | `0xda0C7529D534D133E85AF10aDC050da29540dE4C` | [View on Etherscan](https://etherscan.io/address/0xda0C7529D534D133E85AF10aDC050da29540dE4C) |
-| **Implementation** | `0x62D5e116606d30cb529B1623Ca5c400D2F9DF433` | [View on Etherscan](https://etherscan.io/address/0x62D5e116606d30cb529B1623Ca5c400D2F9DF433) |
+| **Proxy**          | Not Deployed Yet | [View on Etherscan]() |
+| **Implementation** | Not Deployed Yet | [View on Etherscan]() |
 
 ### Base Mainnet
 
 | Contract           | Address                                      | Explorer                                                                                    |
 | ------------------ | -------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| **Proxy**          | `0xdD28610425F663D87F2ee938E238A394388Ed401` | [View on BaseScan](https://basescan.org/address/0xdD28610425F663D87F2ee938E238A394388Ed401) |
-| **Implementation** | `0x59f35804Fc27C3731FA3f48a0bB1912FF23f0Ba7` | [View on BaseScan](https://basescan.org/address/0x59f35804Fc27C3731FA3f48a0bB1912FF23f0Ba7) |
+| **Proxy**          | `0x31eCd0a6d66263Bc1d0150a0e0eEfc9204D6A391` | [View on BaseScan](https://basescan.org/address/0x31eCd0a6d66263Bc1d0150a0e0eEfc9204D6A391) |
+| **Implementation** | `0x458C8D6b9D28b9f996e9550c8F84E135aD6151eF` | [View on BaseScan](https://basescan.org/address/0x458c8d6b9d28b9f996e9550c8f84e135ad6151ef) |
 
 > **Note:** Both Ethereum and Base networks use identical code.
 
