@@ -61,7 +61,7 @@ export const Header: React.FC = () => {
     <>
       <div className="h-22 min-w-full px-12 flex items-center justify-between">
         <div className="flex items-center">
-          <Image src="/twoside-bold.png" alt="Buffcat Logo" height={56} width={56} />
+          <Image className='rounded-4xl' src="/buffcat_logo.jpg" alt="Buffcat Logo" height={56} width={56} />
           <Link className="no-underline ms-2" href={'/'}>
             <span className={typography.h1}>BUFFCAT</span>
           </Link>

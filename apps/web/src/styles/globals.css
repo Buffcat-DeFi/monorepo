@@ -17,9 +17,9 @@
   --color-custom-muted-text: hsl(220, 10%, 60%);
 
   /* Custom Buffcat colors */
-  --color-crypto-blue: #00bfff;
-  --color-crypto-blue-dark: #00ace6;
-  --color-deep-blue: #0062ff;
+  --color-crypto-orange: #ffb347;
+  --color-crypto-orange-dark: #e09222;
+  --color-deep-orange: #b86e04;
   --color-accent-red: #d92638;
 }
 
@@ -77,7 +77,7 @@
 }
 
 .neo-shadow-accent {
-  box-shadow: 8px 8px 0px hsl(var(--crypto-blue));
+  box-shadow: 8px 8px 0px hsl(var(--crypto-orange));
 }
 
 .text-balance {

@@ -17,7 +17,7 @@ export default function Loading() {
         <Image
           height={192}
           width={192}
-          src={"/buffcat-bold.png"}
+          src={"/buffcat_logo.jpg"}
           alt="Buffcat Logo"
         />
       </motion.div>

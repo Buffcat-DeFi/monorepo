@@ -1,10 +1,10 @@
 import { Metadata } from "next";
 
 export const domain = {
-  https: "https://buffcat.com",
-  www: "www.buffcat.com",
-  full: "https://www.buffcat.com",
-  name: "buffcat.com",
+  https: "https://buffcat.org",
+  www: "www.buffcat.org",
+  full: "https://www.buffcat.org",
+  name: "buffcat.org",
 };
 
 export const buffcatWebsiteMetadata: Metadata = {
@@ -71,14 +71,14 @@ export const buffcatWebsiteMetadata: Metadata = {
       Lock tokens for flexible or fixed durations and claim daily rewards boosted by lock duration, token diversity, and referrals.`,
     images: [
       {
-        url: "/buffcat-bold.png", // Create this image (1200x630px recommended)
+        url: "/buffcat_logo.jpg", // Create this image (1200x630px recommended)
         width: 1200,
         height: 630,
         alt: "Buffcat | Earn Secondary Income From Your Tokens",
         type: "image/png",
       },
       {
-        url: "/buffcat-bold.png", // Square version for some platforms
+        url: "/buffcat_logo.jpg", // Square version for some platforms
         width: 800,
         height: 800,
         alt: "Buffcat Logo",
@@ -95,7 +95,7 @@ export const buffcatWebsiteMetadata: Metadata = {
       "Lock tokens, earn secondary income, and claim boosted daily rewards from Buffcat's reward pool.",
     creator: "@BuffcatFinance",
     site: "@BuffcatFinance",
-    images: ["/buffcat-bold.png"], // 1200x600px recommended
+    images: ["/buffcat_logo.jpg"], // 1200x600px recommended
   },
 
   // Icons and visual branding

@@ -52,9 +52,9 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        "crypto-blue": "hsl(var(--crypto-blue))",
-        "crypto-blue-dark": "hsl(var(--crypto-blue-dark))",
-        "deep-blue": "hsl(var(--deep-blue))",
+        "crypto-orange": "hsl(var(--crypto-orange))",
+        "crypto-orange-dark": "hsl(var(--crypto-orange-dark))",
+        "deep-orange": "hsl(var(--deep-orange))",
         "accent-red": "hsl(var(--accent-red))",
       },
       borderRadius: {
