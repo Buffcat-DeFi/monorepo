@@ -914,6 +914,13 @@ contract BuffCatUpgradeable is
     }
   }
 
+  /*
+   * @title Get Uniswap V3 TWAP Price
+   * @notice Gets the current price of a token using uniswap v3 twap
+   * @dev Internal function for price queries
+   * @param _token Address of the token
+   * @return Current price of the token, token price decimals and token decimals
+   */
   function getTwapPrice(address token) internal returns (uint256, uint8, uint8) {
     TokenPool storage tokenPool = tokenPools[token];
     address pool = tokenPool.pool;
@@ -956,6 +963,9 @@ contract BuffCatUpgradeable is
     }
   }
 
+  /*
+   * @title Helper function for Uniswap V3 TWAP price
+   */
   function getSqrtTwapX96(address uniswapV3Pool) internal view returns (uint160 sqrtPriceX96) {
     uint32[] memory secondsAgos = new uint32[](2);
     secondsAgos[0] = TWAP_PERIOD; // from (before)
@@ -969,6 +979,9 @@ contract BuffCatUpgradeable is
     );
   }
 
+  /*
+   * @title Helper function for Uniswap V3 TWAP price
+   */
   function getPriceX96FromSqrtPriceX96(
     uint160 sqrtPriceX96
   ) internal pure returns (uint256 priceX96) {
@@ -1038,6 +1051,14 @@ contract BuffCatUpgradeable is
     }
   }
 
+  /*
+   * @title Add Token Pools
+   * @notice Add Uniswap V3 pools for tokens that don't have a chainlink feed
+   * @dev Only callable by authorized addresses
+   * @param _tokens Array of token addresses
+   * @param _pools Array of token pool addresses
+   * @param _pairedTokens Array of token addresses that are paired with
+   */
   function addTokenPools(
     address[] calldata _tokens,
     address[] calldata _pools,
@@ -1058,6 +1079,12 @@ contract BuffCatUpgradeable is
     }
   }
 
+  /*
+   * @title Remove Token Pools
+   * @notice Remove Uniswap V3 pools for tokens that don't have a chainlink feed
+   * @dev Only callable by authorized addresses
+   * @param _tokens Array of token addresses
+   */
   function removeTokenPools(address[] calldata _tokens) external onlyAuthorized {
     for (uint256 i = 0; i < _tokens.length; i++) {
       if (_tokens[i] == address(0)) revert InvalidInput();
@@ -1068,6 +1095,13 @@ contract BuffCatUpgradeable is
     }
   }
 
+  /*
+   * @title Add data feeds
+   * @notice Add chainlink feeds for tokens that have one
+   * @dev Only callable by authorized addresses
+   * @param _tokens Array of token addresses
+   * @param _tokens Array of token feed addresses
+   */
   function addDataFeeds(
     address[] calldata _tokens,
     address[] calldata _dataFeeds
@@ -1081,6 +1115,12 @@ contract BuffCatUpgradeable is
     }
   }
 
+  /*
+   * @title Remove data feeds
+   * @notice Remove chainlink feeds for tokens that have one
+   * @dev Only callable by authorized addresses
+   * @param _tokens Array of token addresses
+   */
   function removeDataFeeds(address[] calldata _tokens) external onlyAuthorized {
     for (uint256 i = 0; i < _tokens.length; i++) {
       if (_tokens[i] == address(0)) revert InvalidInput();
@@ -1157,14 +1197,26 @@ contract BuffCatUpgradeable is
     return true;
   }
 
+  /*
+   * @title Get pool tokens
+   * @notice Get the array of tokens that are in the reward pool at the time
+   */
   function getPoolTokens() external view returns (address[] memory) {
     return poolTokens;
   }
 
+  /*
+   * @title Get whitelisted tokens
+   * @notice Get the array of tokens that are whitelisted at the time
+   */
   function getWhitelistedTokens() external view returns (address[] memory) {
     return tokensWhitelist;
   }
 
+  /*
+   * @title Get stable coins
+   * @notice Get the array of tokens that are added as stable coins
+   */
   function getStableCoins() external view returns (address[] memory) {
     return stableCoins;
   }
