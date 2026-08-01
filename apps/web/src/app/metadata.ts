@@ -10,23 +10,25 @@ export const domain = {
 export const buffcatWebsiteMetadata: Metadata = {
   // Basic SEO
   title: {
-    default: "Buffcat | Yield Without Impermanent Loss",
+    default: "Buffcat | Earn Secondary Income From Your Tokens",
     template: "%s | Buffcat",
   },
-  description: `Buffcat is a secure token locking utility where users lock their tokens
-    and receive tradeable derivatives that can be redeemed 1:1.
-    Maximize your DeFi strategy with flexible token management.`,
+  description: `Buffcat is a protocol for earning secondary income from your tokens.
+    Lock tokens with flexible or fixed durations and claim daily rewards accumulated in Buffcat's reward pool.`,
 
   // Keywords for SEO
   keywords: [
+    "secondary income",
     "token locking",
-    "cryptocurrency derivatives",
-    "DeFi utility",
-    "blockchain tokens",
-    "crypto locking protocol",
-    "derivative trading",
-    "token redemption",
+    "DeFi rewards",
+    "reward pool",
+    "crypto yield",
+    "fixed lock",
+    "flexible lock",
+    "referral boost",
+    "token management",
     "decentralized finance",
+    "Buffcat",
   ],
 
   // Author and classification
@@ -64,15 +66,15 @@ export const buffcatWebsiteMetadata: Metadata = {
     locale: "en_US",
     url: domain.https, // Replace with your actual domain
     siteName: "Buffcat",
-    title: "Buffcat | Yield Without Impermanent Loss",
-    description: `Secure token locking utility with 1:1 redeemable derivatives.
-      Optimize your DeFi strategy with flexible token management.`,
+    title: "Buffcat | Earn Secondary Income From Your Tokens",
+    description: `Earn secondary income from your tokens with Buffcat.
+      Lock tokens for flexible or fixed durations and claim daily rewards boosted by lock duration, token diversity, and referrals.`,
     images: [
       {
         url: "/buffcat-bold.png", // Create this image (1200x630px recommended)
         width: 1200,
         height: 630,
-        alt: "Buffcat | Yield Without Impermanent Loss",
+        alt: "Buffcat | Earn Secondary Income From Your Tokens",
         type: "image/png",
       },
       {
@@ -88,11 +90,11 @@ export const buffcatWebsiteMetadata: Metadata = {
   // Twitter Card
   twitter: {
     card: "summary_large_image",
-    title: "Buffcat | Yield Without Impermanent Loss",
+    title: "Buffcat | Earn Secondary Income From Your Tokens",
     description:
-      "Lock tokens, get derivatives, redeem 1:1. Flexible DeFi token management.",
-    creator: "@BuffcatOfficial", // Replace with your Twitter handle
-    site: "@BuffcatOfficial",
+      "Lock tokens, earn secondary income, and claim boosted daily rewards from Buffcat's reward pool.",
+    creator: "@BuffcatFinance",
+    site: "@BuffcatFinance",
     images: ["/buffcat-bold.png"], // 1200x600px recommended
   },
 
@@ -279,7 +281,7 @@ export const jsonLd = {
   "@type": "WebApplication",
   name: "Buffcat",
   description:
-    "Token locking utility where users lock tokens and receive derivatives that can be redeemed 1:1",
+    "Protocol enabling users to earn secondary income by locking tokens with flexible or fixed durations and claiming daily rewards.",
   url: domain.https,
   applicationCategory: "FinanceApplication",
   operatingSystem: "Web Browser",
@@ -293,8 +295,8 @@ export const jsonLd = {
     name: "Buffcat Team",
   },
   featureList: [
-    "Token Locking",
-    "Derivative Generation",
-    "1:1 Token Redemption",
+    "Token Locking (Fixed & Flexible)",
+    "Secondary Income Daily Rewards",
+    "Reward Pool Claiming & Boosts",
   ],
 };

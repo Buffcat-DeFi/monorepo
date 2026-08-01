@@ -4,9 +4,8 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Buffcat",
     short_name: "Buffcat",
-    description: `Buffcat is a secure token locking utility where users lock their tokens
-    and receive tradeable derivatives that can be redeemed 1:1.
-    Maximize your DeFi strategy with flexible token management.`,
+    description: `Buffcat is a protocol for earning secondary income from your tokens.
+    Lock tokens with flexible or fixed durations and claim daily rewards accumulated in Buffcat's reward pool.`,
     start_url: "/",
     display: "standalone",
     background_color: "#fff",
