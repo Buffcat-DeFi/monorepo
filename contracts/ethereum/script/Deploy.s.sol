@@ -5,12 +5,10 @@ import "forge-std/Script.sol";
 import "../src/BuffCat.sol";
 import {ERC1967Proxy} from "@openzeppelin-contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-contract DeployBuffCatUpgradeableOnMainnet is Script {
+contract DeployBuffCatUpgradeable is Script {
     function run() external {
         address developerPublicKey = vm.envAddress("DEVELOPER_PUBLIC_KEY");
         address founderPublicKey = vm.envAddress("FOUNDER_PUBLIC_KEY");
-
-        address uniswapV3PublicKey = vm.envAddress("UNISWAP_V3_ADDRESS");
 
         uint256 ownerPrivateKey = vm.envUint("OWNER_PRIVATE_KEY");
         address ownerPublicKey = vm.addr(ownerPrivateKey);
@@ -31,8 +29,7 @@ contract DeployBuffCatUpgradeableOnMainnet is Script {
         bytes memory data = abi.encodeWithSelector(
             BuffCatUpgradeable.initialize.selector,
             developerPublicKey,
-            founderPublicKey,
-            uniswapV3PublicKey
+            founderPublicKey
         );
         ERC1967Proxy proxy = new ERC1967Proxy(address(buffcatImpl), data);
 

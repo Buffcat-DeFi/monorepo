@@ -69,7 +69,7 @@ contract TestSetUp is Test, IUniswapV3MintCallback {
     // vm.createSelectFork("https://eth-mainnet.g.alchemy.com/v2/reRHZn-g99QDHwJ1yuBt41gN4yyQ_S_S");
     vm.deal(address(this), 10 ether); // Give 10 ether to this contract
     // deploy Uniswap V3 factory
-    vm.createSelectFork(vm.envString('MAINNET_RPC_URL'));
+    vm.createSelectFork(vm.envString('MAINNET_ETH_RPC_URL'));
     factory = IUniswapV3Factory(UNISWAP_V3_FACTORY);
 
     // Deploy tokens
@@ -111,8 +111,7 @@ contract TestSetUp is Test, IUniswapV3MintCallback {
     bytes memory data = abi.encodeWithSelector(
       BuffCatUpgradeable.initialize.selector,
       developerWallet,
-      founderWallet,
-      factory
+      founderWallet
     );
 
     // 3. Deploy the proxy with the logic address and initializer data.

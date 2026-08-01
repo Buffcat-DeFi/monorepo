@@ -150,8 +150,7 @@ contract DeployAndInitializeScript is Script {
         bytes memory data = abi.encodeWithSelector(
             BuffCatUpgradeable.initialize.selector,
             developerPublicKey,
-            founderPublicKey,
-            uniswapFactory
+            founderPublicKey
         );
         ERC1967Proxy proxy = new ERC1967Proxy(address(buffcatImpl), data);
         BuffCatUpgradeable buffCat = BuffCatUpgradeable(address(proxy));

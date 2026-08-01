@@ -20,7 +20,6 @@ import '../lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initiali
 // Uniswap Imports
 import 'v3-core/libraries/FullMath.sol';
 import 'v3-core/libraries/TickMath.sol';
-import '../lib/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
 import '../lib/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 import {FixedPoint96} from '../lib/v3-core/contracts/libraries/FixedPoint96.sol';
 
@@ -63,7 +62,6 @@ contract BuffCatUpgradeable is
   using SafeERC20 for IERC20;
 
   mapping(address => address) public dataFeeds;
-  IUniswapV3Factory public factory; // Uniswap V3 factory on mainnet
   uint32 public TWAP_PERIOD = 300; // 5 minutes
   mapping(address => TokenPool) public tokenPools;
   address public developerWallet;
@@ -193,8 +191,7 @@ contract BuffCatUpgradeable is
    */
   function initialize(
     address _developerWallet,
-    address _founderWallet,
-    address _factory
+    address _founderWallet
   ) public initializer {
     // Initialize OpenZeppelin contracts
     __Ownable_init(msg.sender);
@@ -204,7 +201,6 @@ contract BuffCatUpgradeable is
     developerWallet = _developerWallet;
     founderWallet = _founderWallet;
 
-    factory = IUniswapV3Factory(_factory);
     TWAP_PERIOD = 300; // 5 minutes
 
     //Limits, Caps, helper values etc

@@ -10,10 +10,11 @@ if [ -f ".env" ]; then
 fi
 
 # Deploy and create projects in one go (For Ethereum)
-forge script DeployMainnet.s.sol:DeployBuffCatUpgradeableOnMainnet --verbosity \
-    --rpc-url $MAINNET_RPC_URL \
+forge script Deploy.s.sol:DeployBuffCatUpgradeable --verbosity \
+    --rpc-url $MAINNET_BASE_RPC_URL \
     --broadcast \
     --private-key $OWNER_PRIVATE_KEY \
-    # --verify \
-    # --verifier etherscan \
-    # --etherscan-api-key $ETHERSCAN_API_KEY
+    --verify \
+    --chain 8453 \
+    --verifier etherscan \
+    --etherscan-api-key $ETHERSCAN_API_KEY
