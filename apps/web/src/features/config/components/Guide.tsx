@@ -1,12 +1,10 @@
 'use client';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  CircleHelp,
   Download,
   Table2,
   Upload,
-  CheckCheck,
   ScanSearch,
   FilterX,
   BarChart3,
@@ -16,6 +14,7 @@ import {
   Coins,
   ExternalLink,
   ShieldCheck,
+  BookMarked,
 } from 'lucide-react';
 
 interface GuideProps {
@@ -233,12 +232,12 @@ export default function Guide({ isOpen, onClose }: GuideProps) {
         <div className="relative px-5 pt-5 pb-4 border-b border-custom-primary-color/20 shrink-0 overflow-hidden">
           <div className="relative flex items-center gap-3">
             <div className="flex items-center justify-center w-9 h-9 rounded-xl crypto-orange-gradient-bg shrink-0">
-              <CircleHelp className="w-4 h-4 text-white" />
+              <BookMarked className="w-4 h-4 text-white" />
             </div>
             <div>
-              <p className="font-bold text-base leading-tight text-custom-primary-text">
+              <DialogTitle className="font-bold text-base leading-tight text-custom-primary-text">
                 Token Whitelisting Guide
-              </p>
+              </DialogTitle>
               <p className="text-xs font-normal text-custom-muted-text leading-tight mt-0.5">
                 A step-by-step walkthrough to configure tokens in Buffcat
               </p>
@@ -247,7 +246,7 @@ export default function Guide({ isOpen, onClose }: GuideProps) {
         </div>
 
         {/* ── Scrollable timeline ──────────────────────────────────────── */}
-        <ScrollArea className="h-[540px]">
+        <ScrollArea className="h-[540px] bg-transparent">
           {/*
             Single source of truth for spacing: every direct child of this
             flex column gets exactly 20px (gap-5) between it and its sibling.
