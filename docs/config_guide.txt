@@ -1,0 +1,31 @@
+Token Whitelisting Guide -
+
+Step 1: Whitelist Token addresses
+a. Download the template from whitelist panel.
+b. Using Excel edit the file and add addresses of tokens you want to whitelist according to template.
+c. Upload to the website.
+d. Click 'Whitelist Tokens', approve the transaction, wait and your tokens will be whitelisted in the Buffcat contract.
+
+Step 2: Token Price Configuration
+a. Figure out if the tokens you have whitelisted have a chainlink data feed for USD price or a Uniswap V3 pool with a token that has a chainlink data feed for USD price.
+
+Chainlink data feeds provide token price in multiple currencies like US Dollars (not USDC token), ETH etc. We need feeds that provide price in US Dollars. These feeds are written as Token A / USD. Lastly, feeds are of more than one types like AAVE SVR Proxy and SVR Proxy. So you have to take feed which is neither of them. 
+The attached image shows 3 types of feeds for USDC / USD, out of which the bottom one is the valid feed for use on Buffcat not the above ones mentioned as SVR Proxy and AAVE SVR Proxy. 
+Make sure you select 'Mainnet' beside network dropdown and check asset type 'Crypto' in the asset type dropdown to filter out every other feed which is invalid for Buffcat.
+
+If not, then you can look for Uniswap V3 pool. Remember, pool has to be V3 not V2 or V4. Buffcat is written to work with V3 only since it has a considerable number of pools and is in active usage even today. The token that Token A has been paired with in the pool has to have a chainlink data feed again following the constraints listed above. Lastly make sure the pool used has TVL (Total Value Locked) of $1M or above. This is necessary since otherwise pool prices can be manipulated to deplete rewards from the reward pool in Buffcat. When you look at pools to select from make sure you filter by V3 which is in protocol dropdown. And remember you have to add the paired tokens along with their data feeds as well in the contract otherwise this token pool setup won't work. 
+
+Here are some tokens that if your whitelisted token is paired with, you don't have to check since the feed exists for them on both Ethereum & Base and I have already added feeds for them in the contract - USDC, USDT.
+
+Chainlink Data Feeds (Ethereum) - https://docs.chain.link/data-feeds/price-feeds/addresses?network=ethereum#ethereum-mainnet
+Chainlink Data Feeds (Base) - https://docs.chain.link/data-feeds/price-feeds/addresses?network=base#ethereum-mainnet
+Uniswap V3 Pools (Ethereum) - https://app.uniswap.org/explore/pools/ethereum
+Uniswap V3 Pools (Base) - https://app.uniswap.org/explore/pools/base
+
+b. Add Chainlink Data Feeds or Uniswap V3 Pools -
+
+If there are chainlink data feeds, go to 'Data Feeds' panel, download data feeds template and input the token and token data feed as per the format. Upload the CSV to the website and then click 'Add Feeds'. Approve the transaction, wait and data will be added to the contract.
+
+Otherwise add Uniswap V3 pools for tokens. Go to 'Token Pools' panel, download the template, write the data for whitelisted token addresses, token pools and paired tokens. Upload to the website, click 'Add Pools', approve the transaction, wait and data will be added to the contract.
+
+Stable Coin List - You can add tokens as stable coins which will behave differently than normal volatile tokens. Follow the same flow, download template, write using Excel, upload, approve and wait.

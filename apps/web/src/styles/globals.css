@@ -44,6 +44,15 @@
   background-clip: text;
 }
 
+.crypto-orange-gradient-bg {
+  background: linear-gradient(
+    135deg,
+    #ffb347 0%,
+    #ff8a2a 45%,
+    #ff6b1a 100%
+  );
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

@@ -5,7 +5,7 @@ import { selectedBlockchainAtom } from '@/store/global';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, Download, Plus, Trash2, AlertCircle, Loader2, Database } from 'lucide-react';
+import { RefreshCw, Download, Plus, Trash2, AlertCircle, Loader2, Database, CircleQuestionMark } from 'lucide-react';
 import { useWriteContract } from 'wagmi';
 import { toast } from 'sonner';
 import buffcatAbi from '@/lib/evm/buffcat.json';
@@ -15,6 +15,7 @@ import { downloadCsv } from '../lib/utils';
 import TokenRow from './TokenRow';
 import { CsvUploadPanel, CsvPreviewTable } from './UploadInterface';
 import { envVariables } from '@/lib/envVariables';
+import Guide from './Guide';
 
 export default function WhitelistPanel() {
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
@@ -23,6 +24,7 @@ export default function WhitelistPanel() {
   const { withConfirmation } = useTransactionDialog();
   const buffcatContractAddress = envVariables.buffcatContract[selectedBlockchain.id];
 
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [addCsvData, setAddCsvData] = useState<Record<string, string>[]>([]);
   const [removeCsvData, setRemoveCsvData] = useState<Record<string, string>[]>([]);
 
@@ -106,6 +108,16 @@ export default function WhitelistPanel() {
               </Badge>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsGuideOpen(true)}
+                className="border-custom-primary-color rounded-xl cursor-pointer"
+              >
+                <CircleQuestionMark className="w-3 h-3 mr-1" />
+                Guide
+              </Button>
+              <Guide isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
               <Button
                 variant="outline"
                 size="sm"

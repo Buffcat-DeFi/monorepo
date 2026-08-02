@@ -19,6 +19,7 @@ export default function Loading() {
           width={192}
           src={"/buffcat_logo.jpg"}
           alt="Buffcat Logo"
+          className="rounded-4xl"
         />
       </motion.div>
     </div>

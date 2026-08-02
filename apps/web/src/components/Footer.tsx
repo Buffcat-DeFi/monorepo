@@ -6,6 +6,7 @@ import {
   FileText,
   Mail,
   Twitter,
+  Code2
 } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
@@ -21,6 +22,11 @@ const footerLinks = [
     label: "Email",
     href: "mailto:twosidefinance@gmail.com",
     icon: Mail,
+  },
+  {
+    label: "Code",
+    href: "https://github.com/Buffcat-DeFi/monorepo",
+    icon: Code2,
   },
   // {
   //   label: "Audit Report",

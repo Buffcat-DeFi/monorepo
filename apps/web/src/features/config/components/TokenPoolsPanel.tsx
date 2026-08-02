@@ -5,7 +5,7 @@ import { selectedBlockchainAtom } from '@/store/global';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, Download, Plus, Trash2, ExternalLink, Link2 } from 'lucide-react';
+import { RefreshCw, Download, Plus, Trash2, ExternalLink, Link2, CircleQuestionMark } from 'lucide-react';
 import { useWriteContract } from 'wagmi';
 import { toast } from 'sonner';
 import { useTransactionDialog } from '@/hooks/transactionDialogHook';
@@ -15,6 +15,7 @@ import PoolDetailModal from './PoolDetailModal';
 import { CsvUploadPanel, CsvPreviewTable } from './UploadInterface';
 import buffcatAbi from '@/lib/evm/buffcat.json';
 import { envVariables } from '@/lib/envVariables';
+import Guide from './Guide';
 
 export default function TokenPoolsPanel() {
   const selectedBlockchain = useAtomValue(selectedBlockchainAtom);
@@ -28,6 +29,7 @@ export default function TokenPoolsPanel() {
   const { withConfirmation } = useTransactionDialog();
   const buffcatContractAddress = envVariables.buffcatContract[selectedBlockchain.id];
 
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
   const [addCsvData, setAddCsvData] = useState<Record<string, string>[]>([]);
   const [removeCsvData, setRemoveCsvData] = useState<Record<string, string>[]>([]);
@@ -125,6 +127,16 @@ export default function TokenPoolsPanel() {
               </Badge>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsGuideOpen(true)}
+                className="border-custom-primary-color rounded-xl cursor-pointer"
+              >
+                <CircleQuestionMark className="w-3 h-3 mr-1" />
+                Guide
+              </Button>
+              <Guide isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
               <Button
                 variant="outline"
                 size="sm"
