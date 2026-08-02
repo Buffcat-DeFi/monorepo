@@ -369,7 +369,7 @@ export default function Guide({ isOpen, onClose }: GuideProps) {
               tagVariant="warning"
               icon={TriangleAlert}
               title="Paired token also needs a feed"
-              description="The token your pool is paired with must itself have a valid Chainlink feed in the contract. USDC is pre-configured — all others must be added manually."
+              description="The token your pool is paired with must itself have a valid Chainlink feed in the contract. USDC is configured already by developer — all others must be added."
             />
             <TimelineItem
               code="2F"
