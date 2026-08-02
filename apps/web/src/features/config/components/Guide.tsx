@@ -290,7 +290,8 @@ export default function Guide({ isOpen, onClose }: GuideProps) {
               tagVariant="onchain"
               icon={ShieldCheck}
               title="Whitelisted in the Buffcat contract"
-              description='Click "Whitelist Tokens," approve the transaction in your wallet, and wait for on-chain confirmation.'
+              description='Click "Whitelist Tokens," approve the transaction in your wallet, and wait for on-chain confirmation. 
+              Keep list under 30 items each time.'
               isLast
             />
 
@@ -339,7 +340,7 @@ export default function Guide({ isOpen, onClose }: GuideProps) {
               tagVariant="action"
               icon={Plus}
               title="Submit via Data Feeds panel"
-              description='Go to the Data Feeds panel, download the template, fill in Token Address and Chainlink Data Feed columns, upload, and click "Add Feeds."'
+              description='Go to the Data Feeds panel, download the template, fill in Token Address and Chainlink Data Feed columns, upload, and click "Add Feeds". Keep list under 30 items each time.'
               isLast
             />
             <SubSectionHeader
@@ -378,7 +379,8 @@ export default function Guide({ isOpen, onClose }: GuideProps) {
               tagVariant="action"
               icon={Plus}
               title="Submit via Token Pools panel"
-              description='Go to the Token Pools panel, download the template, fill in Token Address, Uniswap V3 Pool, and Paired Token columns, upload, and click "Add Pools."'
+              description='Go to the Token Pools panel, download the template, fill in Token Address, Uniswap V3 Pool, and Paired Token columns, upload, and click "Add Pools".
+              Keep list under 30 items each time.'
               isLast
             />
 
@@ -419,7 +421,8 @@ export default function Guide({ isOpen, onClose }: GuideProps) {
               tagVariant="onchain"
               icon={Coins}
               title="Registered as stable coin"
-              description="Approve the transaction and wait for confirmation. The token will now behave as a stable coin in the Buffcat contract."
+              description="Approve the transaction and wait for confirmation. The token will now behave as a stable coin in the Buffcat contract.
+              Keep list under 30 items each time."
               isLast
             />
 
