@@ -104,8 +104,8 @@ The Buffcat protocol is deployed on both **Ethereum** and **Base** networks usin
 
 | Contract           | Address                                      | Explorer                                                                                     |
 | ------------------ | -------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| **Proxy**          | Not Deployed Yet | [View on Etherscan]() |
-| **Implementation** | Not Deployed Yet | [View on Etherscan]() |
+| **Proxy**          | `0x31eCd0a6d66263Bc1d0150a0e0eEfc9204D6A391` | [View on Etherscan](https://etherscan.io/address/0x31eCd0a6d66263Bc1d0150a0e0eEfc9204D6A391) |
+| **Implementation** | `0x458C8D6b9D28b9f996e9550c8F84E135aD6151eF` | [View on Etherscan](https://etherscan.io/address/0x458C8D6b9D28b9f996e9550c8F84E135aD6151eF) |
 
 ### Base Mainnet
 
